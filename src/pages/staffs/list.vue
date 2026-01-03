@@ -1,0 +1,401 @@
+﻿<template>
+  <div>
+    <!-- 헤더 -->
+    <VCard class="mb-4">
+      <VCardTitle class="d-flex align-center pe-2">
+        <VIcon icon="ri-team-line" size="24" class="me-3" />
+        <span>스태프 관리</span>
+
+        <VSpacer />
+
+        <!-- 검색 -->
+        <VTextField
+          v-model="searchQuery"
+          placeholder="이름 검색"
+          prepend-inner-icon="ri-search-line"
+          density="compact"
+          style="max-inline-size: 250px;"
+          class="me-3"
+          clearable
+        />
+
+        <!-- 새 스태프 등록 -->
+        <VBtn
+          color="primary"
+          prepend-icon="ri-user-add-line"
+          @click="openStaffDialog"
+        >
+          스태프 등록
+        </VBtn>
+      </VCardTitle>
+    </VCard>
+
+    <!-- 통계 카드 -->
+    <VRow class="mb-4">
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="primary">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-team-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">전체 스태프</p>
+              <h6 class="text-h6">{{ staffStore.staffs.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="success">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-checkbox-circle-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">활성 스태프</p>
+              <h6 class="text-h6">{{ staffStore.activeStaffs.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="info">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-user-star-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">디자이너</p>
+              <h6 class="text-h6">{{ designerCount }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="warning">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-time-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">평균 경력</p>
+              <h6 class="text-h6">{{ averageCareer }}년</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- 로딩 -->
+    <div v-if="staffStore.loading" class="text-center pa-10">
+      <VProgressCircular indeterminate color="primary" />
+    </div>
+
+    <!-- 스태프 카드 그리드 -->
+    <div v-else-if="filteredStaffs.length > 0">
+      <VRow>
+        <VCol
+          v-for="staff in filteredStaffs"
+          :key="staff.id"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+        >
+          <VCard class="staff-card">
+            <!-- 프로필 섹션 -->
+            <VCardText class="text-center pb-0">
+              <!-- 프로필 이미지 -->
+              <VAvatar
+                :color="staff.profileImageUrl ? undefined : 'primary'"
+                :image="staff.profileImageUrl"
+                size="80"
+                class="mb-3"
+              >
+                <span v-if="!staff.profileImageUrl" class="text-h5">
+                  {{ getInitial(staff.name) }}
+                </span>
+              </VAvatar>
+
+              <!-- 이름 -->
+              <h6 class="text-h6 mb-1">
+                {{ staff.name }}
+              </h6>
+
+              <!-- 역할 -->
+              <VChip
+                :color="getRoleColor(staff.role)"
+                size="small"
+                class="mb-2"
+              >
+                {{ staff.role || '스태프' }}
+              </VChip>
+
+              <!-- 활성/비활성 -->
+              <div class="mb-3">
+                <VChip
+                  :color="staff.isActive !== false ? 'success' : 'error'"
+                  size="small"
+                  variant="outlined"
+                >
+                  {{ staff.isActive !== false ? '근무중' : '휴직' }}
+                </VChip>
+              </div>
+            </VCardText>
+
+            <VDivider />
+
+            <!-- 정보 섹션 -->
+            <VCardText>
+              <!-- 전화번호 -->
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="ri-phone-line" size="18" class="me-2 text-disabled" />
+                <span class="text-sm">{{ staff.phone || '-' }}</span>
+              </div>
+
+              <!-- 경력 -->
+              <div class="d-flex align-center mb-2">
+                <VIcon icon="ri-briefcase-line" size="18" class="me-2 text-disabled" />
+                <span class="text-sm">{{ staff.careerYears || 0 }}년 경력</span>
+              </div>
+
+              <!-- 전문분야 -->
+              <div v-if="staff.specialties && staff.specialties.length > 0" class="mt-3">
+                <p class="text-xs text-disabled mb-1">전문분야</p>
+                <VChip
+                  v-for="specialty in staff.specialties"
+                  :key="specialty"
+                  size="small"
+                  class="me-1 mb-1"
+                >
+                  {{ specialty }}
+                </VChip>
+              </div>
+
+              <!-- 소개 -->
+              <div v-if="staff.introduction" class="mt-3">
+                <p class="text-xs text-disabled">
+                  {{ truncateText(staff.introduction, 60) }}
+                </p>
+              </div>
+            </VCardText>
+
+            <VDivider />
+
+            <!-- 액션 버튼 -->
+            <VCardActions>
+              <VBtn
+                variant="text"
+                size="small"
+                @click="viewStaff(staff)"
+              >
+                <VIcon icon="ri-eye-line" class="me-1" />
+                상세
+              </VBtn>
+
+              <VBtn
+                variant="text"
+                size="small"
+                @click="editStaff(staff)"
+              >
+                <VIcon icon="ri-edit-line" class="me-1" />
+                수정
+              </VBtn>
+
+              <VSpacer />
+
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                color="error"
+                @click="confirmDelete(staff)"
+              >
+                <VIcon icon="ri-delete-bin-line" />
+              </VBtn>
+            </VCardActions>
+          </VCard>
+        </VCol>
+      </VRow>
+    </div>
+
+    <!-- 데이터 없음 -->
+    <VCard v-else>
+      <VCardText class="text-center pa-10">
+        <VIcon
+          icon="ri-team-line"
+          size="64"
+          class="mb-4 text-disabled"
+        />
+        <p class="text-h6 mb-2">등록된 스태프가 없습니다</p>
+        <p class="text-disabled mb-4">
+          첫 스태프를 등록하고 예약을 시작하세요
+        </p>
+        <VBtn
+          color="primary"
+          @click="openStaffDialog"
+        >
+          <VIcon icon="ri-user-add-line" class="me-2" />
+          스태프 등록하기
+        </VBtn>
+      </VCardText>
+    </VCard>
+
+    <!-- 스태프 등록/수정 다이얼로그 -->
+    <StaffDialog
+      v-model="isDialogVisible"
+      :staff="selectedStaff"
+      @saved="handleStaffSaved"
+    />
+
+    <!-- 삭제 확인 다이얼로그 -->
+    <VDialog
+      v-model="isDeleteDialogVisible"
+      max-width="400"
+    >
+      <VCard>
+        <VCardTitle>스태프 삭제</VCardTitle>
+        <VCardText>
+          <p class="mb-0">
+            <strong>{{ selectedStaff?.name }}</strong> 스태프를 삭제하시겠습니까?
+          </p>
+          <p class="text-error text-sm mt-2">
+            ⚠️ 삭제된 스태프 정보는 복구할 수 없습니다.
+          </p>
+        </VCardText>
+
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            variant="outlined"
+            @click="isDeleteDialogVisible = false"
+          >
+            취소
+          </VBtn>
+          <VBtn
+            color="error"
+            @click="deleteStaff"
+          >
+            삭제
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+  </div>
+</template>
+
+<script setup>
+import { useStaffStore } from '@/stores/staff'
+import { computed, onMounted, ref } from 'vue'
+import StaffDialog from './components/StaffDialog.vue'
+
+const staffStore = useStaffStore()
+
+// Refs
+const searchQuery = ref('')
+const isDialogVisible = ref(false)
+const isDeleteDialogVisible = ref(false)
+const selectedStaff = ref(null)
+
+// 검색 필터링
+const filteredStaffs = computed(() => {
+  if (!searchQuery.value) return staffStore.staffs
+  
+  const query = searchQuery.value.toLowerCase()
+  return staffStore.staffs.filter(s => 
+    s.name.toLowerCase().includes(query),
+  )
+})
+
+// 디자이너 수
+const designerCount = computed(() => {
+  return staffStore.staffs.filter(s => s.role === '디자이너').length
+})
+
+// 평균 경력
+const averageCareer = computed(() => {
+  if (staffStore.staffs.length === 0) return 0
+  const total = staffStore.staffs.reduce((sum, s) => sum + (s.careerYears || 0), 0)
+  return Math.round(total / staffStore.staffs.length)
+})
+
+// 이니셜
+function getInitial(name) {
+  return name ? name.charAt(0) : '?'
+}
+
+// 역할 색상
+function getRoleColor(role) {
+  const colors = {
+    '디자이너': 'primary',
+    '원장': 'success',
+    '매니저': 'info',
+    '인턴': 'warning',
+  }
+  return colors[role] || 'default'
+}
+
+// 텍스트 자르기
+function truncateText(text, maxLength) {
+  if (!text) return ''
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
+// 스태프 보기
+function viewStaff(staff) {
+  selectedStaff.value = staff
+  isDialogVisible.value = true
+}
+
+// 스태프 수정
+function editStaff(staff) {
+  selectedStaff.value = staff
+  isDialogVisible.value = true
+}
+
+// 삭제 확인
+function confirmDelete(staff) {
+  selectedStaff.value = staff
+  isDeleteDialogVisible.value = true
+}
+
+// 스태프 삭제
+async function deleteStaff() {
+  if (!selectedStaff.value) return
+
+  try {
+    await staffStore.deleteStaff(selectedStaff.value.id)
+    isDeleteDialogVisible.value = false
+  }
+  catch (error) {
+    console.error('스태프 삭제 실패:', error)
+    alert(error || '스태프 삭제에 실패했습니다.')
+  }
+}
+
+// 새 스태프 등록
+function openStaffDialog() {
+  selectedStaff.value = null
+  isDialogVisible.value = true
+}
+
+// 스태프 저장 후
+async function handleStaffSaved() {
+  isDialogVisible.value = false
+  await staffStore.fetchStaffs()
+}
+
+// 컴포넌트 마운트 시
+onMounted(() => {
+  staffStore.fetchStaffs()
+})
+</script>
+
+<style scoped>
+.staff-card {
+  block-size: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.staff-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 10%);
+  transform: translateY(-4px);
+}
+</style>
