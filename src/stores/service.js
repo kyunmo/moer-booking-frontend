@@ -53,7 +53,7 @@ export const useServiceStore = defineStore('service', {
     async fetchServices(params = {}) {
       this.loading = true
       try {
-        const data = await serviceApi.getServices(this.businessId, params)
+        const { data } = await serviceApi.getServices(this.businessId, params)
         this.services = data
       }
       catch (error) {
@@ -71,7 +71,7 @@ export const useServiceStore = defineStore('service', {
     async fetchServicesByCategory(category) {
       this.loading = true
       try {
-        const data = await serviceApi.getServicesByCategory(this.businessId, category)
+        const { data } = await serviceApi.getServicesByCategory(this.businessId, category)
         this.services = data
       }
       catch (error) {
@@ -89,7 +89,7 @@ export const useServiceStore = defineStore('service', {
     async fetchService(serviceId) {
       this.loading = true
       try {
-        const data = await serviceApi.getService(serviceId)
+        const { data } = await serviceApi.getService(serviceId)
         this.selectedService = data
         return data
       }
@@ -108,7 +108,7 @@ export const useServiceStore = defineStore('service', {
     async createService(serviceData) {
       this.loading = true
       try {
-        const data = await serviceApi.createService({
+        const { data } = await serviceApi.createService({
           ...serviceData,
           businessId: this.businessId,
         })
@@ -130,7 +130,7 @@ export const useServiceStore = defineStore('service', {
     async updateService(serviceId, serviceData) {
       this.loading = true
       try {
-        const data = await serviceApi.updateService(serviceId, serviceData)
+        const { data } = await serviceApi.updateService(serviceId, serviceData)
         const index = this.services.findIndex(s => s.id === serviceId)
         if (index !== -1) {
           this.services[index] = data

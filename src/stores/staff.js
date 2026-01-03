@@ -49,7 +49,7 @@ export const useStaffStore = defineStore('staff', {
     async fetchStaffs(params = {}) {
       this.loading = true
       try {
-        const data = await staffApi.getStaffs(this.businessId, params)
+        const { data } = await staffApi.getStaffs(this.businessId, params)
         this.staffs = data
       }
       catch (error) {
@@ -67,7 +67,7 @@ export const useStaffStore = defineStore('staff', {
     async fetchStaff(staffId) {
       this.loading = true
       try {
-        const data = await staffApi.getStaff(staffId)
+        const { data } = await staffApi.getStaff(staffId)
         this.selectedStaff = data
         return data
       }
@@ -86,7 +86,7 @@ export const useStaffStore = defineStore('staff', {
     async createStaff(staffData) {
       this.loading = true
       try {
-        const data = await staffApi.createStaff({
+        const { data } = await staffApi.createStaff({
           ...staffData,
           businessId: this.businessId,
         })
@@ -108,7 +108,7 @@ export const useStaffStore = defineStore('staff', {
     async updateStaff(staffId, staffData) {
       this.loading = true
       try {
-        const data = await staffApi.updateStaff(staffId, staffData)
+        const { data } = await staffApi.updateStaff(staffId, staffData)
         const index = this.staffs.findIndex(s => s.id === staffId)
         if (index !== -1) {
           this.staffs[index] = data

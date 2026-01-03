@@ -52,7 +52,7 @@ export const useCustomerStore = defineStore('customer', {
     async fetchCustomers(params = {}) {
       this.loading = true
       try {
-        const data = await customerApi.getCustomers(this.businessId, params)
+        const { data } = await customerApi.getCustomers(this.businessId, params)
         this.customers = data
       }
       catch (error) {
@@ -70,7 +70,7 @@ export const useCustomerStore = defineStore('customer', {
     async searchCustomers(keyword) {
       this.loading = true
       try {
-        const data = await customerApi.searchCustomers(this.businessId, keyword)
+        const { data } = await customerApi.searchCustomers(this.businessId, keyword)
         this.customers = data
       }
       catch (error) {
@@ -88,7 +88,7 @@ export const useCustomerStore = defineStore('customer', {
     async fetchCustomer(customerId) {
       this.loading = true
       try {
-        const data = await customerApi.getCustomer(customerId)
+        const { data } = await customerApi.getCustomer(customerId)
         this.selectedCustomer = data
         return data
       }
@@ -107,7 +107,7 @@ export const useCustomerStore = defineStore('customer', {
     async createCustomer(customerData) {
       this.loading = true
       try {
-        const data = await customerApi.createCustomer({
+        const { data } = await customerApi.createCustomer({
           ...customerData,
           businessId: this.businessId,
         })
@@ -129,7 +129,7 @@ export const useCustomerStore = defineStore('customer', {
     async updateCustomer(customerId, customerData) {
       this.loading = true
       try {
-        const data = await customerApi.updateCustomer(customerId, customerData)
+        const { data } = await customerApi.updateCustomer(customerId, customerData)
         const index = this.customers.findIndex(c => c.id === customerId)
         if (index !== -1) {
           this.customers[index] = data

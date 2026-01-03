@@ -36,7 +36,7 @@ export const useReservationStore = defineStore('reservation', {
     async fetchReservationsByDateRange(startDate, endDate) {
       this.loading = true
       try {
-        const data = await reservationApi.getReservationsByDateRange(
+        const { data } = await reservationApi.getReservationsByDateRange(
           this.businessId,
           startDate,
           endDate,

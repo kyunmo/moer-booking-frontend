@@ -42,7 +42,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async fetchBusinessInfo() {
       this.loading = true
       try {
-        const data = await businessSettingsApi.getBusinessInfo(this.businessId)
+        const { data } = await businessSettingsApi.getBusinessInfo(this.businessId)
         this.businessInfo = data
       }
       catch (error) {
@@ -60,7 +60,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async updateBusinessInfo(businessData) {
       this.loading = true
       try {
-        const data = await businessSettingsApi.updateBusinessInfo(this.businessId, businessData)
+        const { data } = await businessSettingsApi.updateBusinessInfo(this.businessId, businessData)
         this.businessInfo = data
         return data
       }
@@ -79,7 +79,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async fetchBusinessHours() {
       this.loading = true
       try {
-        const data = await businessSettingsApi.getBusinessHours(this.businessId)
+        const { data } = await businessSettingsApi.getBusinessHours(this.businessId)
         this.businessHours = data
       }
       catch (error) {
@@ -97,7 +97,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async updateBusinessHours(hoursData) {
       this.loading = true
       try {
-        const data = await businessSettingsApi.updateBusinessHours(this.businessId, hoursData)
+        const { data } = await businessSettingsApi.updateBusinessHours(this.businessId, hoursData)
         this.businessHours = data
         return data
       }
@@ -116,7 +116,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async fetchHolidays(year = null) {
       this.loading = true
       try {
-        const data = await businessSettingsApi.getHolidays(this.businessId, year)
+        const { data } = await businessSettingsApi.getHolidays(this.businessId, year)
         this.holidays = data
       }
       catch (error) {
@@ -134,7 +134,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     async createHoliday(holidayData) {
       this.loading = true
       try {
-        const data = await businessSettingsApi.createHoliday(this.businessId, holidayData)
+        const { data } = await businessSettingsApi.createHoliday(this.businessId, holidayData)
         this.holidays.push(data)
         return data
       }

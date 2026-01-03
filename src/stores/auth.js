@@ -44,7 +44,9 @@ export const useAuthStore = defineStore('auth', {
     async login(credentials) {
       this.loading = true
       try {
-        const data = await authApi.login(credentials)
+        const { data } = await authApi.login(credentials)
+
+        console.log('로그인 성공, 응답 데이터:', data.accessToken, data.refreshToken, data.user)
         
         // 토큰 저장
         this.accessToken = data.accessToken
@@ -106,7 +108,7 @@ export const useAuthStore = defineStore('auth', {
     async register(userData) {
       this.loading = true
       try {
-        const data = await authApi.register(userData)
+        const { data } = await authApi.register(userData)
         
         // 회원가입 후 자동 로그인
         this.accessToken = data.accessToken
@@ -135,7 +137,7 @@ export const useAuthStore = defineStore('auth', {
 
       this.loading = true
       try {
-        const data = await authApi.getCurrentUser()
+        const { data } = await authApi.getCurrentUser()
         this.user = data
         return data
       }
@@ -164,7 +166,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const data = await authApi.refreshToken(this.refreshToken)
+        const { data } = await authApi.refreshToken(this.refreshToken)
         
         this.accessToken = data.accessToken
         localStorage.setItem('accessToken', data.accessToken)
