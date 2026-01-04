@@ -1,12 +1,12 @@
 import staffApi from '@/api/staffs'
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 export const useStaffStore = defineStore('staff', {
   state: () => ({
     staffs: [],
     selectedStaff: null,
     loading: false,
-    businessId: 1, // TODO: 로그인 시스템 연동 후 동적으로 설정
   }),
 
   getters: {
@@ -18,16 +18,16 @@ export const useStaffStore = defineStore('staff', {
     },
 
     /**
-     * 역할별로 그룹화
+     * 직급별로 그룹화
      */
-    staffsByRole: state => {
+    staffsByPosition: state => {
       const grouped = {}
       state.staffs.forEach(staff => {
-        const role = staff.role || '기타'
-        if (!grouped[role]) {
-          grouped[role] = []
+        const position = staff.position || '기타'
+        if (!grouped[position]) {
+          grouped[position] = []
         }
-        grouped[role].push(staff)
+        grouped[position].push(staff)
       })
       return grouped
     },
@@ -37,7 +37,7 @@ export const useStaffStore = defineStore('staff', {
      */
     staffsBySpecialty: state => specialty => {
       return state.staffs.filter(s => 
-        s.specialties && s.specialties.includes(specialty),
+        s.specialty && s.specialty.includes(specialty),
       )
     },
   },
@@ -47,9 +47,19 @@ export const useStaffStore = defineStore('staff', {
      * 스태프 목록 가져오기
      */
     async fetchStaffs(params = {}) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      console.log(businessId);
+      
+      if (!businessId) {
+        console.error('businessId가 없습니다')
+        return
+      }
+
       this.loading = true
       try {
-        const { data } = await staffApi.getStaffs(this.businessId, params)
+        const { data } = await staffApi.getStaffs(businessId, params)
         this.staffs = data
       }
       catch (error) {
@@ -65,9 +75,17 @@ export const useStaffStore = defineStore('staff', {
      * 스태프 상세 조회
      */
     async fetchStaff(staffId) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        console.error('businessId가 없습니다')
+        return
+      }
+
       this.loading = true
       try {
-        const { data } = await staffApi.getStaff(staffId)
+        const { data } = await staffApi.getStaff(businessId, staffId)
         this.selectedStaff = data
         return data
       }
@@ -84,12 +102,16 @@ export const useStaffStore = defineStore('staff', {
      * 스태프 생성
      */
     async createStaff(staffData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await staffApi.createStaff({
-          ...staffData,
-          businessId: this.businessId,
-        })
+        const { data } = await staffApi.createStaff(businessId, staffData)
         this.staffs.push(data)
         return data
       }
@@ -106,13 +128,23 @@ export const useStaffStore = defineStore('staff', {
      * 스태프 수정
      */
     async updateStaff(staffId, staffData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await staffApi.updateStaff(staffId, staffData)
+        const { data } = await staffApi.updateStaff(businessId, staffId, staffData)
+        
+        // 목록에서 업데이트
         const index = this.staffs.findIndex(s => s.id === staffId)
         if (index !== -1) {
           this.staffs[index] = data
         }
+        
         return data
       }
       catch (error) {
@@ -125,19 +157,30 @@ export const useStaffStore = defineStore('staff', {
     },
 
     /**
-     * 스태프 삭제
+     * 스태프 활성/비활성 전환
      */
-    async deleteStaff(staffId) {
+    async toggleStaffActive(staffId) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        await staffApi.deleteStaff(staffId)
+        const { data } = await staffApi.toggleStaffActive(businessId, staffId)
+        
+        // 목록에서 업데이트
         const index = this.staffs.findIndex(s => s.id === staffId)
         if (index !== -1) {
-          this.staffs.splice(index, 1)
+          this.staffs[index] = data
         }
+        
+        return data
       }
       catch (error) {
-        console.error('스태프 삭제 실패:', error)
+        console.error('스태프 상태 변경 실패:', error)
         throw error
       }
       finally {
@@ -146,10 +189,30 @@ export const useStaffStore = defineStore('staff', {
     },
 
     /**
-     * 선택된 스태프 설정
+     * 스태프 삭제
      */
-    setSelectedStaff(staff) {
-      this.selectedStaff = staff
+    async deleteStaff(staffId) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        await staffApi.deleteStaff(businessId, staffId)
+        
+        // 목록에서 제거
+        this.staffs = this.staffs.filter(s => s.id !== staffId)
+      }
+      catch (error) {
+        console.error('스태프 삭제 실패:', error)
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
     },
   },
 })

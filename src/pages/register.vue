@@ -179,6 +179,7 @@ const form = ref({
   phone: '',
   password: '',
   passwordConfirm: '',
+  businessType: 'BEAUTY_SHOP',
   agreeTerms: false,
 })
 
@@ -212,6 +213,7 @@ async function handleRegister() {
       email: form.value.email,
       phone: form.value.phone,
       password: form.value.password,
+      businessType: form.value.businessType,
     })
 
     // 회원가입 성공 시 대시보드로 이동
@@ -219,7 +221,13 @@ async function handleRegister() {
   }
   catch (error) {
     console.error('회원가입 실패:', error)
-    errorMessage.value = error || '회원가입에 실패했습니다. 입력하신 정보를 확인해주세요.'
+    if (error.response?.data?.message) {
+      errorMessage.value = error.response.data.message
+    } else if (error.message) {
+      errorMessage.value = error.message
+    } else {
+      errorMessage.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
+    }
   }
 }
 </script>

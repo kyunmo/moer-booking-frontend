@@ -31,9 +31,13 @@ declare module 'vue-router/auto-routes' {
     'reservations-components-reservation-dialog': RouteRecordInfo<'reservations-components-reservation-dialog', '/reservations/components/ReservationDialog', Record<never, never>, Record<never, never>>,
     'reservations-list': RouteRecordInfo<'reservations-list', '/reservations/list', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
+    'services-components-service-detail-dialog': RouteRecordInfo<'services-components-service-detail-dialog', '/services/components/ServiceDetailDialog', Record<never, never>, Record<never, never>>,
     'services-components-service-dialog': RouteRecordInfo<'services-components-service-dialog', '/services/components/ServiceDialog', Record<never, never>, Record<never, never>>,
+    'services-components-service-form-dialog': RouteRecordInfo<'services-components-service-form-dialog', '/services/components/ServiceFormDialog', Record<never, never>, Record<never, never>>,
     'services-list': RouteRecordInfo<'services-list', '/services/list', Record<never, never>, Record<never, never>>,
+    'staffs-components-staff-detail-dialog': RouteRecordInfo<'staffs-components-staff-detail-dialog', '/staffs/components/StaffDetailDialog', Record<never, never>, Record<never, never>>,
     'staffs-components-staff-dialog': RouteRecordInfo<'staffs-components-staff-dialog', '/staffs/components/StaffDialog', Record<never, never>, Record<never, never>>,
+    'staffs-components-staff-form-dialog': RouteRecordInfo<'staffs-components-staff-form-dialog', '/staffs/components/StaffFormDialog', Record<never, never>, Record<never, never>>,
     'staffs-list': RouteRecordInfo<'staffs-list', '/staffs/list', Record<never, never>, Record<never, never>>,
   }
 }

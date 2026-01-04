@@ -23,7 +23,7 @@
         <VBtn
           color="primary"
           prepend-icon="ri-user-add-line"
-          @click="openStaffDialog"
+          @click="openCreateDialog"
         >
           스태프 등록
         </VBtn>
@@ -61,8 +61,8 @@
           <VCardText class="d-flex align-center">
             <VIcon icon="ri-user-star-line" size="32" class="me-3" />
             <div>
-              <p class="text-xs mb-1">디자이너</p>
-              <h6 class="text-h6">{{ designerCount }}명</h6>
+              <p class="text-xs mb-1">평균 경력</p>
+              <h6 class="text-h6">{{ averageCareer }}년</h6>
             </div>
           </VCardText>
         </VCard>
@@ -73,8 +73,8 @@
           <VCardText class="d-flex align-center">
             <VIcon icon="ri-time-line" size="32" class="me-3" />
             <div>
-              <p class="text-xs mb-1">평균 경력</p>
-              <h6 class="text-h6">{{ averageCareer }}년</h6>
+              <p class="text-xs mb-1">이번 달 예약</p>
+              <h6 class="text-h6">-건</h6>
             </div>
           </VCardText>
         </VCard>
@@ -117,13 +117,14 @@
                 {{ staff.name }}
               </h6>
 
-              <!-- 역할 -->
+              <!-- 직급 -->
               <VChip
-                :color="getRoleColor(staff.role)"
+                v-if="staff.position"
+                :color="getPositionColor(staff.position)"
                 size="small"
                 class="mb-2"
               >
-                {{ staff.role || '스태프' }}
+                {{ staff.position }}
               </VChip>
 
               <!-- 활성/비활성 -->
@@ -143,9 +144,9 @@
             <!-- 정보 섹션 -->
             <VCardText>
               <!-- 전화번호 -->
-              <div class="d-flex align-center mb-2">
+              <div v-if="staff.phone" class="d-flex align-center mb-2">
                 <VIcon icon="ri-phone-line" size="18" class="me-2 text-disabled" />
-                <span class="text-sm">{{ staff.phone || '-' }}</span>
+                <span class="text-sm">{{ staff.phone }}</span>
               </div>
 
               <!-- 경력 -->
@@ -155,16 +156,18 @@
               </div>
 
               <!-- 전문분야 -->
-              <div v-if="staff.specialties && staff.specialties.length > 0" class="mt-3">
+              <div v-if="staff.specialty" class="mt-3">
                 <p class="text-xs text-disabled mb-1">전문분야</p>
-                <VChip
-                  v-for="specialty in staff.specialties"
-                  :key="specialty"
-                  size="small"
-                  class="me-1 mb-1"
-                >
-                  {{ specialty }}
-                </VChip>
+                <div>
+                  <VChip
+                    v-for="(spec, index) in parseSpecialty(staff.specialty)"
+                    :key="index"
+                    size="small"
+                    class="me-1 mb-1"
+                  >
+                    {{ spec }}
+                  </VChip>
+                </div>
               </div>
 
               <!-- 소개 -->
@@ -191,6 +194,7 @@
               <VBtn
                 variant="text"
                 size="small"
+                color="primary"
                 @click="editStaff(staff)"
               >
                 <VIcon icon="ri-edit-line" class="me-1" />
@@ -228,7 +232,7 @@
         </p>
         <VBtn
           color="primary"
-          @click="openStaffDialog"
+          @click="openCreateDialog"
         >
           <VIcon icon="ri-user-add-line" class="me-2" />
           스태프 등록하기
@@ -236,10 +240,18 @@
       </VCardText>
     </VCard>
 
-    <!-- 스태프 등록/수정 다이얼로그 -->
-    <StaffDialog
-      v-model="isDialogVisible"
+    <!-- 스태프 상세보기 다이얼로그 -->
+    <StaffDetailDialog
+      v-model="isDetailDialogVisible"
       :staff="selectedStaff"
+      @edit="handleEditFromDetail"
+      @delete="confirmDelete"
+    />
+
+    <!-- 스태프 등록/수정 다이얼로그 -->
+    <StaffFormDialog
+      v-model="isFormDialogVisible"
+      :staff="staffToEdit"
       @saved="handleStaffSaved"
     />
 
@@ -283,15 +295,18 @@
 <script setup>
 import { useStaffStore } from '@/stores/staff'
 import { computed, onMounted, ref } from 'vue'
-import StaffDialog from './components/StaffDialog.vue'
+import StaffDetailDialog from './components/StaffDetailDialog.vue'
+import StaffFormDialog from './components/StaffFormDialog.vue'
 
 const staffStore = useStaffStore()
 
 // Refs
 const searchQuery = ref('')
-const isDialogVisible = ref(false)
+const isDetailDialogVisible = ref(false)
+const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
 const selectedStaff = ref(null)
+const staffToEdit = ref(null)
 
 // 검색 필터링
 const filteredStaffs = computed(() => {
@@ -303,11 +318,6 @@ const filteredStaffs = computed(() => {
   )
 })
 
-// 디자이너 수
-const designerCount = computed(() => {
-  return staffStore.staffs.filter(s => s.role === '디자이너').length
-})
-
 // 평균 경력
 const averageCareer = computed(() => {
   if (staffStore.staffs.length === 0) return 0
@@ -315,20 +325,26 @@ const averageCareer = computed(() => {
   return Math.round(total / staffStore.staffs.length)
 })
 
+// 전문분야 파싱 (String → Array)
+function parseSpecialty(specialty) {
+  if (!specialty) return []
+  return specialty.split(',').map(s => s.trim()).filter(Boolean)
+}
+
 // 이니셜
 function getInitial(name) {
   return name ? name.charAt(0) : '?'
 }
 
-// 역할 색상
-function getRoleColor(role) {
+// 직급 색상
+function getPositionColor(position) {
   const colors = {
-    '디자이너': 'primary',
     '원장': 'success',
-    '매니저': 'info',
+    '실장': 'primary',
+    '디자이너': 'info',
     '인턴': 'warning',
   }
-  return colors[role] || 'default'
+  return colors[position] || 'default'
 }
 
 // 텍스트 자르기
@@ -338,21 +354,35 @@ function truncateText(text, maxLength) {
   return text.substring(0, maxLength) + '...'
 }
 
-// 스태프 보기
+// 스태프 상세보기
 function viewStaff(staff) {
   selectedStaff.value = staff
-  isDialogVisible.value = true
+  isDetailDialogVisible.value = true
 }
 
 // 스태프 수정
 function editStaff(staff) {
-  selectedStaff.value = staff
-  isDialogVisible.value = true
+  staffToEdit.value = staff
+  isFormDialogVisible.value = true
+}
+
+// 상세보기에서 수정 버튼 클릭 시
+function handleEditFromDetail(staff) {
+  isDetailDialogVisible.value = false
+  staffToEdit.value = staff
+  isFormDialogVisible.value = true
+}
+
+// 새 스태프 등록
+function openCreateDialog() {
+  staffToEdit.value = null
+  isFormDialogVisible.value = true
 }
 
 // 삭제 확인
 function confirmDelete(staff) {
   selectedStaff.value = staff
+  isDetailDialogVisible.value = false
   isDeleteDialogVisible.value = true
 }
 
@@ -363,22 +393,18 @@ async function deleteStaff() {
   try {
     await staffStore.deleteStaff(selectedStaff.value.id)
     isDeleteDialogVisible.value = false
+    selectedStaff.value = null
   }
   catch (error) {
     console.error('스태프 삭제 실패:', error)
-    alert(error || '스태프 삭제에 실패했습니다.')
+    alert(error.response?.data?.message || '스태프 삭제에 실패했습니다.')
   }
-}
-
-// 새 스태프 등록
-function openStaffDialog() {
-  selectedStaff.value = null
-  isDialogVisible.value = true
 }
 
 // 스태프 저장 후
 async function handleStaffSaved() {
-  isDialogVisible.value = false
+  isFormDialogVisible.value = false
+  staffToEdit.value = null
   await staffStore.fetchStaffs()
 }
 

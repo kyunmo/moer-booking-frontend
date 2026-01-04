@@ -12,8 +12,8 @@ export default {
   },
 
   // 회원가입
-  register(userData) {
-    return apiClient.post('/users', userData)
+  register(registerData) {
+    return apiClient.post('/auth/register', registerData)
   },
 
   // 토큰 갱신

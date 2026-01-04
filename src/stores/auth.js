@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
+    business: null,
     accessToken: localStorage.getItem('accessToken') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     loading: false,
@@ -35,6 +36,9 @@ export const useAuthStore = defineStore('auth', {
      * 비즈니스 ID
      */
     businessId: state => state.user?.businessId || null,
+
+    businessName: state => state.business?.name || '',
+    businessType: state => state.business?.businessType || '',
   },
 
   actions: {
@@ -55,7 +59,14 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('refreshToken', data.refreshToken)
 
         // 사용자 정보 저장
-        this.user = data.user
+        this.user = {
+          id: data.userId,
+          email: data.email,
+          name: data.name,
+          role: data.role,
+          staffId: data.staffId,
+          businessId: data.businessId,
+        }
 
         return data
       }
@@ -85,6 +96,7 @@ export const useAuthStore = defineStore('auth', {
 
         // 상태 초기화
         this.user = null
+        this.business = null
         this.accessToken = null
         this.refreshToken = null
         localStorage.removeItem('accessToken')
@@ -105,18 +117,29 @@ export const useAuthStore = defineStore('auth', {
     /**
      * 회원가입
      */
-    async register(userData) {
+    async register(formData) {
       this.loading = true
       try {
-        const { data } = await authApi.register(userData)
+        const { data } = await authApi.register({
+          email: formData.email,
+          password: formData.password,
+          name: formData.ownerName,
+          phone: formData.phone,
+          businessName: formData.businessName,
+          businessType: formData.businessType || 'SALON',  // 기본값
+        })
         
-        // 회원가입 후 자동 로그인
+        console.log('회원가입 성공:', data)
+
+        // 토큰 저장
         this.accessToken = data.accessToken
         this.refreshToken = data.refreshToken
         localStorage.setItem('accessToken', data.accessToken)
         localStorage.setItem('refreshToken', data.refreshToken)
 
+        // 사용자 정보 저장 (RegisterResponse 구조)
         this.user = data.user
+        this.business = data.business  // 👈 매장 정보 저장
 
         return data
       }
