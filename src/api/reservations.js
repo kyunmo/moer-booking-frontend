@@ -16,29 +16,11 @@ export default {
     return apiClient.get(`/businesses/${businessId}/reservations/date/${date}`)
   },
 
-  // 기간별 예약 조회
-  getReservationsByDateRange(businessId, params = {}) {
-    return apiClient.get(`/businesses/${businessId}/reservations/date-range`, { params })
-  },
-
-  // 상태별 예약 조회
-  getReservationsByStatus(businessId, status) {
-    return apiClient.get(`/businesses/${businessId}/reservations/status/${status}`)
-  },
-
-  // 고객의 예약 조회
-  getCustomerReservations(customerId, params = {}) {
-    return apiClient.get(`/customers/${customerId}/reservations`, { params })
-  },
-
-  // 직원의 예약 조회
-  getStaffReservations(staffId, params = {}) {
-    return apiClient.get(`/staffs/${staffId}/reservations`, { params })
-  },
-
-  // 예약번호로 조회 (고객용)
-  getReservationByNumber(reservationNumber) {
-    return apiClient.get(`/reservations/number/${reservationNumber}`)
+  // 기간별 예약 조회 ✅
+  getReservationsByDateRange(businessId, startDate, endDate) {
+    return apiClient.get(`/businesses/${businessId}/reservations/date-range`, {
+      params: { startDate, endDate },
+    })
   },
 
   // 예약 생성
@@ -51,12 +33,21 @@ export default {
     return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}`, reservationData)
   },
 
-  // 예약 상태 변경
+  // 예약 상태 변경 (통합) ✅
   updateReservationStatus(businessId, reservationId, status) {
-    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/status`, { status })
+    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/status`, null, {
+      params: { status },
+    })
   },
 
   // 예약 취소
+  cancelReservation(businessId, reservationId, reason = '') {
+    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/cancel`, null, {
+      params: { reason },
+    })
+  },
+
+  // 예약 삭제
   deleteReservation(businessId, reservationId) {
     return apiClient.delete(`/businesses/${businessId}/reservations/${reservationId}`)
   },

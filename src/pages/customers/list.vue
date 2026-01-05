@@ -1,232 +1,282 @@
 ﻿<template>
-  <VCard>
-    <VCardTitle class="d-flex align-center pe-2">
-      <VIcon icon="ri-user-line" size="24" class="me-3" />
-      <span>고객 관리</span>
+  <div>
+    <!-- 헤더 -->
+    <VCard class="mb-4">
+      <VCardTitle class="d-flex align-center pe-2">
+        <VIcon icon="ri-user-heart-line" size="24" class="me-3" />
+        <span>고객 관리</span>
 
-      <VSpacer />
+        <VSpacer />
 
-      <!-- 검색 -->
-      <VTextField
-        v-model="searchQuery"
-        placeholder="이름, 전화번호 검색"
-        prepend-inner-icon="ri-search-line"
-        density="compact"
-        style="max-inline-size: 300px;"
-        class="me-3"
-        clearable
-        @keyup.enter="handleSearch"
-      />
+        <!-- 필터 -->
+        <VBtnToggle
+          v-model="filterType"
+          density="compact"
+          class="me-3"
+          variant="outlined"
+          divided
+        >
+          <VBtn value="all" size="small">
+            전체
+          </VBtn>
+          <VBtn value="vip" size="small">
+            VIP
+          </VBtn>
+          <VBtn value="regular" size="small">
+            단골
+          </VBtn>
+          <VBtn value="new" size="small">
+            신규
+          </VBtn>
+        </VBtnToggle>
 
-      <!-- 새 고객 등록 -->
-      <VBtn
-        color="primary"
-        prepend-icon="ri-user-add-line"
-        @click="openCustomerDialog"
-      >
-        고객 등록
-      </VBtn>
-    </VCardTitle>
+        <!-- 검색 -->
+        <VTextField
+          v-model="searchQuery"
+          placeholder="이름 또는 전화번호 검색"
+          prepend-inner-icon="ri-search-line"
+          density="compact"
+          style="max-inline-size: 300px;"
+          class="me-3"
+          clearable
+        />
 
-    <VDivider />
+        <!-- 새 고객 등록 -->
+        <VBtn
+          color="primary"
+          prepend-icon="ri-user-add-line"
+          @click="openCreateDialog"
+        >
+          고객 등록
+        </VBtn>
+      </VCardTitle>
+    </VCard>
 
     <!-- 통계 카드 -->
-    <VCardText>
-      <VRow>
-        <VCol cols="12" sm="6" md="3">
-          <VCard variant="tonal" color="primary">
-            <VCardText class="d-flex align-center">
-              <VIcon icon="ri-user-line" size="32" class="me-3" />
-              <div>
-                <p class="text-xs mb-1">전체 고객</p>
-                <h6 class="text-h6">{{ customerStore.customers.length }}명</h6>
-              </div>
-            </VCardText>
-          </VCard>
-        </VCol>
+    <VRow class="mb-4">
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="primary">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-user-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">전체 고객</p>
+              <h6 class="text-h6">{{ customerStore.customers.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
 
-        <VCol cols="12" sm="6" md="3">
-          <VCard variant="tonal" color="success">
-            <VCardText class="d-flex align-center">
-              <VIcon icon="ri-vip-crown-line" size="32" class="me-3" />
-              <div>
-                <p class="text-xs mb-1">VIP 고객</p>
-                <h6 class="text-h6">{{ customerStore.vipCustomers.length }}명</h6>
-              </div>
-            </VCardText>
-          </VCard>
-        </VCol>
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="warning">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-vip-crown-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">VIP 고객</p>
+              <h6 class="text-h6">{{ customerStore.vipCustomers.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
 
-        <VCol cols="12" sm="6" md="3">
-          <VCard variant="tonal" color="warning">
-            <VCardText class="d-flex align-center">
-              <VIcon icon="ri-user-star-line" size="32" class="me-3" />
-              <div>
-                <p class="text-xs mb-1">단골 고객</p>
-                <h6 class="text-h6">{{ customerStore.regularCustomers.length }}명</h6>
-              </div>
-            </VCardText>
-          </VCard>
-        </VCol>
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="success">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-user-star-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">단골 고객</p>
+              <h6 class="text-h6">{{ customerStore.regularCustomers.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
 
-        <VCol cols="12" sm="6" md="3">
-          <VCard variant="tonal" color="info">
-            <VCardText class="d-flex align-center">
-              <VIcon icon="ri-user-add-line" size="32" class="me-3" />
-              <div>
-                <p class="text-xs mb-1">신규 고객</p>
-                <h6 class="text-h6">{{ customerStore.newCustomers.length }}명</h6>
-              </div>
-            </VCardText>
-          </VCard>
-        </VCol>
-      </VRow>
-    </VCardText>
+      <VCol cols="12" sm="6" md="3">
+        <VCard variant="tonal" color="info">
+          <VCardText class="d-flex align-center">
+            <VIcon icon="ri-user-add-line" size="32" class="me-3" />
+            <div>
+              <p class="text-xs mb-1">신규 고객</p>
+              <h6 class="text-h6">{{ customerStore.newCustomers.length }}명</h6>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
 
-    <VDivider />
+    <!-- 고객 테이블 -->
+    <VCard>
+      <!-- 로딩 -->
+      <div v-if="customerStore.loading" class="text-center pa-10">
+        <VProgressCircular indeterminate color="primary" />
+      </div>
 
-    <!-- 데이터 테이블 -->
-    <VDataTable
-      :headers="headers"
-      :items="customerStore.customers"
-      :loading="customerStore.loading"
-      :search="searchQuery"
-      :items-per-page="10"
-      class="text-no-wrap"
-    >
-      <!-- 이름 -->
-      <template #item.name="{ item }">
-        <div class="d-flex align-center">
-          <VAvatar
-            color="primary"
-            variant="tonal"
-            size="32"
-            class="me-3"
-          >
-            <span class="text-xs">{{ getInitial(item.name) }}</span>
-          </VAvatar>
-          <div>
-            <div class="font-weight-medium">{{ item.name }}</div>
-            <div v-if="item.email" class="text-xs text-disabled">
-              {{ item.email }}
+      <!-- 테이블 -->
+      <VDataTable
+        v-else
+        :headers="headers"
+        :items="filteredCustomers"
+        :search="searchQuery"
+        :items-per-page="10"
+        class="customer-table"
+      >
+        <!-- 이름 -->
+        <template #item.name="{ item }">
+          <div class="d-flex align-center">
+            <VAvatar
+              color="primary"
+              size="36"
+              class="me-3"
+            >
+              <span class="text-sm">{{ getInitial(item.name) }}</span>
+            </VAvatar>
+            <div>
+              <div class="font-weight-medium">{{ item.name }}</div>
+              <div class="text-xs text-disabled">{{ item.phone }}</div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
 
-      <!-- 전화번호 -->
-      <template #item.phone="{ item }">
-        <span>{{ item.phone }}</span>
-      </template>
+        <!-- 태그 -->
+        <template #item.tags="{ item }">
+          <div class="d-flex flex-wrap gap-1">
+            <VChip
+              v-if="item.isVip"
+              color="warning"
+              size="small"
+              variant="tonal"
+            >
+              VIP
+            </VChip>
+            <VChip
+              v-if="item.isRegular"
+              color="success"
+              size="small"
+              variant="tonal"
+            >
+              단골
+            </VChip>
+            <VChip
+              v-if="item.isNew"
+              color="info"
+              size="small"
+              variant="tonal"
+            >
+              신규
+            </VChip>
+            <VChip
+              v-for="tag in item.tags"
+              :key="tag"
+              size="small"
+            >
+              {{ tag }}
+            </VChip>
+          </div>
+        </template>
 
-      <!-- 방문 횟수 -->
-      <template #item.visitCount="{ item }">
-        <VChip
-          size="small"
-          :color="getVisitCountColor(item.visitCount)"
-        >
-          {{ item.visitCount }}회
-        </VChip>
-      </template>
-
-      <!-- 총 결제 금액 -->
-      <template #item.totalSpent="{ item }">
-        <span class="font-weight-medium">
-          {{ formatPrice(item.totalSpent) }}
-        </span>
-      </template>
-
-      <!-- 최근 방문일 -->
-      <template #item.lastVisit="{ item }">
-        <span v-if="item.lastVisit">
-          {{ formatDate(item.lastVisit) }}
-        </span>
-        <span v-else class="text-disabled">-</span>
-      </template>
-
-      <!-- 태그 -->
-      <template #item.tags="{ item }">
-        <VChip
-          v-for="tag in item.tags"
-          :key="tag"
-          size="small"
-          :color="getTagColor(tag)"
-          class="me-1"
-        >
-          {{ tag }}
-        </VChip>
-      </template>
-
-      <!-- 액션 -->
-      <template #item.actions="{ item }">
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="viewCustomer(item)"
-        >
-          <VIcon icon="ri-eye-line" />
-          <VTooltip activator="parent" location="top">
-            상세보기
-          </VTooltip>
-        </VBtn>
-
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="editCustomer(item)"
-        >
-          <VIcon icon="ri-edit-line" />
-          <VTooltip activator="parent" location="top">
-            수정
-          </VTooltip>
-        </VBtn>
-
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          color="error"
-          @click="confirmDelete(item)"
-        >
-          <VIcon icon="ri-delete-bin-line" />
-          <VTooltip activator="parent" location="top">
-            삭제
-          </VTooltip>
-        </VBtn>
-      </template>
-
-      <!-- 로딩 -->
-      <template #loading>
-        <VSkeletonLoader type="table-row@10" />
-      </template>
-
-      <!-- 데이터 없음 -->
-      <template #no-data>
-        <div class="text-center pa-5">
-          <VIcon
-            icon="ri-user-line"
-            size="48"
-            class="mb-3 text-disabled"
-          />
-          <p class="text-disabled">등록된 고객이 없습니다.</p>
-          <VBtn
-            color="primary"
-            variant="outlined"
-            class="mt-3"
-            @click="openCustomerDialog"
+        <!-- 방문 횟수 -->
+        <template #item.visitCount="{ item }">
+          <VChip
+            :color="getVisitCountColor(item.visitCount)"
+            size="small"
+            variant="tonal"
           >
-            첫 고객 등록하기
-          </VBtn>
-        </div>
-      </template>
-    </VDataTable>
+            {{ item.visitCount || 0 }}회
+          </VChip>
+        </template>
+
+        <!-- 총 결제액 -->
+        <template #item.totalSpent="{ item }">
+          <span class="font-weight-medium">
+            {{ (item.totalSpent || 0).toLocaleString() }}원
+          </span>
+        </template>
+
+        <!-- 최근 방문일 -->
+        <template #item.lastVisitDate="{ item }">
+          <span :class="getDateClass(item.lastVisitDate)">
+            {{ formatDate(item.lastVisitDate) }}
+          </span>
+        </template>
+
+        <!-- 액션 -->
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              @click="viewCustomer(item)"
+            >
+              <VIcon icon="ri-eye-line" />
+              <VTooltip activator="parent" location="top">
+                상세보기
+              </VTooltip>
+            </VBtn>
+
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              color="primary"
+              @click="editCustomer(item)"
+            >
+              <VIcon icon="ri-edit-line" />
+              <VTooltip activator="parent" location="top">
+                수정
+              </VTooltip>
+            </VBtn>
+
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              color="error"
+              @click="confirmDelete(item)"
+            >
+              <VIcon icon="ri-delete-bin-line" />
+              <VTooltip activator="parent" location="top">
+                삭제
+              </VTooltip>
+            </VBtn>
+          </div>
+        </template>
+
+        <!-- 데이터 없음 -->
+        <template #no-data>
+          <div class="text-center pa-10">
+            <VIcon
+              icon="ri-user-line"
+              size="64"
+              class="mb-4 text-disabled"
+            />
+            <p class="text-h6 mb-2">등록된 고객이 없습니다</p>
+            <p class="text-disabled mb-4">
+              첫 고객을 등록하고 예약을 시작하세요
+            </p>
+            <VBtn
+              color="primary"
+              @click="openCreateDialog"
+            >
+              <VIcon icon="ri-user-add-line" class="me-2" />
+              고객 등록하기
+            </VBtn>
+          </div>
+        </template>
+      </VDataTable>
+    </VCard>
+
+    <!-- 고객 상세보기 다이얼로그 -->
+    <CustomerDetailDialog
+      v-model="isDetailDialogVisible"
+      :customer="selectedCustomer"
+      @edit="handleEditFromDetail"
+      @delete="confirmDelete"
+    />
 
     <!-- 고객 등록/수정 다이얼로그 -->
-    <CustomerDialog
-      v-model="isDialogVisible"
-      :customer="selectedCustomer"
+    <CustomerFormDialog
+      v-model="isFormDialogVisible"
+      :customer="customerToEdit"
       @saved="handleCustomerSaved"
     />
 
@@ -264,100 +314,139 @@
         </VCardActions>
       </VCard>
     </VDialog>
-  </VCard>
+  </div>
 </template>
 
 <script setup>
 import { useCustomerStore } from '@/stores/customer'
-import { onMounted, ref } from 'vue'
-import CustomerDialog from './components/CustomerDialog.vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import CustomerDetailDialog from './components/CustomerDetailDialog.vue'
+import CustomerFormDialog from './components/CustomerFormDialog.vue'
 
 const customerStore = useCustomerStore()
 
 // Refs
 const searchQuery = ref('')
-const isDialogVisible = ref(false)
+const filterType = ref('all')
+const isDetailDialogVisible = ref(false)
+const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
 const selectedCustomer = ref(null)
+const customerToEdit = ref(null)
 
 // 테이블 헤더
 const headers = [
   { title: '이름', key: 'name', sortable: true },
-  { title: '전화번호', key: 'phone', sortable: true },
-  { title: '방문횟수', key: 'visitCount', sortable: true },
-  { title: '총 결제금액', key: 'totalSpent', sortable: true },
-  { title: '최근방문', key: 'lastVisit', sortable: true },
   { title: '태그', key: 'tags', sortable: false },
+  { title: '방문', key: 'visitCount', sortable: true, align: 'center' },
+  { title: '총 결제액', key: 'totalSpent', sortable: true, align: 'end' },
+  { title: '최근 방문', key: 'lastVisitDate', sortable: true },
   { title: '액션', key: 'actions', sortable: false, align: 'center' },
 ]
 
-// 이름 이니셜
+// 필터링된 고객 목록
+const filteredCustomers = computed(() => {
+  let result = customerStore.customers
+
+  // 필터 타입별 적용
+  switch (filterType.value) {
+    case 'vip':
+      result = customerStore.vipCustomers
+      break
+    case 'regular':
+      result = customerStore.regularCustomers
+      break
+    case 'new':
+      result = customerStore.newCustomers
+      break
+    default:
+      result = customerStore.customers
+  }
+
+  return result
+})
+
+// 필터 변경 시 목록 새로고침
+watch(filterType, async (newType) => {
+  if (newType === 'vip') {
+    await customerStore.fetchVipCustomers()
+  } else if (newType === 'regular') {
+    await customerStore.fetchRegularCustomers()
+  } else if (newType === 'new') {
+    await customerStore.fetchNewCustomers()
+  } else {
+    await customerStore.fetchCustomers()
+  }
+})
+
+// 이니셜
 function getInitial(name) {
   return name ? name.charAt(0) : '?'
 }
 
 // 방문 횟수 색상
 function getVisitCountColor(count) {
-  if (count >= 10) return 'success'
-  if (count >= 5) return 'warning'
+  if (!count) return 'default'
+  if (count >= 10) return 'warning'  // VIP
+  if (count >= 3) return 'success'   // 단골
+  if (count === 1) return 'info'     // 신규
   return 'default'
 }
 
-// 금액 포맷
-function formatPrice(price) {
-  if (!price) return '0원'
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW',
-  }).format(price)
-}
-
 // 날짜 포맷
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return new Intl.DateTimeFormat('ko-KR', {
+function formatDate(dateString) {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date)
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
-// 태그 색상
-function getTagColor(tag) {
-  const colors = {
-    'VIP': 'error',
-    '단골': 'success',
-    '신규': 'info',
-  }
-  return colors[tag] || 'default'
+// 날짜 클래스 (최근 방문일 강조)
+function getDateClass(dateString) {
+  if (!dateString) return 'text-disabled'
+  
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+  
+  if (diffDays <= 7) return 'text-success font-weight-medium'  // 최근 7일
+  if (diffDays <= 30) return 'text-primary'                    // 최근 30일
+  if (diffDays <= 90) return ''                                 // 최근 90일
+  return 'text-disabled'                                        // 90일 이상
 }
 
-// 검색
-function handleSearch() {
-  if (searchQuery.value.trim()) {
-    customerStore.searchCustomers(searchQuery.value)
-  }
-  else {
-    customerStore.fetchCustomers()
-  }
-}
-
-// 고객 보기
+// 고객 상세보기
 function viewCustomer(customer) {
   selectedCustomer.value = customer
-  isDialogVisible.value = true
+  isDetailDialogVisible.value = true
 }
 
 // 고객 수정
 function editCustomer(customer) {
-  selectedCustomer.value = customer
-  isDialogVisible.value = true
+  customerToEdit.value = customer
+  isFormDialogVisible.value = true
+}
+
+// 상세보기에서 수정 버튼 클릭 시
+function handleEditFromDetail(customer) {
+  isDetailDialogVisible.value = false
+  customerToEdit.value = customer
+  isFormDialogVisible.value = true
+}
+
+// 새 고객 등록
+function openCreateDialog() {
+  customerToEdit.value = null
+  isFormDialogVisible.value = true
 }
 
 // 삭제 확인
 function confirmDelete(customer) {
   selectedCustomer.value = customer
+  isDetailDialogVisible.value = false
   isDeleteDialogVisible.value = true
 }
 
@@ -368,22 +457,18 @@ async function deleteCustomer() {
   try {
     await customerStore.deleteCustomer(selectedCustomer.value.id)
     isDeleteDialogVisible.value = false
+    selectedCustomer.value = null
   }
   catch (error) {
     console.error('고객 삭제 실패:', error)
-    alert(error || '고객 삭제에 실패했습니다.')
+    alert(error.response?.data?.message || '고객 삭제에 실패했습니다.')
   }
-}
-
-// 새 고객 등록
-function openCustomerDialog() {
-  selectedCustomer.value = null
-  isDialogVisible.value = true
 }
 
 // 고객 저장 후
 async function handleCustomerSaved() {
-  isDialogVisible.value = false
+  isFormDialogVisible.value = false
+  customerToEdit.value = null
   await customerStore.fetchCustomers()
 }
 
@@ -392,3 +477,9 @@ onMounted(() => {
   customerStore.fetchCustomers()
 })
 </script>
+
+<style scoped>
+.customer-table :deep(tbody tr:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.04);
+}
+</style>

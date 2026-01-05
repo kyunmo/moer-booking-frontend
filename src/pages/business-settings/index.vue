@@ -2,37 +2,60 @@
   <VCard>
     <VCardTitle class="d-flex align-center">
       <VIcon icon="ri-store-2-line" size="24" class="me-3" />
-      <span>매장 설정</span>
+      <span>매장 기본 정보</span>
     </VCardTitle>
 
     <VDivider />
 
     <VCardText>
+      <VAlert
+        color="info"
+        variant="tonal"
+        class="mb-4"
+      >
+        <VIcon icon="ri-information-line" class="me-2" />
+        매장의 기본 정보를 설정하세요.
+      </VAlert>
+
       <VForm ref="formRef" @submit.prevent="handleSubmit">
         <VRow>
           <!-- 매장명 -->
+          <VCol cols="12">
+            <h6 class="text-h6 mb-3">매장 정보</h6>
+          </VCol>
+
           <VCol cols="12" md="6">
             <VTextField
               v-model="form.name"
-              label="매장명"
+              label="매장명 *"
               prepend-inner-icon="ri-store-2-line"
-              placeholder="예: 준수헤어"
               :rules="[required]"
               required
             />
           </VCol>
 
-          <!-- 사업자번호 -->
           <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.businessNumber"
-              label="사업자번호"
-              prepend-inner-icon="ri-file-list-line"
-              placeholder="123-45-67890"
+            <VSelect
+              v-model="form.businessType"
+              label="업종 *"
+              prepend-inner-icon="ri-building-line"
+              :items="businessTypeOptions"
+              :rules="[required]"
+              required
             />
           </VCol>
 
-          <!-- 대표자명 -->
+          <VCol cols="12" md="6">
+            <VTextField
+              v-model="form.phone"
+              label="매장 전화번호 *"
+              prepend-inner-icon="ri-phone-line"
+              placeholder="02-1234-5678"
+              :rules="[required]"
+              required
+            />
+          </VCol>
+
           <VCol cols="12" md="6">
             <VTextField
               v-model="form.ownerName"
@@ -41,89 +64,79 @@
             />
           </VCol>
 
-          <!-- 전화번호 -->
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.phone"
-              label="매장 전화번호"
-              prepend-inner-icon="ri-phone-line"
-              placeholder="02-1234-5678"
-              :rules="[required]"
-              required
-            />
+          <!-- 주소 -->
+          <VCol cols="12">
+            <h6 class="text-h6 mb-3 mt-4">주소</h6>
           </VCol>
 
-          <!-- 이메일 -->
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.email"
-              label="이메일"
-              prepend-inner-icon="ri-mail-line"
-              placeholder="info@example.com"
-              type="email"
-            />
-          </VCol>
-
-          <!-- 웹사이트 -->
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.website"
-              label="웹사이트"
-              prepend-inner-icon="ri-global-line"
-              placeholder="https://example.com"
-            />
-          </VCol>
-
-          <!-- 우편번호 -->
-          <VCol cols="12" md="4">
+          <VCol cols="12" md="3">
             <VTextField
               v-model="form.zipCode"
               label="우편번호"
               prepend-inner-icon="ri-map-pin-line"
-              placeholder="06234"
+              readonly
             />
           </VCol>
 
-          <!-- 주소 -->
-          <VCol cols="12" md="8">
+          <VCol cols="12" md="9">
             <VTextField
               v-model="form.address"
-              label="주소"
-              prepend-inner-icon="ri-home-line"
-              placeholder="서울시 강남구 테헤란로 123"
+              label="기본 주소"
+              prepend-inner-icon="ri-road-map-line"
+              readonly
             />
           </VCol>
 
-          <!-- 상세주소 -->
           <VCol cols="12">
             <VTextField
               v-model="form.addressDetail"
-              label="상세주소"
-              prepend-inner-icon="ri-building-line"
-              placeholder="4층 401호"
+              label="상세 주소"
+              placeholder="동, 호수 등 상세 주소를 입력하세요"
             />
           </VCol>
 
           <!-- 소개 -->
           <VCol cols="12">
+            <h6 class="text-h6 mb-3 mt-4">매장 소개</h6>
+          </VCol>
+
+          <VCol cols="12">
             <VTextarea
               v-model="form.description"
               label="매장 소개"
-              prepend-inner-icon="ri-file-text-line"
-              placeholder="고객에게 보여질 매장 소개글을 입력하세요"
+              placeholder="고객에게 보여질 매장 소개글을 작성하세요"
               rows="4"
-              auto-grow
+              counter
+              maxlength="500"
             />
           </VCol>
 
-          <!-- 구분선 -->
+          <!-- 연락처 -->
           <VCol cols="12">
-            <VDivider class="my-2" />
+            <h6 class="text-h6 mb-3 mt-4">추가 연락처</h6>
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <VTextField
+              v-model="form.email"
+              label="이메일"
+              prepend-inner-icon="ri-mail-line"
+              placeholder="your@email.com"
+            />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <VTextField
+              v-model="form.website"
+              label="웹사이트"
+              prepend-inner-icon="ri-global-line"
+              placeholder="https://your-website.com"
+            />
           </VCol>
 
           <!-- SNS -->
           <VCol cols="12">
-            <h6 class="text-h6 mb-3">SNS 계정</h6>
+            <h6 class="text-h6 mb-3 mt-4">SNS & 지도</h6>
           </VCol>
 
           <VCol cols="12" md="6">
@@ -199,7 +212,7 @@ const formRef = ref(null)
 
 const form = ref({
   name: '',
-  businessNumber: '',
+  businessType: 'SALON',
   ownerName: '',
   phone: '',
   email: '',
@@ -214,18 +227,29 @@ const form = ref({
   kakaoPlaceUrl: '',
 })
 
+// 업종 옵션
+const businessTypeOptions = [
+  { title: '미용실', value: 'SALON' },
+  { title: '네일샵', value: 'NAIL' },
+  { title: '피부관리실', value: 'SKIN_CARE' },
+  { title: '필라테스', value: 'PILATES' },
+  { title: '요가', value: 'YOGA' },
+  { title: '스터디카페', value: 'STUDY_CAFE' },
+  { title: '공방', value: 'WORKSHOP' },
+]
+
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
 
 // 폼 초기화
 function resetForm() {
-  if (settingsStore.businessInfo) {
+  if (settingsStore.business) {
     loadBusinessInfo()
   }
   else {
     form.value = {
       name: '',
-      businessNumber: '',
+      businessType: 'SALON',
       ownerName: '',
       phone: '',
       email: '',
@@ -244,24 +268,24 @@ function resetForm() {
 
 // 매장 정보 로드
 function loadBusinessInfo() {
-  if (!settingsStore.businessInfo) return
+  if (!settingsStore.business) return
 
-  const info = settingsStore.businessInfo
+  const business = settingsStore.business
   form.value = {
-    name: info.name || '',
-    businessNumber: info.businessNumber || '',
-    ownerName: info.ownerName || '',
-    phone: info.phone || '',
-    email: info.email || '',
-    website: info.website || '',
-    zipCode: info.zipCode || '',
-    address: info.address || '',
-    addressDetail: info.addressDetail || '',
-    description: info.description || '',
-    instagramUrl: info.instagramUrl || '',
-    facebookUrl: info.facebookUrl || '',
-    naverPlaceUrl: info.naverPlaceUrl || '',
-    kakaoPlaceUrl: info.kakaoPlaceUrl || '',
+    name: business.name || '',
+    businessType: business.businessType || 'SALON',
+    ownerName: business.ownerName || '',
+    phone: business.phone || '',
+    email: business.email || '',
+    website: business.website || '',
+    zipCode: business.zipCode || '',
+    address: business.address || '',
+    addressDetail: business.addressDetail || '',
+    description: business.description || '',
+    instagramUrl: business.instagramUrl || '',
+    facebookUrl: business.facebookUrl || '',
+    naverPlaceUrl: business.naverPlaceUrl || '',
+    kakaoPlaceUrl: business.kakaoPlaceUrl || '',
   }
 }
 
@@ -276,7 +300,7 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('저장 실패:', error)
-    alert(error || '저장에 실패했습니다.')
+    alert(error.response?.data?.message || '저장에 실패했습니다.')
   }
 }
 

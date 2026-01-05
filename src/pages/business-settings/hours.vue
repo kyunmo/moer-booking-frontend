@@ -122,21 +122,21 @@
             <VDivider class="my-2" />
           </VCol>
 
-          <!-- 추가 설정 -->
+          <!-- 예약 설정 -->
           <VCol cols="12">
-            <h6 class="text-h6 mb-3">추가 설정</h6>
+            <h6 class="text-h6 mb-3">예약 설정</h6>
           </VCol>
 
           <VCol cols="12" md="6">
             <VTextField
-              v-model.number="form.slotDuration"
+              v-model.number="form.bookingInterval"
               label="예약 시간 간격 (분)"
               type="number"
               prepend-inner-icon="ri-time-line"
               hint="예약 가능한 시간 단위를 설정합니다"
               persistent-hint
               min="10"
-              max="60"
+              max="120"
             />
           </VCol>
 
@@ -150,6 +150,29 @@
               persistent-hint
               min="1"
               max="365"
+            />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <VTextField
+              v-model.number="form.minAdvanceBookingHours"
+              label="최소 사전 예약 시간"
+              type="number"
+              prepend-inner-icon="ri-time-line"
+              hint="예약은 최소 몇 시간 전에 해야 하는지 설정합니다"
+              persistent-hint
+              min="0"
+              max="72"
+            />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <VSwitch
+              v-model="form.autoConfirm"
+              label="예약 자동 확정"
+              color="primary"
+              hint="활성화 시 예약이 자동으로 확정됩니다"
+              persistent-hint
             />
           </VCol>
         </VRow>
@@ -203,7 +226,7 @@ const weekDays = [
 const businessHours = ref({
   monday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -211,7 +234,7 @@ const businessHours = ref({
   },
   tuesday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -219,7 +242,7 @@ const businessHours = ref({
   },
   wednesday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -227,7 +250,7 @@ const businessHours = ref({
   },
   thursday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -235,7 +258,7 @@ const businessHours = ref({
   },
   friday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -243,7 +266,7 @@ const businessHours = ref({
   },
   saturday: {
     isOpen: true,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -251,7 +274,7 @@ const businessHours = ref({
   },
   sunday: {
     isOpen: false,
-    openTime: '09:00',
+    openTime: '10:00',
     closeTime: '20:00',
     hasBreakTime: false,
     breakStartTime: '12:00',
@@ -259,10 +282,12 @@ const businessHours = ref({
   },
 })
 
-// 추가 설정
+// 예약 설정
 const form = ref({
-  slotDuration: 30,
+  bookingInterval: 30,
   maxAdvanceBookingDays: 30,
+  minAdvanceBookingHours: 2,
+  autoConfirm: false,
 })
 
 // 전체 적용
@@ -278,7 +303,7 @@ function copyToAll(sourceDay) {
 
 // 폼 초기화
 function resetForm() {
-  if (settingsStore.businessHours) {
+  if (settingsStore.business?.businessHours) {
     loadBusinessHours()
   }
   else {
@@ -286,7 +311,7 @@ function resetForm() {
     weekDays.forEach(day => {
       businessHours.value[day.value] = {
         isOpen: day.value !== 'sunday',
-        openTime: '09:00',
+        openTime: '10:00',
         closeTime: '20:00',
         hasBreakTime: false,
         breakStartTime: '12:00',
@@ -295,53 +320,59 @@ function resetForm() {
     })
 
     form.value = {
-      slotDuration: 30,
+      bookingInterval: 30,
       maxAdvanceBookingDays: 30,
+      minAdvanceBookingHours: 2,
+      autoConfirm: false,
     }
   }
 }
 
 // 영업시간 로드
 function loadBusinessHours() {
-  if (!settingsStore.businessHours) return
+  if (!settingsStore.business) return
 
-  const hours = settingsStore.businessHours
-  
-  if (hours.weeklyHours) {
-    businessHours.value = { ...hours.weeklyHours }
+  // businessHours (JSONB)
+  if (settingsStore.business.businessHours) {
+    Object.assign(businessHours.value, settingsStore.business.businessHours)
   }
 
-  if (hours.slotDuration) {
-    form.value.slotDuration = hours.slotDuration
-  }
-
-  if (hours.maxAdvanceBookingDays) {
-    form.value.maxAdvanceBookingDays = hours.maxAdvanceBookingDays
+  // settings
+  const settings = settingsStore.business.settings
+  if (settings) {
+    form.value.bookingInterval = settings.bookingInterval || 30
+    form.value.maxAdvanceBookingDays = settings.maxAdvanceBookingDays || 30
+    form.value.minAdvanceBookingHours = settings.minAdvanceBookingHours || 2
+    form.value.autoConfirm = settings.autoConfirm === 'Y'
   }
 }
 
 // 폼 제출
 async function handleSubmit() {
   try {
-    const hoursData = {
-      weeklyHours: businessHours.value,
-      slotDuration: form.value.slotDuration,
-      maxAdvanceBookingDays: form.value.maxAdvanceBookingDays,
-    }
+    await settingsStore.updateBusinessHours(
+      businessHours.value,  // businessHours (JSONB)
+      {
+        // bookingSettings (business_settings 테이블)
+        bookingInterval: form.value.bookingInterval,
+        maxAdvanceBookingDays: form.value.maxAdvanceBookingDays,
+        minAdvanceBookingHours: form.value.minAdvanceBookingHours,
+        autoConfirm: form.value.autoConfirm ? 'Y' : 'N',
+      }
+    )
 
-    await settingsStore.updateBusinessHours(hoursData)
     alert('영업시간이 저장되었습니다.')
   }
   catch (error) {
     console.error('저장 실패:', error)
-    alert(error || '저장에 실패했습니다.')
+    alert(error.response?.data?.message || '저장에 실패했습니다.')
   }
 }
 
 // 컴포넌트 마운트 시
 onMounted(async () => {
   try {
-    await settingsStore.fetchBusinessHours()
+    await settingsStore.fetchBusinessInfo()
     loadBusinessHours()
   }
   catch (error) {

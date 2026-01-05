@@ -1,13 +1,12 @@
 import businessSettingsApi from '@/api/business-settings'
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 export const useBusinessSettingsStore = defineStore('businessSettings', {
   state: () => ({
-    businessInfo: null,
-    businessHours: null,
+    business: null,
     holidays: [],
     loading: false,
-    businessId: 1, // TODO: 로그인 시스템 연동 후 동적으로 설정
   }),
 
   getters: {
@@ -37,13 +36,21 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
 
   actions: {
     /**
-     * 매장 정보 가져오기
+     * 매장 정보 가져오기 (Settings 포함)
      */
     async fetchBusinessInfo() {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        console.error('businessId가 없습니다')
+        return
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.getBusinessInfo(this.businessId)
-        this.businessInfo = data
+        const { data } = await businessSettingsApi.getBusinessInfo(businessId)
+        this.business = data
       }
       catch (error) {
         console.error('매장 정보 조회 실패:', error)
@@ -55,13 +62,20 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     },
 
     /**
-     * 매장 정보 수정
+     * 매장 기본 정보 수정
      */
     async updateBusinessInfo(businessData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.updateBusinessInfo(this.businessId, businessData)
-        this.businessInfo = data
+        const { data } = await businessSettingsApi.updateBusinessInfo(businessId, businessData)
+        this.business = data
         return data
       }
       catch (error) {
@@ -74,16 +88,24 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     },
 
     /**
-     * 영업시간 가져오기
+     * 매장 설정 수정 (BusinessSettings)
      */
-    async fetchBusinessHours() {
+    async updateBusinessSettings(settingsData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.getBusinessHours(this.businessId)
-        this.businessHours = data
+        const { data } = await businessSettingsApi.updateBusinessSettings(businessId, settingsData)
+        this.business = data
+        return data
       }
       catch (error) {
-        console.error('영업시간 조회 실패:', error)
+        console.error('매장 설정 수정 실패:', error)
         throw error
       }
       finally {
@@ -92,17 +114,37 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
     },
 
     /**
-     * 영업시간 수정
+     * 영업시간 + 예약 설정 통합 저장
      */
-    async updateBusinessHours(hoursData) {
+    async updateBusinessHours(businessHours, bookingSettings) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.updateBusinessHours(this.businessId, hoursData)
-        this.businessHours = data
-        return data
+        // 1. businessHours 저장
+        await businessSettingsApi.updateBusinessInfo(businessId, {
+          businessHours,
+        })
+
+        // 2. settings 저장 (기존 값 유지하면서 업데이트)
+        const currentSettings = this.business?.settings || {}
+        await businessSettingsApi.updateBusinessSettings(businessId, {
+          ...currentSettings,
+          ...bookingSettings,
+        })
+
+        // 3. 최신 데이터 다시 로드
+        await this.fetchBusinessInfo()
+        
+        return this.business
       }
       catch (error) {
-        console.error('영업시간 수정 실패:', error)
+        console.error('영업시간 저장 실패:', error)
         throw error
       }
       finally {
@@ -114,9 +156,17 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
      * 휴무일 목록 가져오기
      */
     async fetchHolidays(year = null) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        console.error('businessId가 없습니다')
+        return
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.getHolidays(this.businessId, year)
+        const { data } = await businessSettingsApi.getHolidays(businessId, year)
         this.holidays = data
       }
       catch (error) {
@@ -132,9 +182,16 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
      * 휴무일 추가
      */
     async createHoliday(holidayData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        const { data } = await businessSettingsApi.createHoliday(this.businessId, holidayData)
+        const { data } = await businessSettingsApi.createHoliday(businessId, holidayData)
         this.holidays.push(data)
         return data
       }
@@ -151,13 +208,17 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
      * 휴무일 삭제
      */
     async deleteHoliday(holidayId) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+      
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
       this.loading = true
       try {
-        await businessSettingsApi.deleteHoliday(holidayId)
-        const index = this.holidays.findIndex(h => h.id === holidayId)
-        if (index !== -1) {
-          this.holidays.splice(index, 1)
-        }
+        await businessSettingsApi.deleteHoliday(businessId, holidayId)
+        this.holidays = this.holidays.filter(h => h.id !== holidayId)
       }
       catch (error) {
         console.error('휴무일 삭제 실패:', error)
