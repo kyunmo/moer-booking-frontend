@@ -1,4 +1,4 @@
-import axios from 'axios'
+import apiClient from '@/api/axios'
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
 
@@ -21,7 +21,7 @@ export const useDashboardStore = defineStore('dashboard', {
       this.loading = true
       try {
         const params = date ? { date } : {}
-        const { data } = await axios.get(
+        const { data } = await apiClient.get(
           `/businesses/${businessId}/dashboard`,
           { params }
         )
