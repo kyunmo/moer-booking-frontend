@@ -55,51 +55,39 @@
     <!-- 통계 카드 -->
     <VRow class="mb-4">
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="primary">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-user-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">전체 고객</p>
-              <h6 class="text-h6">{{ customerStore.customers.length }}명</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="전체 고객"
+          :value="`${customerStore.customers.length}명`"
+          icon="ri-user-line"
+          color="primary"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="warning">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-vip-crown-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">VIP 고객</p>
-              <h6 class="text-h6">{{ customerStore.vipCustomers.length }}명</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="VIP 고객"
+          :value="`${customerStore.vipCustomers.length}명`"
+          icon="ri-vip-crown-line"
+          color="warning"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="success">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-user-star-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">단골 고객</p>
-              <h6 class="text-h6">{{ customerStore.regularCustomers.length }}명</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="단골 고객"
+          :value="`${customerStore.regularCustomers.length}명`"
+          icon="ri-user-star-line"
+          color="success"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="info">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-user-add-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">신규 고객</p>
-              <h6 class="text-h6">{{ customerStore.newCustomers.length }}명</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="신규 고객"
+          :value="`${customerStore.newCustomers.length}명`"
+          icon="ri-user-add-line"
+          color="info"
+        />
       </VCol>
     </VRow>
 
@@ -318,6 +306,7 @@
 </template>
 
 <script setup>
+import StatisticsCard from '@/components/StatisticsCard.vue'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, onMounted, ref, watch } from 'vue'
 import CustomerDetailDialog from './components/CustomerDetailDialog.vue'

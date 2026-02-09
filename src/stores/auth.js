@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     business: null,
+    trial: null, // 30일 체험판 정보
     accessToken: localStorage.getItem('accessToken') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     loading: false,
@@ -39,6 +40,14 @@ export const useAuthStore = defineStore('auth', {
 
     businessName: state => state.business?.name || '',
     businessType: state => state.business?.businessType || '',
+
+    /**
+     * 체험판 정보
+     */
+    trialInfo: state => state.trial,
+    isPremium: state => state.trial?.isPremium || false,
+    isTrialExpired: state => state.trial?.isExpired || false,
+    trialRemainingDays: state => state.trial?.remainingDays || 0,
   },
 
   actions: {
@@ -97,6 +106,7 @@ export const useAuthStore = defineStore('auth', {
         // 상태 초기화
         this.user = null
         this.business = null
+        this.trial = null
         this.accessToken = null
         this.refreshToken = null
         localStorage.removeItem('accessToken')
@@ -140,6 +150,7 @@ export const useAuthStore = defineStore('auth', {
         // 사용자 정보 저장 (RegisterResponse 구조)
         this.user = data.user
         this.business = data.business  // 👈 매장 정보 저장
+        this.trial = data.trial  // 👈 체험판 정보 저장
 
         return data
       }

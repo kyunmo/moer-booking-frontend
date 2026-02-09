@@ -1,0 +1,28 @@
+# moer-reservation-system-frontend/.claudeignore
+
+# 의존성 (제일 중요!)
+node_modules/
+package-lock.json
+yarn.lock
+
+# 빌드 결과물
+dist/
+.nuxt/
+.output/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 환경 설정
+.env.local
+.env.*.local
+
+# 로그
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

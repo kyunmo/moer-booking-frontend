@@ -15,7 +15,14 @@ export function setupRouterGuards(router) {
       console.log('✅ 인증 초기화 완료, isAuthenticated:', authStore.isAuthenticated) // ← 로그 추가
     }
 
-    const publicPages = ['/login', '/register']
+    // 인증 없이 접근 가능한 페이지들
+    const publicPages = [
+      '/login',
+      '/register',
+      '/forgot-password',
+      '/reset-password',
+      '/oauth2-redirect',
+    ]
     const authRequired = !publicPages.includes(to.path)
 
     console.log('📍 현재 경로:', to.path, '인증 필요:', authRequired, '로그인됨:', authStore.isAuthenticated) // ← 로그 추가

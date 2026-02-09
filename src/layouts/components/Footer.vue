@@ -4,19 +4,12 @@
     <div class="d-flex align-center text-base">
       &copy;
       {{ new Date().getFullYear() }},
-      Made With
-      <VIcon
-        icon="ri-heart-fill"
-        color="error"
-        size="1.25rem"
-        class="mx-1"
-      />
-      By <a
-        href="https://pixinvent.com"
+      Made With By<a
+        href="https://moer.io"
         target="_blank"
         rel="noopener noreferrer"
         class="text-primary ms-1"
-      >Pixinvent</a>
+      >MOER</a>
     </div>
     <!-- 👉 Footer: right content -->
     <span class="d-md-flex gap-x-4 text-primary d-none">

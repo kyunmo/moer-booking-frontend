@@ -44,51 +44,39 @@
     <!-- 통계 카드 -->
     <VRow class="mb-4">
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="warning">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-time-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">대기</p>
-              <h6 class="text-h6">{{ reservationStore.pendingReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="대기"
+          :value="`${reservationStore.pendingReservations.length}건`"
+          icon="ri-time-line"
+          color="warning"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="primary">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-check-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">확정</p>
-              <h6 class="text-h6">{{ reservationStore.confirmedReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="확정"
+          :value="`${reservationStore.confirmedReservations.length}건`"
+          icon="ri-check-line"
+          color="primary"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="success">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-checkbox-circle-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">완료</p>
-              <h6 class="text-h6">{{ reservationStore.completedReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="완료"
+          :value="`${reservationStore.completedReservations.length}건`"
+          icon="ri-checkbox-circle-line"
+          color="success"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="error">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-close-circle-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">취소</p>
-              <h6 class="text-h6">{{ reservationStore.cancelledReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="취소"
+          :value="`${reservationStore.cancelledReservations.length}건`"
+          icon="ri-close-circle-line"
+          color="error"
+        />
       </VCol>
     </VRow>
 
@@ -317,6 +305,7 @@
 import { useReservationStore } from '@/stores/reservation'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import StatisticsCard from '@/components/StatisticsCard.vue'
 import AssignStaffDialog from './components/AssignStaffDialog.vue'
 import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
@@ -470,16 +459,31 @@ async function cancelReservation() {
   }
 }
 
-// 상태 변경
+// 상태 변경 (✅ 올바른 API 호출)
 async function handleStatusChange(reservationId, newStatus) {
   try {
-    await reservationStore.updateReservationStatus(reservationId, newStatus)
+    console.log(`🔍 상태 변경 시도: ${newStatus}`)
+
+    // ✅ COMPLETED만 전용 API 사용, 나머지는 기존 방식
+    if (newStatus === 'COMPLETED') {
+      // ✅ 완료 전용 API 호출 (고객 통계 자동 업데이트)
+      await reservationStore.completeReservation(reservationId)
+    }
+    else {
+      // CONFIRMED, CANCELLED 등은 기존 방식 사용
+      await reservationStore.updateReservationStatus(reservationId, newStatus)
+    }
+
     isDetailDialogVisible.value = false
     await reservationStore.fetchReservations()
+
+    // ✅ 성공 메시지
+    console.log(`✅ 예약 상태가 ${newStatus}(으)로 변경되었습니다`)
   }
   catch (error) {
-    console.error('상태 변경 실패:', error)
-    alert(error.response?.data?.message || '상태 변경에 실패했습니다.')
+    console.error('❌ 상태 변경 실패:', error)
+    console.error('에러 상세:', error.response?.data)
+    alert(error.response?.data?.message || error.message || '상태 변경에 실패했습니다.')
   }
 }
 

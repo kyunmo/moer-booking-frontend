@@ -30,4 +30,14 @@ export default {
   changePassword(passwordData) {
     return apiClient.post('/auth/change-password', passwordData)
   },
+
+  // 비밀번호 찾기 (재설정 요청)
+  forgotPassword(email) {
+    return apiClient.post('/auth/forgot-password', { email })
+  },
+
+  // 비밀번호 재설정 실행
+  resetPassword(token, newPassword) {
+    return apiClient.post('/auth/reset-password', { token, newPassword })
+  },
 }

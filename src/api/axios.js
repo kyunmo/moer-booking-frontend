@@ -33,63 +33,102 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       const { status, data } = error.response
-      
+      const errorCode = data?.error?.code
+      const errorMessage = data?.error?.message || data?.message
+
       // 401 에러 (인증 실패)
       if (status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true
+        // A003: 만료된 토큰 - 자동 갱신 시도
+        if (errorCode === 'A003') {
+          originalRequest._retry = true
 
-        // 토큰 갱신 시도
-        try {
-          const refreshToken = localStorage.getItem('refreshToken')
-          
-          if (refreshToken) {
-            // 토큰 갱신 API 호출
-            const refreshResponse = await axios.post(
-              `${apiClient.defaults.baseURL}/auth/refresh`,
-              { refreshToken },
-            )
+          try {
+            const refreshToken = localStorage.getItem('refreshToken')
 
-            const { accessToken } = refreshResponse.data
+            if (refreshToken) {
+              // 토큰 갱신 API 호출
+              const refreshResponse = await axios.post(
+                `${apiClient.defaults.baseURL}/auth/refresh`,
+                { refreshToken },
+              )
 
-            // 새 토큰 저장
-            localStorage.setItem('accessToken', accessToken)
+              const newAccessToken = refreshResponse.data.data?.accessToken
 
-            // 원래 요청에 새 토큰 적용하여 재시도
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`
-            return apiClient(originalRequest)
+              // 새 토큰 저장
+              localStorage.setItem('accessToken', newAccessToken)
+
+              // 원래 요청에 새 토큰 적용하여 재시도
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+              return apiClient(originalRequest)
+            }
+          }
+          catch (refreshError) {
+            // 토큰 갱신 실패 시 로그아웃 처리
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            window.location.href = '/login'
+            return Promise.reject(refreshError)
           }
         }
-        catch (refreshError) {
-          // 토큰 갱신 실패 시 로그아웃 처리
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          window.location.href = '/login'
-          return Promise.reject(refreshError)
-        }
 
-        // refreshToken이 없으면 로그인 페이지로
+        // A001, A002: 인증 필요, 유효하지 않은 토큰
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         window.location.href = '/login'
       }
+      // 403 에러 (권한 부족)
       else if (status === 403) {
-        console.error('접근 권한이 없습니다.')
+        // TR001: 체험판 만료
+        if (errorCode === 'TR001') {
+          console.error('체험판이 만료되었습니다.')
+          // 업그레이드 페이지로 리다이렉트하거나 모달 표시
+        }
+        // TR002: 체험판 기능 제한
+        else if (errorCode === 'TR002') {
+          console.error('체험판에서는 사용할 수 없는 기능입니다.')
+        }
+        // TR003: 프리미엄 업그레이드 필요
+        else if (errorCode === 'TR003') {
+          console.error('프리미엄 업그레이드가 필요합니다.')
+        }
+        // C006: 접근 권한 없음
+        else {
+          console.error('접근 권한이 없습니다.')
+        }
       }
+      // 404 에러
       else if (status === 404) {
         console.error('요청한 리소스를 찾을 수 없습니다.')
       }
+      // 409 에러 (충돌)
+      else if (status === 409) {
+        // U002: 이메일 중복
+        if (errorCode === 'U002') {
+          console.error('이미 사용 중인 이메일입니다.')
+        }
+      }
+      // 500 에러
       else if (status >= 500) {
         console.error('서버 오류가 발생했습니다.')
       }
-      
-      return Promise.reject(data?.message || '알 수 없는 오류가 발생했습니다.')
+
+      // 에러 메시지 반환 (에러 코드 포함)
+      return Promise.reject({
+        code: errorCode,
+        message: errorMessage || '알 수 없는 오류가 발생했습니다.',
+        status,
+      })
     }
     else if (error.request) {
       console.error('서버에 연결할 수 없습니다.')
-      return Promise.reject('서버에 연결할 수 없습니다.')
+      return Promise.reject({
+        message: '서버에 연결할 수 없습니다.',
+      })
     }
     else {
-      return Promise.reject(error.message)
+      return Promise.reject({
+        message: error.message || '알 수 없는 오류가 발생했습니다.',
+      })
     }
   },
 )

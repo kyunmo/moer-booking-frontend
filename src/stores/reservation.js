@@ -222,26 +222,99 @@ export const useReservationStore = defineStore('reservation', {
     },
 
     /**
-     * 예약 상태 변경
+     * 예약 확정 ✅
      */
-    async updateReservationStatus(reservationId, status) {
+    async confirmReservation(reservationId) {
       const authStore = useAuthStore()
       const businessId = authStore.businessId
-      
+
       if (!businessId) {
         throw new Error('businessId가 없습니다')
       }
 
       this.loading = true
       try {
-        const { data } = await reservationApi.updateReservationStatus(businessId, reservationId, status)
-        
+        const { data } = await reservationApi.confirmReservation(businessId, reservationId)
+
         // 목록에서 업데이트
         const index = this.reservations.findIndex(r => r.id === reservationId)
         if (index !== -1) {
           this.reservations[index] = data
         }
-        
+
+        return data
+      }
+      catch (error) {
+        console.error('예약 확정 실패:', error)
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 예약 완료 (고객 통계 자동 업데이트) ✅
+     */
+    async completeReservation(reservationId) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        const { data } = await reservationApi.completeReservation(businessId, reservationId)
+
+        // 🔍 디버그: 완료 응답 확인
+        console.log('✅ 예약 완료 응답:', data)
+
+        // 목록에서 업데이트
+        const index = this.reservations.findIndex(r => r.id === reservationId)
+        if (index !== -1) {
+          this.reservations[index] = data
+        }
+
+        return data
+      }
+      catch (error) {
+        console.error('예약 완료 실패:', error)
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 예약 상태 변경 (일반적인 상태 변경용, COMPLETED는 사용하지 말 것!)
+     * @deprecated COMPLETED 상태는 completeReservation() 사용 권장
+     */
+    async updateReservationStatus(reservationId, status) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      // ⚠️ COMPLETED 상태는 completeReservation 사용 권장
+      if (status === 'COMPLETED') {
+        console.warn('⚠️ COMPLETED 상태는 completeReservation()을 사용하세요!')
+      }
+
+      this.loading = true
+      try {
+        const { data } = await reservationApi.updateReservationStatus(businessId, reservationId, status)
+
+        // 목록에서 업데이트
+        const index = this.reservations.findIndex(r => r.id === reservationId)
+        if (index !== -1) {
+          this.reservations[index] = data
+        }
+
         return data
       }
       catch (error) {

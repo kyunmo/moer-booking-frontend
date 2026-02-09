@@ -1,83 +1,143 @@
 <template>
   <div>
-    <!-- 헤더 -->
-    <VCard class="mb-4">
-      <VCardTitle class="d-flex align-center pe-2">
-        <VIcon icon="ri-calendar-check-line" size="24" class="me-3" />
-        <span>예약 캘린더</span>
-
-        <VSpacer />
-
-        <!-- 새 예약 등록 -->
-        <VBtn
-          color="primary"
-          prepend-icon="ri-add-line"
-          @click="openCreateDialog"
-        >
-          예약 등록
-        </VBtn>
-      </VCardTitle>
-    </VCard>
-
     <!-- 통계 카드 -->
     <VRow class="mb-4">
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="warning">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-time-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">대기</p>
-              <h6 class="text-h6">{{ reservationStore.pendingReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="대기"
+          :value="`${filteredStats.pending}건`"
+          icon="ri-time-line"
+          color="warning"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="primary">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-check-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">확정</p>
-              <h6 class="text-h6">{{ reservationStore.confirmedReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="확정"
+          :value="`${filteredStats.confirmed}건`"
+          icon="ri-check-line"
+          color="primary"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="success">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-checkbox-circle-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">완료</p>
-              <h6 class="text-h6">{{ reservationStore.completedReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="완료"
+          :value="`${filteredStats.completed}건`"
+          icon="ri-checkbox-circle-line"
+          color="success"
+        />
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="error">
-          <VCardText class="d-flex align-center">
-            <VIcon icon="ri-close-circle-line" size="32" class="me-3" />
-            <div>
-              <p class="text-xs mb-1">취소</p>
-              <h6 class="text-h6">{{ reservationStore.cancelledReservations.length }}건</h6>
-            </div>
-          </VCardText>
-        </VCard>
+        <StatisticsCard
+          title="취소"
+          :value="`${filteredStats.cancelled}건`"
+          icon="ri-close-circle-line"
+          color="error"
+        />
       </VCol>
     </VRow>
 
-    <!-- 캘린더 -->
+    <!-- 캘린더 메인 -->
     <VCard>
-      <VCardText>
-        <FullCalendar
-          ref="calendarRef"
-          :options="calendarOptions"
-        />
-      </VCardText>
+      <VLayout style="z-index: 0;">
+        <!-- 👉 왼쪽 사이드바 -->
+        <VNavigationDrawer
+          v-model="isLeftSidebarOpen"
+          width="280"
+          absolute
+          touchless
+          location="start"
+          :temporary="$vuetify.display.mdAndDown"
+          class="calendar-sidebar"
+        >
+          <!-- 예약 등록 버튼 -->
+          <div class="pa-5">
+            <VBtn
+              block
+              color="primary"
+              prepend-icon="ri-add-line"
+              @click="openCreateDialog"
+            >
+              예약 등록
+            </VBtn>
+          </div>
+
+          <VDivider />
+
+          <!-- 인라인 날짜 선택 -->
+          <div class="pa-5">
+            <h6 class="text-h6 mb-4">
+              <VIcon icon="ri-calendar-line" class="me-2" />
+              날짜 선택
+            </h6>
+            <VDatePicker
+              v-model="selectedDate"
+              :show-adjacent-months="true"
+              hide-header
+              width="100%"
+              @update:model-value="jumpToDate"
+            />
+          </div>
+
+          <VDivider />
+
+          <!-- 상태 필터 -->
+          <div class="pa-5">
+            <h6 class="text-h6 mb-4">
+              <VIcon icon="ri-filter-line" class="me-2" />
+              상태 필터
+            </h6>
+
+            <div class="d-flex flex-column calendars-checkbox">
+              <VCheckbox
+                v-model="checkAll"
+                label="전체 보기"
+                hide-details
+                density="compact"
+              />
+              <VCheckbox
+                v-for="status in availableStatuses"
+                :key="status.value"
+                v-model="selectedStatuses"
+                :value="status.value"
+                :color="status.color"
+                :label="status.label"
+                hide-details
+                density="compact"
+              />
+            </div>
+          </div>
+        </VNavigationDrawer>
+
+        <!-- 👉 메인 캘린더 -->
+        <VMain>
+          <VCard flat>
+            <!-- 모바일 메뉴 버튼 -->
+            <VCardTitle
+              v-if="$vuetify.display.mdAndDown"
+              class="d-flex align-center"
+            >
+              <VBtn
+                icon
+                variant="text"
+                @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+              >
+                <VIcon icon="ri-menu-line" />
+              </VBtn>
+              <span class="ms-2">예약 캘린더</span>
+            </VCardTitle>
+
+            <VCardText>
+              <FullCalendar
+                ref="calendarRef"
+                :options="calendarOptions"
+              />
+            </VCardText>
+          </VCard>
+        </VMain>
+      </VLayout>
     </VCard>
 
     <!-- 예약 상세보기 다이얼로그 -->
@@ -151,7 +211,8 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import FullCalendar from '@fullcalendar/vue3'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import StatisticsCard from '@/components/StatisticsCard.vue'
 import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
@@ -159,12 +220,58 @@ const reservationStore = useReservationStore()
 
 // Refs
 const calendarRef = ref(null)
+const isLeftSidebarOpen = ref(true)
 const isDetailDialogVisible = ref(false)
 const isFormDialogVisible = ref(false)
 const isCancelDialogVisible = ref(false)
 const selectedReservation = ref(null)
 const reservationToEdit = ref(null)
 const cancelReason = ref('')
+const selectedDate = ref(new Date())
+
+// 상태 필터
+const availableStatuses = [
+  { label: '대기', value: 'PENDING', color: 'warning' },
+  { label: '확정', value: 'CONFIRMED', color: 'primary' },
+  { label: '완료', value: 'COMPLETED', color: 'success' },
+  { label: '취소', value: 'CANCELLED', color: 'error' },
+]
+
+const selectedStatuses = ref(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'])
+
+// 전체 선택 체크박스
+const checkAll = computed({
+  get: () => selectedStatuses.value.length === availableStatuses.length,
+  set: val => {
+    if (val) {
+      selectedStatuses.value = availableStatuses.map(s => s.value)
+    }
+    else if (selectedStatuses.value.length === availableStatuses.length) {
+      selectedStatuses.value = []
+    }
+  },
+})
+
+// 필터링된 이벤트
+const filteredEvents = computed(() => {
+  return reservationStore.calendarEvents.filter(event => {
+    return selectedStatuses.value.includes(event.extendedProps.reservation.status)
+  })
+})
+
+// 필터링된 통계
+const filteredStats = computed(() => {
+  const filtered = reservationStore.reservations.filter(r =>
+    selectedStatuses.value.includes(r.status)
+  )
+
+  return {
+    pending: filtered.filter(r => r.status === 'PENDING').length,
+    confirmed: filtered.filter(r => r.status === 'CONFIRMED').length,
+    completed: filtered.filter(r => r.status === 'COMPLETED').length,
+    cancelled: filtered.filter(r => r.status === 'CANCELLED').length,
+  }
+})
 
 // FullCalendar 옵션
 const calendarOptions = computed(() => ({
@@ -184,12 +291,27 @@ const calendarOptions = computed(() => ({
     endTime: '20:00',
   },
   height: 'auto',
-  events: reservationStore.calendarEvents,
+  events: filteredEvents.value,
   eventClick: handleEventClick,
   dateClick: handleDateClick,
   editable: false,
   selectable: true,
+  allDaySlot: false,
+  nowIndicator: true,
+  eventTimeFormat: {
+    hour: '2-digit',
+    minute: '2-digit',
+    meridiem: false,
+  },
 }))
+
+// 날짜 선택 시 캘린더 이동
+function jumpToDate(date) {
+  if (calendarRef.value) {
+    const calendarApi = calendarRef.value.getApi()
+    calendarApi.gotoDate(date)
+  }
+}
 
 // 캘린더 이벤트 클릭
 function handleEventClick(info) {
@@ -199,7 +321,6 @@ function handleEventClick(info) {
 
 // 캘린더 날짜 클릭
 function handleDateClick(info) {
-  // 선택한 날짜로 예약 등록 다이얼로그 열기
   reservationToEdit.value = {
     reservationDate: info.dateStr.split('T')[0],
     startTime: info.dateStr.split('T')[1]?.substring(0, 5) || '10:00',
@@ -256,13 +377,24 @@ async function cancelReservation() {
 // 상태 변경
 async function handleStatusChange(reservationId, newStatus) {
   try {
-    await reservationStore.updateReservationStatus(reservationId, newStatus)
+    console.log(`🔍 상태 변경 시도: ${newStatus}`)
+
+    if (newStatus === 'COMPLETED') {
+      await reservationStore.completeReservation(reservationId)
+    }
+    else {
+      await reservationStore.updateReservationStatus(reservationId, newStatus)
+    }
+
     isDetailDialogVisible.value = false
     await loadReservations()
+
+    console.log(`✅ 예약 상태가 ${newStatus}(으)로 변경되었습니다`)
   }
   catch (error) {
-    console.error('상태 변경 실패:', error)
-    alert(error.response?.data?.message || '상태 변경에 실패했습니다.')
+    console.error('❌ 상태 변경 실패:', error)
+    console.error('에러 상세:', error.response?.data)
+    alert(error.response?.data?.message || error.message || '상태 변경에 실패했습니다.')
   }
 }
 
@@ -273,26 +405,56 @@ async function handleReservationSaved() {
   await loadReservations()
 }
 
-// 예약 목록 로드 (이번 달)
+// 예약 목록 로드
 async function loadReservations() {
   const today = new Date()
   const startDate = new Date(today.getFullYear(), today.getMonth(), 1)
   const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-  
+
   await reservationStore.fetchReservationsByDateRange(
     startDate.toISOString().split('T')[0],
     endDate.toISOString().split('T')[0],
   )
 }
 
-// 컴포넌트 마운트 시
+// 반응형 처리
+watch(() => isLeftSidebarOpen.value, (val) => {
+  // 사이드바 토글 시 캘린더 리사이즈
+  setTimeout(() => {
+    if (calendarRef.value) {
+      const calendarApi = calendarRef.value.getApi()
+      calendarApi.updateSize()
+    }
+  }, 300)
+})
+
+// 컴포넌트 마운트
 onMounted(() => {
   loadReservations()
 })
 </script>
 
+<style lang="scss">
+// FullCalendar 기본 스타일
+@use "@core/scss/template/libs/full-calendar";
+
+.calendars-checkbox {
+  .v-label {
+    color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+    opacity: var(--v-high-emphasis-opacity);
+  }
+}
+
+.calendar-sidebar {
+  &.v-navigation-drawer:not(.v-navigation-drawer--temporary) {
+    border-end-start-radius: 0.375rem;
+    border-start-start-radius: 0.375rem;
+  }
+}
+</style>
+
 <style scoped>
-/* FullCalendar 스타일 커스터마이징 */
+/* FullCalendar 커스터마이징 */
 :deep(.fc) {
   font-family: inherit;
 }
@@ -312,5 +474,29 @@ onMounted(() => {
   font-size: 0.875rem;
   padding-block: 2px;
   padding-inline: 4px;
+  cursor: pointer;
+}
+
+:deep(.fc-event:hover) {
+  opacity: 0.85;
+}
+
+:deep(.fc-daygrid-day-number) {
+  font-weight: 500;
+}
+
+:deep(.fc-col-header-cell-cushion) {
+  font-weight: 600;
+}
+
+/* 현재 시간 표시 */
+:deep(.fc-timegrid-now-indicator-line) {
+  border-color: rgb(var(--v-theme-error));
+  border-width: 2px;
+}
+
+/* 비즈니스 시간 강조 */
+:deep(.fc-non-business) {
+  background-color: rgba(var(--v-theme-on-surface), 0.02);
 }
 </style>

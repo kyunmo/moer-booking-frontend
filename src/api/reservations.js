@@ -40,6 +40,16 @@ export default {
     })
   },
 
+  // 예약 확정 ✅
+  confirmReservation(businessId, reservationId) {
+    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/confirm`)
+  },
+
+  // 예약 완료 (통계 자동 업데이트) ✅
+  completeReservation(businessId, reservationId) {
+    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/complete`)
+  },
+
   // 예약 취소
   cancelReservation(businessId, reservationId, reason = '') {
     return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/cancel`, null, {
