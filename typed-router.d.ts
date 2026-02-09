@@ -30,6 +30,7 @@ declare module 'vue-router/auto-routes' {
     'forgot-password': RouteRecordInfo<'forgot-password', '/forgot-password', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'oauth2-redirect': RouteRecordInfo<'oauth2-redirect', '/oauth2-redirect', Record<never, never>, Record<never, never>>,
+    'privacy': RouteRecordInfo<'privacy', '/privacy', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'reservations-calendar': RouteRecordInfo<'reservations-calendar', '/reservations/calendar', Record<never, never>, Record<never, never>>,
     'reservations-components-assign-staff-dialog': RouteRecordInfo<'reservations-components-assign-staff-dialog', '/reservations/components/AssignStaffDialog', Record<never, never>, Record<never, never>>,
@@ -47,5 +48,7 @@ declare module 'vue-router/auto-routes' {
     'staffs-components-staff-dialog': RouteRecordInfo<'staffs-components-staff-dialog', '/staffs/components/StaffDialog', Record<never, never>, Record<never, never>>,
     'staffs-components-staff-form-dialog': RouteRecordInfo<'staffs-components-staff-form-dialog', '/staffs/components/StaffFormDialog', Record<never, never>, Record<never, never>>,
     'staffs-list': RouteRecordInfo<'staffs-list', '/staffs/list', Record<never, never>, Record<never, never>>,
+    'support': RouteRecordInfo<'support', '/support', Record<never, never>, Record<never, never>>,
+    'terms': RouteRecordInfo<'terms', '/terms', Record<never, never>, Record<never, never>>,
   }
 }
