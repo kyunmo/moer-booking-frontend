@@ -92,7 +92,7 @@ onMounted(async () => {
     await authStore.fetchCurrentUser()
 
     // 대시보드로 이동
-    router.push('/')
+    router.push('/shop-admin/dashboard')
   }
   catch (err) {
     error.value = true

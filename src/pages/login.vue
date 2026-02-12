@@ -57,7 +57,7 @@ async function handleLogin() {
     })
 
     // 로그인 성공 시 대시보드로 이동
-    router.push('/')
+    router.push('/shop-admin/dashboard')
   }
   catch (error) {
     console.error('로그인 실패:', error)
@@ -223,7 +223,7 @@ function handleKakaoLogin() {
               class="d-flex align-center"
             >
               <VDivider />
-              <span class="mx-4 text-high-emphasis">또는</span>
+              <span class="mx-4 text-high-emphasis">or</span>
               <VDivider />
             </VCol>
 

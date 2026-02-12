@@ -54,7 +54,25 @@
         >
           <!-- 예약 등록 버튼 -->
           <div class="pa-5">
+            <VTooltip
+              v-if="!subscriptionStore.canCreateReservation"
+              location="bottom"
+            >
+              <template #activator="{ props }">
+                <VBtn
+                  block
+                  color="primary"
+                  prepend-icon="ri-add-line"
+                  disabled
+                  v-bind="props"
+                >
+                  예약 등록
+                </VBtn>
+              </template>
+              <span>월간 예약 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
+            </VTooltip>
             <VBtn
+              v-else
               block
               color="primary"
               prepend-icon="ri-add-line"
@@ -206,6 +224,7 @@
 
 <script setup>
 import { useReservationStore } from '@/stores/reservation'
+import { useSubscriptionStore } from '@/stores/subscription'
 import koLocale from '@fullcalendar/core/locales/ko'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -217,6 +236,7 @@ import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
 const reservationStore = useReservationStore()
+const subscriptionStore = useSubscriptionStore()
 
 // Refs
 const calendarRef = ref(null)
@@ -429,8 +449,9 @@ watch(() => isLeftSidebarOpen.value, (val) => {
 })
 
 // 컴포넌트 마운트
-onMounted(() => {
-  loadReservations()
+onMounted(async () => {
+  await loadReservations()
+  await subscriptionStore.fetchSubscriptionInfo()
 })
 </script>
 

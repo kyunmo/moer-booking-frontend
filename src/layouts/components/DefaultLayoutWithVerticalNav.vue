@@ -1,18 +1,33 @@
 <script setup>
-import navItems from '@/navigation/vertical'
+import baseNavItems, { superAdminItems } from '@/navigation/vertical'
+import { useAuthStore } from '@/stores/auth'
 import { useConfigStore } from '@core/stores/config'
 import { themeConfig } from '@themeConfig'
+import { computed } from 'vue'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 import NavBarI18n from '@core/components/I18n.vue'
+import BusinessSelector from '@/layouts/components/BusinessSelector.vue'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
 
 const configStore = useConfigStore()
+const authStore = useAuthStore()
+
+// 역할에 따른 네비게이션 아이템
+const navItems = computed(() => {
+  const userRole = authStore.userRole
+
+  if (userRole === 'SUPER_ADMIN') {
+    return [...superAdminItems, ...baseNavItems]
+  }
+
+  return baseNavItems
+})
 
 // ℹ️ Provide animation name for vertical nav collapse icon.
 const verticalNavHeaderActionAnimationName = ref(null)
@@ -30,6 +45,14 @@ watch([
 
 <template>
   <VerticalNavLayout :nav-items="navItems">
+    <!-- 👉 매장 선택기 (슈퍼관리자 전용) -->
+    <template #before-vertical-nav-items>
+      <div v-if="authStore.isSuperAdmin" class="pa-4 pb-2">
+        <BusinessSelector />
+        <VDivider class="mt-4" />
+      </div>
+    </template>
+
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">

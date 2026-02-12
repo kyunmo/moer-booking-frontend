@@ -205,9 +205,11 @@
 
 <script setup>
 import { useBusinessSettingsStore } from '@/stores/business-settings'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { onMounted, ref } from 'vue'
 
 const settingsStore = useBusinessSettingsStore()
+const { success, error: showError } = useSnackbar()
 
 const formRef = ref(null)
 
@@ -332,12 +334,13 @@ function resetForm() {
 function loadBusinessHours() {
   if (!settingsStore.business) return
 
-  // businessHours (JSONB)
+  // businessHours (JSONB) - Business 테이블에 저장됨
   if (settingsStore.business.businessHours) {
     Object.assign(businessHours.value, settingsStore.business.businessHours)
   }
 
-  // settings
+  // settings - BusinessSettings 테이블
+  // 백엔드에서 settings가 없으면 자동 생성됨 (REQUIRES_NEW 트랜잭션)
   const settings = settingsStore.business.settings
   if (settings) {
     form.value.bookingInterval = settings.bookingInterval || 30
@@ -350,6 +353,9 @@ function loadBusinessHours() {
 // 폼 제출
 async function handleSubmit() {
   try {
+    // updateBusinessHours는 두 가지 작업을 수행:
+    // 1. Business.businessHours 업데이트 (JSONB)
+    // 2. BusinessSettings 테이블 업데이트
     await settingsStore.updateBusinessHours(
       businessHours.value,  // businessHours (JSONB)
       {
@@ -361,22 +367,24 @@ async function handleSubmit() {
       }
     )
 
-    alert('영업시간이 저장되었습니다.')
+    success('영업시간이 저장되었습니다.')
   }
-  catch (error) {
-    console.error('저장 실패:', error)
-    alert(error.response?.data?.message || '저장에 실패했습니다.')
+  catch (err) {
+    console.error('영업시간 저장 실패:', err)
+    showError(err.message || '영업시간 저장에 실패했습니다.')
   }
 }
 
 // 컴포넌트 마운트 시
 onMounted(async () => {
   try {
+    // 매장 정보 조회 (settings가 없으면 백엔드에서 자동 생성됨)
     await settingsStore.fetchBusinessInfo()
     loadBusinessHours()
   }
-  catch (error) {
-    console.error('영업시간 조회 실패:', error)
+  catch (err) {
+    console.error('영업시간 조회 실패:', err)
+    showError('영업시간 정보를 불러오는데 실패했습니다.')
   }
 })
 </script>

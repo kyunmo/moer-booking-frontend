@@ -56,42 +56,17 @@
             />
           </VCol>
 
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.ownerName"
-              label="대표자명"
-              prepend-inner-icon="ri-user-line"
-            />
-          </VCol>
-
           <!-- 주소 -->
           <VCol cols="12">
             <h6 class="text-h6 mb-3 mt-4">주소</h6>
           </VCol>
 
-          <VCol cols="12" md="3">
-            <VTextField
-              v-model="form.zipCode"
-              label="우편번호"
-              prepend-inner-icon="ri-map-pin-line"
-              readonly
-            />
-          </VCol>
-
-          <VCol cols="12" md="9">
-            <VTextField
-              v-model="form.address"
-              label="기본 주소"
-              prepend-inner-icon="ri-road-map-line"
-              readonly
-            />
-          </VCol>
-
           <VCol cols="12">
             <VTextField
-              v-model="form.addressDetail"
-              label="상세 주소"
-              placeholder="동, 호수 등 상세 주소를 입력하세요"
+              v-model="form.address"
+              label="주소"
+              prepend-inner-icon="ri-map-pin-line"
+              placeholder="서울특별시 강남구 테헤란로 123"
             />
           </VCol>
 
@@ -111,67 +86,56 @@
             />
           </VCol>
 
-          <!-- 연락처 -->
+          <!-- 목표 설정 (신규) -->
           <VCol cols="12">
-            <h6 class="text-h6 mb-3 mt-4">추가 연락처</h6>
+            <VDivider class="my-4" />
+            <h6 class="text-h6 mb-3 mt-4">
+              <VIcon icon="ri-target-line" class="me-2" />
+              목표 설정
+            </h6>
+            <VAlert
+              color="info"
+              variant="tonal"
+              class="mb-4"
+            >
+              <VIcon icon="ri-information-line" class="me-2" />
+              매출 및 고객 목표를 설정하면 대시보드에서 달성률을 확인할 수 있습니다.
+            </VAlert>
           </VCol>
 
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <VTextField
-              v-model="form.email"
-              label="이메일"
-              prepend-inner-icon="ri-mail-line"
-              placeholder="your@email.com"
+              v-model.number="form.dailyRevenueGoal"
+              label="일일 매출 목표"
+              prepend-inner-icon="ri-money-dollar-circle-line"
+              suffix="원"
+              type="number"
+              placeholder="500000"
+              hint="하루 목표 매출액을 입력하세요"
             />
           </VCol>
 
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <VTextField
-              v-model="form.website"
-              label="웹사이트"
-              prepend-inner-icon="ri-global-line"
-              placeholder="https://your-website.com"
+              v-model.number="form.monthlyRevenueGoal"
+              label="월간 매출 목표"
+              prepend-inner-icon="ri-calendar-check-line"
+              suffix="원"
+              type="number"
+              placeholder="15000000"
+              hint="한 달 목표 매출액을 입력하세요"
             />
           </VCol>
 
-          <!-- SNS -->
-          <VCol cols="12">
-            <h6 class="text-h6 mb-3 mt-4">SNS & 지도</h6>
-          </VCol>
-
-          <VCol cols="12" md="6">
+          <VCol cols="12" md="4">
             <VTextField
-              v-model="form.instagramUrl"
-              label="Instagram"
-              prepend-inner-icon="ri-instagram-line"
-              placeholder="@your_account"
-            />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.facebookUrl"
-              label="Facebook"
-              prepend-inner-icon="ri-facebook-line"
-              placeholder="facebook.com/yourpage"
-            />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.naverPlaceUrl"
-              label="네이버 플레이스"
-              prepend-inner-icon="ri-map-pin-2-line"
-              placeholder="네이버 플레이스 URL"
-            />
-          </VCol>
-
-          <VCol cols="12" md="6">
-            <VTextField
-              v-model="form.kakaoPlaceUrl"
-              label="카카오맵"
-              prepend-inner-icon="ri-map-2-line"
-              placeholder="카카오맵 URL"
+              v-model.number="form.monthlyNewCustomerGoal"
+              label="월간 신규 고객 목표"
+              prepend-inner-icon="ri-user-add-line"
+              suffix="명"
+              type="number"
+              placeholder="50"
+              hint="한 달 목표 신규 고객 수를 입력하세요"
             />
           </VCol>
         </VRow>
@@ -204,39 +168,29 @@
 
 <script setup>
 import { useBusinessSettingsStore } from '@/stores/business-settings'
+import { useSnackbar } from '@/composables/useSnackbar'
+import { BUSINESS_TYPES, BUSINESS_TYPE_OPTIONS } from '@/constants/businessTypes'
 import { onMounted, ref } from 'vue'
 
 const settingsStore = useBusinessSettingsStore()
+const { success, error: showError } = useSnackbar()
 
 const formRef = ref(null)
 
 const form = ref({
   name: '',
-  businessType: 'SALON',
-  ownerName: '',
+  businessType: BUSINESS_TYPES.BEAUTY_SHOP,
   phone: '',
-  email: '',
-  website: '',
-  zipCode: '',
   address: '',
-  addressDetail: '',
   description: '',
-  instagramUrl: '',
-  facebookUrl: '',
-  naverPlaceUrl: '',
-  kakaoPlaceUrl: '',
+  // 목표 설정
+  dailyRevenueGoal: null,
+  monthlyRevenueGoal: null,
+  monthlyNewCustomerGoal: null,
 })
 
-// 업종 옵션
-const businessTypeOptions = [
-  { title: '미용실', value: 'SALON' },
-  { title: '네일샵', value: 'NAIL' },
-  { title: '피부관리실', value: 'SKIN_CARE' },
-  { title: '필라테스', value: 'PILATES' },
-  { title: '요가', value: 'YOGA' },
-  { title: '스터디카페', value: 'STUDY_CAFE' },
-  { title: '공방', value: 'WORKSHOP' },
-]
+// 업종 옵션 (상수에서 import)
+const businessTypeOptions = BUSINESS_TYPE_OPTIONS
 
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
@@ -249,19 +203,13 @@ function resetForm() {
   else {
     form.value = {
       name: '',
-      businessType: 'SALON',
-      ownerName: '',
+      businessType: BUSINESS_TYPES.BEAUTY_SHOP,
       phone: '',
-      email: '',
-      website: '',
-      zipCode: '',
       address: '',
-      addressDetail: '',
       description: '',
-      instagramUrl: '',
-      facebookUrl: '',
-      naverPlaceUrl: '',
-      kakaoPlaceUrl: '',
+      dailyRevenueGoal: null,
+      monthlyRevenueGoal: null,
+      monthlyNewCustomerGoal: null,
     }
   }
 }
@@ -273,19 +221,14 @@ function loadBusinessInfo() {
   const business = settingsStore.business
   form.value = {
     name: business.name || '',
-    businessType: business.businessType || 'SALON',
-    ownerName: business.ownerName || '',
+    businessType: business.businessType || BUSINESS_TYPES.BEAUTY_SHOP,
     phone: business.phone || '',
-    email: business.email || '',
-    website: business.website || '',
-    zipCode: business.zipCode || '',
     address: business.address || '',
-    addressDetail: business.addressDetail || '',
     description: business.description || '',
-    instagramUrl: business.instagramUrl || '',
-    facebookUrl: business.facebookUrl || '',
-    naverPlaceUrl: business.naverPlaceUrl || '',
-    kakaoPlaceUrl: business.kakaoPlaceUrl || '',
+    // 목표 설정
+    dailyRevenueGoal: business.dailyRevenueGoal || null,
+    monthlyRevenueGoal: business.monthlyRevenueGoal || null,
+    monthlyNewCustomerGoal: business.monthlyNewCustomerGoal || null,
   }
 }
 
@@ -295,12 +238,22 @@ async function handleSubmit() {
   if (!valid) return
 
   try {
-    await settingsStore.updateBusinessInfo(form.value)
-    alert('매장 정보가 저장되었습니다.')
+    // 변경된 필드만 전송 (null 값 제외)
+    const updateData = { ...form.value }
+
+    // null 값 제거 (빈 문자열은 유지)
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === null) {
+        delete updateData[key]
+      }
+    })
+
+    await settingsStore.updateBusinessInfo(updateData)
+    success('매장 정보가 저장되었습니다.')
   }
-  catch (error) {
-    console.error('저장 실패:', error)
-    alert(error.response?.data?.message || '저장에 실패했습니다.')
+  catch (err) {
+    console.error('저장 실패:', err)
+    showError(err.message || '저장에 실패했습니다.')
   }
 }
 

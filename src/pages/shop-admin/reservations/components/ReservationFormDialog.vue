@@ -495,7 +495,9 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('예약 저장 실패:', error)
-    errorMessage.value = error.response?.data?.message || '저장에 실패했습니다.'
+    // 백엔드 에러 구조: { error: { code, message, details }, success: false }
+    // details가 가장 구체적인 에러 메시지 (예: "해당 날짜는 휴무일입니다: 2026-02-13 (ttt)")   
+    errorMessage.value = error.details || '저장에 실패했습니다.'
   }
   finally {
     loading.value = false

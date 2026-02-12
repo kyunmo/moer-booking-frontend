@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     business: null,
     trial: null, // 30일 체험판 정보
+    selectedBusinessForSuperAdmin: null, // 슈퍼관리자가 선택한 매장
     accessToken: localStorage.getItem('accessToken') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     loading: false,
@@ -34,9 +35,40 @@ export const useAuthStore = defineStore('auth', {
     userRole: state => state.user?.role || 'USER',
 
     /**
-     * 비즈니스 ID
+     * 슈퍼관리자 여부
      */
-    businessId: state => state.user?.businessId || null,
+    isSuperAdmin: state => state.user?.role === 'SUPER_ADMIN',
+
+    /**
+     * 비즈니스 ID
+     * 슈퍼관리자: 선택된 매장 ID, 일반관리자: 본인의 businessId
+     */
+    businessId: state => {
+      if (state.user?.role === 'SUPER_ADMIN') {
+        return state.selectedBusinessForSuperAdmin?.id || null
+      }
+      return state.user?.businessId || null
+    },
+
+    /**
+     * 매장 선택 여부 (슈퍼관리자일 경우에만 의미 있음)
+     */
+    hasSelectedBusiness: state => {
+      if (state.user?.role === 'SUPER_ADMIN') {
+        return !!state.selectedBusinessForSuperAdmin
+      }
+      return !!state.user?.businessId
+    },
+
+    /**
+     * 선택된 매장 정보
+     */
+    selectedBusiness: state => {
+      if (state.user?.role === 'SUPER_ADMIN') {
+        return state.selectedBusinessForSuperAdmin
+      }
+      return state.business
+    },
 
     businessName: state => state.business?.name || '',
     businessType: state => state.business?.businessType || '',
@@ -109,6 +141,7 @@ export const useAuthStore = defineStore('auth', {
         this.trial = null
         this.accessToken = null
         this.refreshToken = null
+        this.clearSelectedBusiness()
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
 
@@ -137,6 +170,7 @@ export const useAuthStore = defineStore('auth', {
           phone: formData.phone,
           businessName: formData.businessName,
           businessType: formData.businessType || 'SALON',  // 기본값
+          selectedPlan: formData.selectedPlan || 'BASIC',  // 선택한 플랜 (기본값: BASIC)
         })
         
         console.log('회원가입 성공:', data)
@@ -221,12 +255,52 @@ export const useAuthStore = defineStore('auth', {
       if (this.accessToken) {
         try {
           await this.fetchCurrentUser()
+
+          // 슈퍼관리자인 경우 선택된 매장 복원
+          if (this.user?.role === 'SUPER_ADMIN') {
+            const savedBusiness = localStorage.getItem('selectedBusinessForSuperAdmin')
+            if (savedBusiness) {
+              try {
+                this.selectedBusinessForSuperAdmin = JSON.parse(savedBusiness)
+              } catch (e) {
+                console.warn('저장된 매장 정보 복원 실패:', e)
+                localStorage.removeItem('selectedBusinessForSuperAdmin')
+              }
+            }
+          }
         }
         catch (error) {
           // 사용자 정보 조회 실패 시 로그아웃
           this.logout()
         }
       }
+    },
+
+    /**
+     * 슈퍼관리자 매장 선택
+     */
+    selectBusinessForSuperAdmin(business) {
+      if (this.user?.role !== 'SUPER_ADMIN') {
+        console.warn('슈퍼관리자만 매장을 선택할 수 있습니다.')
+        return
+      }
+
+      this.selectedBusinessForSuperAdmin = business
+
+      // localStorage에 저장 (페이지 새로고침 시 유지)
+      if (business) {
+        localStorage.setItem('selectedBusinessForSuperAdmin', JSON.stringify(business))
+      } else {
+        localStorage.removeItem('selectedBusinessForSuperAdmin')
+      }
+    },
+
+    /**
+     * 선택된 매장 초기화
+     */
+    clearSelectedBusiness() {
+      this.selectedBusinessForSuperAdmin = null
+      localStorage.removeItem('selectedBusinessForSuperAdmin')
     },
   },
 })

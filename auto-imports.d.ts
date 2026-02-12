@@ -294,6 +294,7 @@ declare global {
   const useShare: typeof import('@vueuse/core')['useShare']
   const useSkins: typeof import('./src/@core/composable/useSkins.js')['useSkins']
   const useSlots: typeof import('vue')['useSlots']
+  const useSnackbar: typeof import('./src/composables/useSnackbar.js')['useSnackbar']
   const useSorted: typeof import('@vueuse/core')['useSorted']
   const useSpeechRecognition: typeof import('@vueuse/core')['useSpeechRecognition']
   const useSpeechSynthesis: typeof import('@vueuse/core')['useSpeechSynthesis']
@@ -653,6 +654,7 @@ declare module 'vue' {
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
     readonly useSkins: UnwrapRef<typeof import('./src/@core/composable/useSkins.js')['useSkins']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
+    readonly useSnackbar: UnwrapRef<typeof import('./src/composables/useSnackbar.js')['useSnackbar']>
     readonly useSorted: UnwrapRef<typeof import('@vueuse/core')['useSorted']>
     readonly useSpeechRecognition: UnwrapRef<typeof import('@vueuse/core')['useSpeechRecognition']>
     readonly useSpeechSynthesis: UnwrapRef<typeof import('@vueuse/core')['useSpeechSynthesis']>

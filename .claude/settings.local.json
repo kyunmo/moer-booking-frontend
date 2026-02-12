@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(git mv:*)",
+      "Bash(powershell -Command \"Move-Item -Path ''src/pages/reservations'' -Destination ''src/pages/shop-admin/reservations'' -Force\")",
+      "Bash(powershell -Command \"Move-Item -Path ''src/pages/customers'' -Destination ''src/pages/shop-admin/customers'' -Force\")",
+      "Bash(powershell -Command:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(del nul)"
     ]
   }
 }

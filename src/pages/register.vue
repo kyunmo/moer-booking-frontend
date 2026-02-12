@@ -13,6 +13,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import authV1RegisterMaskDark from '@images/pages/auth-v1-register-mask-dark.png'
 import authV1RegisterMaskLight from '@images/pages/auth-v1-register-mask-light.png'
+import PricingCard from '@/components/pricing/PricingCard.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -30,6 +31,7 @@ const form = ref({
   password: '',
   passwordConfirm: '',
   businessType: 'BEAUTY_SHOP',
+  selectedPlan: 'BASIC', // 기본값: BASIC 플랜
   agreeTerms: false,
 })
 
@@ -66,10 +68,11 @@ async function handleRegister() {
       phone: form.value.phone,
       password: form.value.password,
       businessType: form.value.businessType,
+      selectedPlan: form.value.selectedPlan, // 선택한 플랜 전송
     })
 
     // 회원가입 성공 시 대시보드로 이동
-    router.push('/')
+    router.push('/shop-admin/dashboard')
   }
   catch (error) {
     console.error('회원가입 실패:', error)
@@ -82,7 +85,7 @@ async function handleRegister() {
   <div class="auth-wrapper d-flex align-center justify-center pa-4">
     <VCard
       class="auth-card pa-1 pa-sm-7"
-      max-width="600"
+      max-width="900"
     >
       <!-- 로고 -->
       <VCardItem class="justify-center pb-6">
@@ -119,6 +122,45 @@ async function handleRegister() {
             <span class="text-body-2">
               <strong>30일 무료 체험!</strong> 회원가입 즉시 모든 기능을 체험할 수 있습니다.
             </span>
+          </div>
+        </VAlert>
+      </VCardText>
+
+      <!-- 플랜 선택 -->
+      <VCardText>
+        <h5 class="text-h6 mb-2">
+          플랜 선택
+        </h5>
+        <p class="text-body-2 text-medium-emphasis mb-4">
+          나에게 맞는 플랜을 선택하세요. 언제든지 변경 가능합니다.
+        </p>
+
+        <VRow>
+          <VCol
+            cols="12"
+            md="4"
+            v-for="plan in ['FREE', 'BASIC', 'PRO']"
+            :key="plan"
+          >
+            <PricingCard
+              :plan="plan"
+              :selected="form.selectedPlan === plan"
+              compact
+              @select="form.selectedPlan = $event"
+            />
+          </VCol>
+        </VRow>
+
+        <VAlert
+          v-if="form.selectedPlan !== 'FREE'"
+          type="info"
+          variant="tonal"
+          density="compact"
+          class="mt-4"
+        >
+          <div class="text-body-2">
+            <VIcon icon="ri-information-line" class="me-2" />
+            <strong>{{ form.selectedPlan === 'BASIC' ? '베이직' : '프로' }} 플랜</strong>을 30일간 무료로 체험하실 수 있습니다. 체험 기간 종료 후 자동 과금되지 않습니다.
           </div>
         </VAlert>
       </VCardText>

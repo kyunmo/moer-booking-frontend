@@ -31,7 +31,24 @@
         />
 
         <!-- 새 예약 등록 -->
+        <VTooltip
+          v-if="!subscriptionStore.canCreateReservation"
+          location="bottom"
+        >
+          <template #activator="{ props }">
+            <VBtn
+              color="primary"
+              prepend-icon="ri-add-line"
+              disabled
+              v-bind="props"
+            >
+              예약 등록
+            </VBtn>
+          </template>
+          <span>월간 예약 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
+        </VTooltip>
         <VBtn
+          v-else
           color="primary"
           prepend-icon="ri-add-line"
           @click="openCreateDialog"
@@ -217,7 +234,24 @@
             <p class="text-disabled mb-4">
               첫 예약을 등록하세요
             </p>
+            <VTooltip
+              v-if="!subscriptionStore.canCreateReservation"
+              location="bottom"
+            >
+              <template #activator="{ props }">
+                <VBtn
+                  color="primary"
+                  disabled
+                  v-bind="props"
+                >
+                  <VIcon icon="ri-add-line" class="me-2" />
+                  예약 등록하기
+                </VBtn>
+              </template>
+              <span>월간 예약 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
+            </VTooltip>
             <VBtn
+              v-else
               color="primary"
               @click="openCreateDialog"
             >
@@ -303,6 +337,7 @@
 
 <script setup>
 import { useReservationStore } from '@/stores/reservation'
+import { useSubscriptionStore } from '@/stores/subscription'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import StatisticsCard from '@/components/StatisticsCard.vue'
@@ -315,6 +350,7 @@ const route = useRoute()
 
 
 const reservationStore = useReservationStore()
+const subscriptionStore = useSubscriptionStore()
 
 // Refs
 const searchQuery = ref('')
@@ -511,7 +547,8 @@ async function handleStaffAssigned() {
 // URL 쿼리 파라미터 확인
 onMounted(async () => {
   await reservationStore.fetchReservations()
-  
+  await subscriptionStore.fetchSubscriptionInfo()
+
   // unassigned 쿼리가 있으면 검색어에 자동 입력
   if (route.query.unassigned === 'true') {
     searchQuery.value = '미배정'

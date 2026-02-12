@@ -20,7 +20,24 @@
         />
 
         <!-- 새 스태프 등록 -->
+        <VTooltip
+          v-if="!subscriptionStore.canAddStaff"
+          location="bottom"
+        >
+          <template #activator="{ props }">
+            <VBtn
+              color="primary"
+              prepend-icon="ri-user-add-line"
+              disabled
+              v-bind="props"
+            >
+              스태프 등록
+            </VBtn>
+          </template>
+          <span>직원 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
+        </VTooltip>
         <VBtn
+          v-else
           color="primary"
           prepend-icon="ri-user-add-line"
           @click="openCreateDialog"
@@ -230,7 +247,24 @@
         <p class="text-disabled mb-4">
           첫 스태프를 등록하고 예약을 시작하세요
         </p>
+        <VTooltip
+          v-if="!subscriptionStore.canAddStaff"
+          location="bottom"
+        >
+          <template #activator="{ props }">
+            <VBtn
+              color="primary"
+              disabled
+              v-bind="props"
+            >
+              <VIcon icon="ri-user-add-line" class="me-2" />
+              스태프 등록하기
+            </VBtn>
+          </template>
+          <span>직원 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
+        </VTooltip>
         <VBtn
+          v-else
           color="primary"
           @click="openCreateDialog"
         >
@@ -294,11 +328,13 @@
 
 <script setup>
 import { useStaffStore } from '@/stores/staff'
+import { useSubscriptionStore } from '@/stores/subscription'
 import { computed, onMounted, ref } from 'vue'
 import StaffDetailDialog from './components/StaffDetailDialog.vue'
 import StaffFormDialog from './components/StaffFormDialog.vue'
 
 const staffStore = useStaffStore()
+const subscriptionStore = useSubscriptionStore()
 
 // Refs
 const searchQuery = ref('')
@@ -409,8 +445,9 @@ async function handleStaffSaved() {
 }
 
 // 컴포넌트 마운트 시
-onMounted(() => {
-  staffStore.fetchStaffs()
+onMounted(async () => {
+  await staffStore.fetchStaffs()
+  await subscriptionStore.fetchSubscriptionInfo()
 })
 </script>
 

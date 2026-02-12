@@ -116,6 +116,7 @@ apiClient.interceptors.response.use(
       return Promise.reject({
         code: errorCode,
         message: errorMessage || '알 수 없는 오류가 발생했습니다.',
+        details: error.response?.data?.error?.details,
         status,
       })
     }

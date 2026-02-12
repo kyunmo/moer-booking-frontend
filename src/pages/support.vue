@@ -1,3 +1,9 @@
+<route lang="yaml">
+meta:
+  layout: public
+  public: true
+</route>
+
 <template>
   <div>
     <VCard>
