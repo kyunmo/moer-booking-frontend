@@ -29,9 +29,9 @@ const linkGroups = [
 
 // SNS 링크
 const socialLinks = [
-  { icon: 'ri-instagram-line', href: 'https://instagram.com/moer_official', label: 'Instagram' },
-  { icon: 'ri-youtube-line', href: 'https://youtube.com/moer', label: 'YouTube' },
-  { icon: 'ri-github-line', href: 'https://github.com/moer', label: 'GitHub' },
+  { icon: 'ri-instagram-line', href: 'https://instagram.com/YEMO_official', label: 'Instagram' },
+  { icon: 'ri-youtube-line', href: 'https://youtube.com/YEMO', label: 'YouTube' },
+  { icon: 'ri-github-line', href: 'https://github.com/YEMO', label: 'GitHub' },
 ]
 </script>
 
@@ -42,7 +42,7 @@ const socialLinks = [
         <!-- 회사 정보 -->
         <VCol cols="12" md="4" class="mb-6 mb-md-0">
           <h3 class="text-h6 font-weight-bold mb-3">
-            moer
+            YEMO
           </h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
             예약 관리의 새로운 기준
@@ -50,7 +50,7 @@ const socialLinks = [
 
           <div class="text-body-2 text-medium-emphasis mb-4">
             <div class="mb-1">대표: 구균모</div>
-            <div class="mb-1">이메일: support@moer.io</div>
+            <div class="mb-1">이메일: support@YEMO.io</div>
           </div>
 
           <!-- SNS 링크 -->
@@ -99,7 +99,7 @@ const socialLinks = [
 
       <!-- Copyright -->
       <div class="text-center text-body-2 text-medium-emphasis">
-        © {{ currentYear }} moer. All rights reserved.
+        © {{ currentYear }} YEMO. All rights reserved.
       </div>
     </VContainer>
   </VFooter>

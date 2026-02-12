@@ -2,6 +2,9 @@
 meta:
   layout: public
   public: true
+  title: 요금제 - YEMO
+  description: 업종과 규모에 맞는 합리적인 요금제. 30일 무료 체험으로 먼저 경험해보세요. 월 29,000원부터 시작.
+  keywords: 예약 시스템 가격, 요금제, 무료 체험, 베이직 플랜, 프로 플랜
 </route>
 
 <script setup>

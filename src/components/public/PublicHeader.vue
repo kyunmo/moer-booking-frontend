@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTheme } from 'vuetify'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
 const router = useRouter()
+const theme = useTheme()
 const mobileDrawer = ref(false)
 
 // 네비게이션 메뉴
@@ -19,6 +21,11 @@ const navItems = [
 function navigateTo(path) {
   router.push(path)
   mobileDrawer.value = false
+}
+
+// 테마 토글
+function toggleTheme() {
+  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 </script>
 
@@ -55,6 +62,15 @@ function navigateTo(path) {
         </VBtn>
 
         <VDivider vertical class="mx-3" />
+
+        <!-- 테마 전환 -->
+        <VBtn
+          icon
+          variant="text"
+          @click="toggleTheme"
+        >
+          <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
+        </VBtn>
 
         <!-- 로그인 -->
         <VBtn
@@ -120,6 +136,18 @@ function navigateTo(path) {
           <VListItemTitle>{{ item.title }}</VListItemTitle>
         </VListItem>
       </VList>
+
+      <VDivider class="my-4" />
+
+      <!-- 테마 전환 -->
+      <VListItem @click="toggleTheme">
+        <template #prepend>
+          <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
+        </template>
+        <VListItemTitle>
+          {{ theme.global.current.value.dark ? '라이트 모드' : '다크 모드' }}
+        </VListItemTitle>
+      </VListItem>
 
       <VDivider class="my-4" />
 

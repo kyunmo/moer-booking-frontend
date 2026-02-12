@@ -67,7 +67,7 @@ async function handleLogin() {
 
 // 테스트 계정으로 빠른 로그인
 function quickLogin() {
-  form.value.email = 'admin@moer.io'
+  form.value.email = 'admin@YEMO.io'
   form.value.password = 'password123'
   handleLogin()
 }

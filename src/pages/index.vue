@@ -2,6 +2,9 @@
 meta:
   layout: public
   public: true
+  title: YEMO - 예약 관리 자동화 솔루션
+  description: 예약 관리, 이제 자동으로 해결하세요. 고객이 직접 예약하고 카카오톡으로 자동 알림. 5분이면 시작 가능, 월 29,000원부터.
+  keywords: 예약 시스템, 예약 관리, 카카오톡 알림, 자동 예약, 미용실 예약, 필라테스 예약, 스터디카페 예약
 </route>
 
 <script setup>
@@ -196,7 +199,7 @@ function viewPricing() {
         <div class="text-center mt-8">
           <VChip size="large" color="primary" variant="tonal">
             <VIcon icon="ri-magic-line" start />
-            moer가 이 모든 문제를 해결해드립니다
+            YEMO가 이 모든 문제를 해결해드립니다
           </VChip>
         </div>
       </VContainer>
@@ -207,7 +210,7 @@ function viewPricing() {
       <VContainer>
         <div class="text-center mb-12">
           <h2 class="text-h3 font-weight-bold mb-4">
-            moer로 바뀌는 하루
+            YEMO로 바뀌는 하루
           </h2>
           <p class="text-h6 text-medium-emphasis">
             복잡했던 예약 관리가 이렇게 간단해집니다

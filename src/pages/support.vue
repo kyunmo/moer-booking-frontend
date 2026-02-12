@@ -2,6 +2,9 @@
 meta:
   layout: public
   public: true
+  title: 고객 지원 - YEMO
+  description: YEMO 고객 지원 센터. 이메일, 카카오톡, 전화로 빠르고 친절하게 도와드립니다.
+  keywords: 고객 지원, 문의, 상담, 헬프 데스크
 </route>
 
 <template>
@@ -32,7 +35,7 @@ meta:
                 <VBtn
                   color="primary"
                   variant="elevated"
-                  href="mailto:kkm@moer.io"
+                  href="mailto:kkm@YEMO.io"
                 >
                   문의하기
                 </VBtn>
