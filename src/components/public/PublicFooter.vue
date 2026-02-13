@@ -70,11 +70,11 @@ const socialLinks = [
 
         <!-- 링크 그룹 -->
         <VCol
-          v-for="group in linkGroups"
+          v-for="(group, index) in linkGroups"
           :key="group.title"
           cols="6"
           md="2"
-          offset-md="1"
+          :offset-md="index === 0 ? 2 : 0"
         >
           <h4 class="text-subtitle-1 font-weight-bold mb-3">
             {{ group.title }}

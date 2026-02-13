@@ -8,10 +8,10 @@
       <!-- 헤더 -->
       <VCardTitle class="d-flex align-center pe-2">
         <VIcon
-          :icon="getCategoryIcon(service.category)"
+          :icon="getCategoryIcon(service.categoryName || service.category)"
           size="24"
           class="me-3"
-          :color="getCategoryColor(service.category)"
+          :color="getCategoryColor(service.categoryName || service.category)"
         />
         <span>서비스 상세정보</span>
         
@@ -36,12 +36,12 @@
           
           <div class="d-flex align-center gap-2">
             <VChip
-              v-if="service.category"
-              :color="getCategoryColor(service.category)"
+              v-if="service.categoryName || service.category"
+              :color="getCategoryColor(service.categoryName || service.category)"
               size="small"
               variant="tonal"
             >
-              {{ service.category }}
+              {{ service.categoryName || service.category }}
             </VChip>
 
             <VChip
@@ -169,6 +169,10 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
+
+const { getCategoryIcon, getCategoryColor } = useBusinessIcon()
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -181,30 +185,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'edit', 'delete'])
-
-// 카테고리 아이콘
-function getCategoryIcon(category) {
-  const icons = {
-    '컷': 'ri-scissors-cut-line',
-    '펌': 'ri-contrast-2-line',
-    '염색': 'ri-palette-line',
-    '클리닉': 'ri-heart-pulse-line',
-    '기타': 'ri-more-line',
-  }
-  return icons[category] || 'ri-scissors-line'
-}
-
-// 카테고리 색상
-function getCategoryColor(category) {
-  const colors = {
-    '컷': 'primary',
-    '펌': 'info',
-    '염색': 'warning',
-    '클리닉': 'success',
-    '기타': 'secondary',
-  }
-  return colors[category] || 'default'
-}
 
 // 날짜 포맷
 function formatDate(dateString) {

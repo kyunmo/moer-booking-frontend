@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const theme = useTheme()
+const authStore = useAuthStore()
 const mobileDrawer = ref(false)
 
 // 네비게이션 메뉴
@@ -27,6 +29,20 @@ function navigateTo(path) {
 function toggleTheme() {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
+
+// 로그아웃
+async function handleLogout() {
+  mobileDrawer.value = false
+  try {
+    // logout() 내부에서 상태 초기화 및 /login 리다이렉트 처리
+    await authStore.logout()
+  }
+  catch (error) {
+    console.error('로그아웃 실패:', error)
+    // 실패 시에도 홈으로 이동
+    router.push('/')
+  }
+}
 </script>
 
 <template>
@@ -35,10 +51,10 @@ function toggleTheme() {
     :border="true"
     class="public-header"
   >
-    <VContainer fluid class="d-flex align-center px-4 px-sm-6">
-      <!-- 로고 -->
+    <VContainer fluid class="header-container d-flex align-center px-4 px-sm-6">
+      <!-- 로고 (왼쪽) -->
       <div
-        class="app-logo d-flex align-center cursor-pointer"
+        class="app-logo d-flex align-center cursor-pointer header-logo"
         @click="navigateTo('/')"
       >
         <VNodeRenderer :nodes="themeConfig.app.logo" />
@@ -47,10 +63,8 @@ function toggleTheme() {
         </h1>
       </div>
 
-      <VSpacer />
-
-      <!-- 데스크톱 네비게이션 -->
-      <div class="d-none d-md-flex align-center">
+      <!-- 데스크톱 네비게이션 (가운데) -->
+      <div class="d-none d-md-flex align-center header-nav">
         <VBtn
           v-for="item in navItems"
           :key="item.to"
@@ -60,9 +74,10 @@ function toggleTheme() {
         >
           {{ item.title }}
         </VBtn>
+      </div>
 
-        <VDivider vertical class="mx-3" />
-
+      <!-- 우측 액션 영역 -->
+      <div class="d-none d-md-flex align-center header-actions">
         <!-- 테마 전환 -->
         <VBtn
           icon
@@ -72,27 +87,50 @@ function toggleTheme() {
           <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
         </VBtn>
 
-        <!-- 로그인 -->
-        <VBtn
-          to="/login"
-          variant="text"
-          class="mx-1"
-        >
-          로그인
-        </VBtn>
+        <template v-if="authStore.isAuthenticated">
+          <!-- 로그인된 상태 -->
+          <VBtn
+            to="/shop-admin/dashboard"
+            variant="text"
+            class="mx-1"
+            prepend-icon="ri-dashboard-line"
+          >
+            관리자
+          </VBtn>
 
-        <!-- 무료로 시작하기 -->
-        <VBtn
-          to="/register"
-          color="primary"
-          class="ms-2"
-          prepend-icon="ri-rocket-line"
-        >
-          무료로 시작하기
-        </VBtn>
+          <VBtn
+            color="error"
+            variant="outlined"
+            class="ms-2"
+            prepend-icon="ri-logout-box-r-line"
+            @click="handleLogout"
+          >
+            로그아웃
+          </VBtn>
+        </template>
+
+        <template v-else>
+          <!-- 미로그인 상태 -->
+          <VBtn
+            to="/login"
+            variant="text"
+            class="mx-1"
+          >
+            로그인
+          </VBtn>
+
+          <VBtn
+            to="/register"
+            color="primary"
+            class="ms-2"
+          >
+            무료로 시작하기
+          </VBtn>
+        </template>
       </div>
 
       <!-- 모바일 메뉴 버튼 -->
+      <VSpacer class="d-md-none" />
       <VBtn
         icon
         variant="text"
@@ -153,21 +191,42 @@ function toggleTheme() {
 
       <!-- CTA 버튼들 -->
       <div class="d-flex flex-column gap-2">
-        <VBtn
-          block
-          variant="outlined"
-          @click="navigateTo('/login')"
-        >
-          로그인
-        </VBtn>
-        <VBtn
-          block
-          color="primary"
-          prepend-icon="ri-rocket-line"
-          @click="navigateTo('/register')"
-        >
-          무료로 시작하기
-        </VBtn>
+        <template v-if="authStore.isAuthenticated">
+          <VBtn
+            block
+            variant="outlined"
+            prepend-icon="ri-dashboard-line"
+            @click="navigateTo('/shop-admin/dashboard')"
+          >
+            관리자 페이지
+          </VBtn>
+          <VBtn
+            block
+            color="error"
+            variant="outlined"
+            prepend-icon="ri-logout-box-r-line"
+            @click="handleLogout"
+          >
+            로그아웃
+          </VBtn>
+        </template>
+
+        <template v-else>
+          <VBtn
+            block
+            variant="outlined"
+            @click="navigateTo('/login')"
+          >
+            로그인
+          </VBtn>
+          <VBtn
+            block
+            color="primary"
+            @click="navigateTo('/register')"
+          >
+            무료로 시작하기
+          </VBtn>
+        </template>
       </div>
     </div>
   </VNavigationDrawer>
@@ -180,6 +239,26 @@ function toggleTheme() {
   z-index: 10;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
+}
+
+.header-container {
+  position: relative;
+}
+
+// 데스크톱: 3분할 레이아웃 (로고-왼, 메뉴-중앙, 액션-우)
+.header-logo {
+  flex-shrink: 0;
+}
+
+.header-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.header-actions {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .app-logo {

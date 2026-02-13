@@ -312,7 +312,7 @@
         <VCol cols="12" md="6">
           <VCard class="h-100">
             <VCardTitle>
-              <VIcon icon="ri-scissors-line" class="me-2" />
+              <VIcon :icon="serviceIconLine" class="me-2" />
               인기 서비스
             </VCardTitle>
             <VCardText v-if="stats.popularServices && stats.popularServices.length > 0">
@@ -482,7 +482,8 @@
             </VCardTitle>
             <VCardText>
               <VueApexCharts
-                v-if="stats?.weekStats?.dailyCounts && stats.weekStats.dailyCounts.length > 0"
+                v-if="chartReady && stats?.weekStats?.dailyCounts && stats.weekStats.dailyCounts.length > 0"
+                :key="chartKey"
                 type="bar"
                 height="300"
                 :options="chartOptions"
@@ -553,7 +554,7 @@
               <VBtn
                 size="small"
                 variant="text"
-                :to="{ name: 'reservations-calendar' }"
+                :to="{ name: 'shop-admin-reservations-calendar' }"
               >
                 전체 보기
                 <VIcon icon="ri-arrow-right-line" class="ms-1" />
@@ -613,7 +614,7 @@
               <VBtn
                 size="small"
                 variant="text"
-                :to="{ name: 'customers-list' }"
+                :to="{ name: 'shop-admin-customers-list' }"
               >
                 전체 보기
                 <VIcon icon="ri-arrow-right-line" class="ms-1" />
@@ -669,7 +670,7 @@
                     color="primary"
                     size="large"
                     prepend-icon="ri-add-line"
-                    :to="{ name: 'reservations-calendar' }"
+                    :to="{ name: 'shop-admin-reservations-calendar' }"
                   >
                     예약 등록
                   </VBtn>
@@ -681,7 +682,7 @@
                     color="success"
                     size="large"
                     prepend-icon="ri-user-add-line"
-                    :to="{ name: 'customers-list' }"
+                    :to="{ name: 'shop-admin-customers-list' }"
                   >
                     고객 등록
                   </VBtn>
@@ -692,8 +693,8 @@
                     block
                     color="info"
                     size="large"
-                    prepend-icon="ri-scissors-line"
-                    :to="{ name: 'services-list' }"
+                    :prepend-icon="serviceIconLine"
+                    :to="{ name: 'shop-admin-services-list' }"
                   >
                     서비스 관리
                   </VBtn>
@@ -705,7 +706,7 @@
                     color="warning"
                     size="large"
                     prepend-icon="ri-settings-3-line"
-                    :to="{ name: 'business-settings' }"
+                    :to="{ name: 'shop-admin-business-settings' }"
                   >
                     매장 설정
                   </VBtn>
@@ -722,13 +723,18 @@
 <script setup>
 import StatisticsCard from '@/components/StatisticsCard.vue'
 import UnassignedReservationAlert from '@/components/UnassignedReservationAlert.vue'
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
-import { computed, onMounted } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+
+const { serviceIconLine } = useBusinessIcon()
 
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
+const chartKey = ref(0)
+const chartReady = ref(false)
 
 const businessName = computed(() => authStore.user?.name || '사장님')
 
@@ -742,10 +748,7 @@ const todayText = computed(() => {
   })
 })
 
-const stats = computed(() => {
-  console.log('Stats computed:', dashboardStore.dashboardData)
-  return dashboardStore.dashboardData
-})
+const stats = computed(() => dashboardStore.dashboardData)
 
 // 전체 알림 수
 const totalAlerts = computed(() => {
@@ -889,9 +892,14 @@ function getStaffRankColor(index) {
 }
 
 onMounted(async () => {
-  console.log('Dashboard page mounted')
+  chartReady.value = false
+  chartKey.value++
   await dashboardStore.fetchDashboard()
-  console.log('After fetch, dashboardData:', dashboardStore.dashboardData)
-  console.log('Stats value:', stats.value)
+  await nextTick()
+  chartReady.value = true
+})
+
+onBeforeUnmount(() => {
+  chartReady.value = false
 })
 </script>

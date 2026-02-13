@@ -33,7 +33,7 @@
               <VTextField
                 v-model="form.name"
                 label="서비스명"
-                prepend-inner-icon="ri-scissors-line"
+                :prepend-inner-icon="serviceIconLine"
                 placeholder="예: 여성컷"
                 :rules="[required]"
                 required
@@ -42,10 +42,12 @@
 
             <!-- 카테고리 -->
             <VCol cols="12" md="6">
-              <VAutocomplete
-                v-model="form.category"
+              <VSelect
+                v-model="form.categoryId"
                 label="카테고리"
                 :items="categoryOptions"
+                item-title="title"
+                item-value="value"
                 prepend-inner-icon="ri-folder-line"
                 :rules="[required]"
                 required
@@ -181,6 +183,8 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { computed, ref, watch } from 'vue'
 
@@ -191,7 +195,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { serviceIconLine } = useBusinessIcon()
 const serviceStore = useServiceStore()
+const categoryStore = useServiceCategoryStore()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -200,7 +206,7 @@ const isEditMode = computed(() => !!props.service)
 
 const form = ref({
   name: '',
-  category: '',
+  categoryId: null,
   price: 0,
   durationMinutes: 30,
   description: '',
@@ -209,15 +215,8 @@ const form = ref({
   displayOrder: 0,
 })
 
-// 카테고리 옵션
-const categoryOptions = [
-  '컷',
-  '펌',
-  '염색',
-  '클리닉',
-  '스타일링',
-  '기타',
-]
+// 카테고리 옵션 (DB에서 로드)
+const categoryOptions = computed(() => categoryStore.categoryOptions)
 
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
@@ -235,11 +234,12 @@ const minDuration = value => {
 // 다이얼로그 열릴 때
 watch(() => props.modelValue, newVal => {
   if (newVal) {
+    categoryStore.fetchCategories()
     if (props.service) {
       // 수정 모드
       form.value = {
         name: props.service.name,
-        category: props.service.category,
+        categoryId: props.service.categoryId || null,
         price: props.service.price,
         durationMinutes: props.service.durationMinutes,
         description: props.service.description || '',
@@ -252,7 +252,7 @@ watch(() => props.modelValue, newVal => {
       // 등록 모드
       form.value = {
         name: '',
-        category: '',
+        categoryId: null,
         price: 0,
         durationMinutes: 30,
         description: '',

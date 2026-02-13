@@ -34,6 +34,7 @@ export const superAdminItems = [
   },
 ]
 
+import { getBusinessTypeIcon } from '@/constants/businessTypes'
 import { useAuthStore } from '@/stores/auth'
 
 // 기본 메뉴 (모든 사용자)
@@ -79,7 +80,10 @@ export default [
   {
     title: '서비스 관리',
     to: { name: 'shop-admin-services-list' },
-    icon: { icon: 'ri-scissors-line' },
+    get icon() {
+      const authStore = useAuthStore()
+      return { icon: getBusinessTypeIcon(authStore.businessType, 'line') }
+    },
     get disabled() {
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness

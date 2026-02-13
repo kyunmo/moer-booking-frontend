@@ -1,7 +1,8 @@
 ---
 name: Frontend Senior Planner
 description: "UI/UX 설계, 화면 구조 검토, 사용자 플로우 정의 전문가"
-model: sonnet
+model: opus
+color: yellow
 ---
 
 # Frontend Senior Planner

@@ -3,7 +3,7 @@
     <!-- 헤더 -->
     <VCard class="mb-4">
       <VCardTitle class="d-flex align-center pe-2">
-        <VIcon icon="ri-scissors-cut-line" size="24" class="me-3" />
+        <VIcon :icon="serviceIcon" size="24" class="me-3" />
         <span>서비스 관리</span>
 
         <VSpacer />
@@ -29,6 +29,16 @@
           class="me-3"
           clearable
         />
+
+        <!-- 카테고리 관리 -->
+        <VBtn
+          variant="outlined"
+          prepend-icon="ri-folder-settings-line"
+          class="me-3"
+          @click="isCategoryDialogVisible = true"
+        >
+          카테고리 관리
+        </VBtn>
 
         <!-- 새 서비스 등록 -->
         <VBtn
@@ -73,7 +83,7 @@
             <VIcon icon="ri-folder-line" size="32" class="me-3" />
             <div>
               <p class="text-xs mb-1">카테고리</p>
-              <h6 class="text-h6">{{ serviceStore.categories.length }}개</h6>
+              <h6 class="text-h6">{{ categoryStore.categories.length }}개</h6>
             </div>
           </VCardText>
         </VCard>
@@ -112,10 +122,10 @@
             <!-- 헤더 -->
             <VCardTitle class="d-flex align-center">
               <VIcon
-                :icon="getCategoryIcon(service.category)"
+                :icon="getCategoryIcon(service.categoryName || service.category)"
                 size="20"
                 class="me-2"
-                :color="getCategoryColor(service.category)"
+                :color="getCategoryColor(service.categoryName || service.category)"
               />
               <span class="text-truncate">{{ service.name }}</span>
               
@@ -136,12 +146,12 @@
               <!-- 카테고리 -->
               <div class="mb-3">
                 <VChip
-                  v-if="service.category"
-                  :color="getCategoryColor(service.category)"
+                  v-if="service.categoryName || service.category"
+                  :color="getCategoryColor(service.categoryName || service.category)"
                   size="small"
                   variant="tonal"
                 >
-                  {{ service.category }}
+                  {{ service.categoryName || service.category }}
                 </VChip>
               </div>
 
@@ -212,7 +222,7 @@
     <VCard v-else>
       <VCardText class="text-center pa-10">
         <VIcon
-          icon="ri-scissors-cut-line"
+          :icon="serviceIcon"
           size="64"
           class="mb-4 text-disabled"
         />
@@ -243,6 +253,12 @@
       v-model="isFormDialogVisible"
       :service="serviceToEdit"
       @saved="handleServiceSaved"
+    />
+
+    <!-- 카테고리 관리 다이얼로그 -->
+    <CategoryManageDialog
+      v-model="isCategoryDialogVisible"
+      @updated="handleCategoryUpdated"
     />
 
     <!-- 삭제 확인 다이얼로그 -->
@@ -283,12 +299,18 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { computed, onMounted, ref } from 'vue'
+import CategoryManageDialog from './components/CategoryManageDialog.vue'
 import ServiceDetailDialog from './components/ServiceDetailDialog.vue'
 import ServiceFormDialog from './components/ServiceFormDialog.vue'
 
+const { serviceIcon, serviceIconLine, getCategoryIcon, getCategoryColor } = useBusinessIcon()
+
 const serviceStore = useServiceStore()
+const categoryStore = useServiceCategoryStore()
 
 // Refs
 const searchQuery = ref('')
@@ -296,12 +318,13 @@ const selectedCategory = ref(null)
 const isDetailDialogVisible = ref(false)
 const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
+const isCategoryDialogVisible = ref(false)
 const selectedService = ref(null)
 const serviceToEdit = ref(null)
 
-// 카테고리 필터 옵션
+// 카테고리 필터 옵션 (DB 카테고리 사용)
 const categoryFilterOptions = computed(() => {
-  return ['전체', ...serviceStore.categories]
+  return ['전체', ...categoryStore.categories.map(c => c.name)]
 })
 
 // 검색 및 필터링
@@ -310,13 +333,16 @@ const filteredServices = computed(() => {
 
   // 카테고리 필터
   if (selectedCategory.value && selectedCategory.value !== '전체') {
-    result = result.filter(s => s.category === selectedCategory.value)
+    result = result.filter(s => {
+      const name = s.categoryName || s.category
+      return name === selectedCategory.value
+    })
   }
 
   // 검색
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(s => 
+    result = result.filter(s =>
       s.name.toLowerCase().includes(query) ||
       (s.description && s.description.toLowerCase().includes(query)),
     )
@@ -331,30 +357,6 @@ const averagePrice = computed(() => {
   const total = serviceStore.services.reduce((sum, s) => sum + (s.price || 0), 0)
   return Math.round(total / serviceStore.services.length)
 })
-
-// 카테고리 아이콘
-function getCategoryIcon(category) {
-  const icons = {
-    '컷': 'ri-scissors-cut-line',
-    '펌': 'ri-contrast-2-line',
-    '염색': 'ri-palette-line',
-    '클리닉': 'ri-heart-pulse-line',
-    '기타': 'ri-more-line',
-  }
-  return icons[category] || 'ri-scissors-line'
-}
-
-// 카테고리 색상
-function getCategoryColor(category) {
-  const colors = {
-    '컷': 'primary',
-    '펌': 'info',
-    '염색': 'warning',
-    '클리닉': 'success',
-    '기타': 'secondary',
-  }
-  return colors[category] || 'default'
-}
 
 // 텍스트 자르기
 function truncateText(text, maxLength) {
@@ -417,9 +419,15 @@ async function handleServiceSaved() {
   await serviceStore.fetchServices()
 }
 
+// 카테고리 업데이트 후
+async function handleCategoryUpdated() {
+  await categoryStore.fetchCategories(true)
+}
+
 // 컴포넌트 마운트 시
 onMounted(() => {
   serviceStore.fetchServices()
+  categoryStore.fetchCategories()
 })
 </script>
 

@@ -293,9 +293,9 @@
 </template>
 
 <script setup>
-import { useSuperAdminStore } from '@/stores/superadmin'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { getBusinessTypeLabel as getBusinessTypeLabelUtil } from '@/constants/businessTypes'
+import { useSuperAdminStore } from '@/stores/superadmin'
 import { computed, onMounted, ref } from 'vue'
 
 const superadminStore = useSuperAdminStore()

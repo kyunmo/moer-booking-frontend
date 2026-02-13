@@ -121,7 +121,7 @@
             <!-- 서비스 선택 -->
             <VCol cols="12">
               <h6 class="text-h6 mb-3 mt-4">
-                <VIcon icon="ri-scissors-cut-line" class="me-2" />
+                <VIcon :icon="serviceIcon" class="me-2" />
                 서비스 선택
               </h6>
             </VCol>
@@ -131,7 +131,7 @@
                 v-model="form.serviceIds"
                 label="서비스 선택 *"
                 placeholder="서비스를 선택하세요"
-                prepend-inner-icon="ri-scissors-line"
+                :prepend-inner-icon="serviceIconLine"
                 :items="serviceOptions"
                 item-title="nameWithPrice"
                 item-value="id"
@@ -286,6 +286,7 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useCustomerStore } from '@/stores/customer'
 import { useReservationStore } from '@/stores/reservation'
 import { useServiceStore } from '@/stores/service'
@@ -305,6 +306,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { serviceIcon, serviceIconLine } = useBusinessIcon()
 const reservationStore = useReservationStore()
 const customerStore = useCustomerStore()
 const staffStore = useStaffStore()

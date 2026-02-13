@@ -16,7 +16,7 @@ export const useServiceStore = defineStore('service', {
     servicesByCategory: state => {
       const grouped = {}
       state.services.forEach(service => {
-        const category = service.category || '기타'
+        const category = service.categoryName || service.category || '미분류'
         if (!grouped[category]) {
           grouped[category] = []
         }
@@ -33,13 +33,14 @@ export const useServiceStore = defineStore('service', {
     },
 
     /**
-     * 카테고리 목록
+     * 서비스에서 사용 중인 카테고리명 목록 (필터용)
      */
-    categories: state => {
+    usedCategoryNames: state => {
       const cats = new Set()
       state.services.forEach(service => {
-        if (service.category) {
-          cats.add(service.category)
+        const name = service.categoryName || service.category
+        if (name) {
+          cats.add(name)
         }
       })
       return Array.from(cats).sort()

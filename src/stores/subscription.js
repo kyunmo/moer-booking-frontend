@@ -1,5 +1,6 @@
 import subscriptionApi from '@/api/subscription'
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 export const useSubscriptionStore = defineStore('subscription', {
   state: () => ({
@@ -127,11 +128,17 @@ export const useSubscriptionStore = defineStore('subscription', {
      * 구독 정보 조회
      */
     async fetchSubscriptionInfo() {
+      const authStore = useAuthStore()
+
       this.loading = true
       this.error = null
       try {
-        const { data } = await subscriptionApi.getSubscriptionInfo()
+        // 슈퍼관리자인 경우 선택된 매장의 businessId를 전달
+        const businessId = authStore.isSuperAdmin ? authStore.businessId : null
+        const { data } = await subscriptionApi.getSubscriptionInfo(businessId)
+
         this.subscriptionInfo = data
+
         return data
       }
       catch (error) {

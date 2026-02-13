@@ -1,7 +1,7 @@
 ---
 name: Frontend Code Generator
 description: "Vue 3 + Vuetify 컴포넌트 자동 생성. Pages, Components, Store, Router 전체 생성"
-model: sonnet
+model: opus
 ---
 
 # Frontend Code Generator

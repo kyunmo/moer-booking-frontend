@@ -31,11 +31,13 @@
             <!-- 카테고리 -->
             <VCol cols="12" md="6">
               <VSelect
-                v-model="form.category"
+                v-model="form.categoryId"
                 label="카테고리 *"
                 placeholder="선택하세요"
                 prepend-inner-icon="ri-folder-line"
                 :items="categoryOptions"
+                item-title="title"
+                item-value="value"
                 :rules="[required]"
                 required
               />
@@ -47,7 +49,7 @@
                 v-model="form.name"
                 label="서비스명 *"
                 placeholder="예: 여성 컷"
-                prepend-inner-icon="ri-scissors-line"
+                :prepend-inner-icon="serviceIconLine"
                 :rules="[required]"
                 required
               />
@@ -155,6 +157,8 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { useStaffStore } from '@/stores/staff'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -172,8 +176,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { serviceIconLine } = useBusinessIcon()
 const serviceStore = useServiceStore()
 const staffStore = useStaffStore()
+const categoryStore = useServiceCategoryStore()
 
 // Refs
 const formRef = ref(null)
@@ -183,14 +189,8 @@ const errorMessage = ref('')
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.service)
 
-// 카테고리 옵션
-const categoryOptions = [
-  '컷',
-  '펌',
-  '염색',
-  '클리닉',
-  '기타',
-]
+// 카테고리 옵션 (DB에서 로드)
+const categoryOptions = computed(() => categoryStore.categoryOptions)
 
 // 직원 옵션 (활성 직원만)
 const staffOptions = computed(() => {
@@ -199,7 +199,7 @@ const staffOptions = computed(() => {
 
 // 폼 데이터
 const form = ref({
-  category: null,
+  categoryId: null,
   name: '',
   price: null,
   duration: null,
@@ -212,7 +212,7 @@ watch(() => props.service, (newService) => {
   if (newService) {
     // 수정 모드: 기존 데이터 로드
     form.value = {
-      category: newService.category || null,
+      categoryId: newService.categoryId || null,
       name: newService.name || '',
       price: newService.price || null,
       duration: newService.duration || null,
@@ -236,7 +236,7 @@ const minValueRule = value => {
 // 폼 초기화
 function resetForm() {
   form.value = {
-    category: null,
+    categoryId: null,
     name: '',
     price: null,
     duration: null,
@@ -266,7 +266,7 @@ async function handleSubmit() {
   try {
     // 서비스 데이터 준비
     const serviceData = {
-      category: form.value.category,
+      categoryId: form.value.categoryId,
       name: form.value.name,
       price: form.value.price,
       duration: form.value.duration,
@@ -294,10 +294,11 @@ async function handleSubmit() {
   }
 }
 
-// 컴포넌트 마운트 시 직원 목록 로드
+// 컴포넌트 마운트 시 직원/카테고리 목록 로드
 onMounted(() => {
   if (staffStore.staffs.length === 0) {
     staffStore.fetchStaffs()
   }
+  categoryStore.fetchCategories()
 })
 </script>

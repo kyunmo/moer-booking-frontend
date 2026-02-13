@@ -226,6 +226,7 @@
 </template>
 
 <script setup>
+import { useServiceCategoryStore } from '@/stores/service-category'
 import { useStaffStore } from '@/stores/staff'
 import { computed, ref, watch } from 'vue'
 
@@ -237,6 +238,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const staffStore = useStaffStore()
+const categoryStore = useServiceCategoryStore()
 
 const formRef = ref(null)
 const loading = ref(false)
@@ -285,14 +287,8 @@ const roleOptions = [
   '스태프',
 ]
 
-const specialtyOptions = [
-  '컷',
-  '펌',
-  '염색',
-  '클리닉',
-  '스타일링',
-  '헤어케어',
-]
+// 전문분야 옵션 (DB 카테고리에서 로드)
+const specialtyOptions = computed(() => categoryStore.categories.map(c => c.name))
 
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
@@ -300,6 +296,7 @@ const required = value => !!value || '필수 입력 항목입니다.'
 // 다이얼로그 열릴 때
 watch(() => props.modelValue, newVal => {
   if (newVal) {
+    categoryStore.fetchCategories()
     if (props.staff) {
       // 수정 모드
       form.value = {

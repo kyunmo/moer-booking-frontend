@@ -9,13 +9,28 @@ const apiClient = axios.create({
   },
 })
 
-// 요청 인터셉터 (JWT 토큰 자동 추가)
+// 요청 인터셉터 (JWT 토큰 자동 추가 + 슈퍼관리자 매장 ID)
 apiClient.interceptors.request.use(
   config => {
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // 슈퍼관리자가 선택한 매장 ID를 헤더에 추가
+    const selectedBusiness = localStorage.getItem('selectedBusinessForSuperAdmin')
+    if (selectedBusiness) {
+      try {
+        const business = JSON.parse(selectedBusiness)
+        if (business?.id) {
+          config.headers['X-Business-Id'] = business.id
+        }
+      }
+      catch (e) {
+        // 파싱 실패 시 무시
+      }
+    }
+
     return config
   },
   error => {

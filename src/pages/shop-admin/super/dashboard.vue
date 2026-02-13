@@ -331,8 +331,8 @@
 </template>
 
 <script setup>
+import { getBusinessTypeIcon, getBusinessTypeLabel as getBusinessTypeLabelUtil } from '@/constants/businessTypes'
 import { useSuperAdminStore } from '@/stores/superadmin'
-import { getBusinessTypeLabel as getBusinessTypeLabelUtil } from '@/constants/businessTypes'
 import { computed, onMounted, ref } from 'vue'
 
 const superadminStore = useSuperAdminStore()
@@ -441,21 +441,6 @@ function getRankColor(rank) {
 
 function getBusinessTypeLabel(type) {
   return getBusinessTypeLabelUtil(type)
-}
-
-function getBusinessTypeIcon(type) {
-  const icons = {
-    BEAUTY_SHOP: 'ri-scissors-cut-line',
-    PILATES: 'ri-heart-pulse-line',
-    YOGA: 'ri-user-heart-line',
-    CAFE: 'ri-cup-line',
-    STUDY_CAFE: 'ri-book-open-line',
-    WORKSHOP: 'ri-hammer-line',
-    ACADEMY: 'ri-graduation-cap-line',
-    PET_SALON: 'ri-bear-smile-line',
-    OTHER: 'ri-store-2-line',
-  }
-  return icons[type] || 'ri-store-2-line'
 }
 
 // Lifecycle

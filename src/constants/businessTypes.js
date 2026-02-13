@@ -46,10 +46,51 @@ export const BUSINESS_TYPE_OPTIONS = [
 ]
 
 /**
+ * 업종별 아이콘 매핑 (heading/상세보기용)
+ */
+export const BUSINESS_TYPE_ICONS = {
+  [BUSINESS_TYPES.BEAUTY_SHOP]: 'ri-scissors-cut-line',
+  [BUSINESS_TYPES.PILATES]: 'ri-heart-pulse-line',
+  [BUSINESS_TYPES.YOGA]: 'ri-user-heart-line',
+  [BUSINESS_TYPES.CAFE]: 'ri-cup-line',
+  [BUSINESS_TYPES.STUDY_CAFE]: 'ri-book-open-line',
+  [BUSINESS_TYPES.WORKSHOP]: 'ri-hammer-line',
+  [BUSINESS_TYPES.ACADEMY]: 'ri-graduation-cap-line',
+  [BUSINESS_TYPES.PET_SALON]: 'ri-bear-smile-line',
+  [BUSINESS_TYPES.OTHER]: 'ri-store-2-line',
+}
+
+/**
+ * 업종별 line 아이콘 매핑 (네비게이션/폼 필드용)
+ */
+export const BUSINESS_TYPE_ICONS_LINE = {
+  [BUSINESS_TYPES.BEAUTY_SHOP]: 'ri-scissors-line',
+  [BUSINESS_TYPES.PILATES]: 'ri-heart-pulse-line',
+  [BUSINESS_TYPES.YOGA]: 'ri-user-heart-line',
+  [BUSINESS_TYPES.CAFE]: 'ri-cup-line',
+  [BUSINESS_TYPES.STUDY_CAFE]: 'ri-book-open-line',
+  [BUSINESS_TYPES.WORKSHOP]: 'ri-hammer-line',
+  [BUSINESS_TYPES.ACADEMY]: 'ri-graduation-cap-line',
+  [BUSINESS_TYPES.PET_SALON]: 'ri-bear-smile-line',
+  [BUSINESS_TYPES.OTHER]: 'ri-store-2-line',
+}
+
+/**
  * 업종 타입에 대한 한글 레이블 반환
  * @param {string} businessType - 업종 타입
  * @returns {string} 한글 레이블
  */
 export function getBusinessTypeLabel(businessType) {
   return BUSINESS_TYPE_LABELS[businessType] || businessType
+}
+
+/**
+ * 업종 타입에 대한 아이콘 반환
+ * @param {string} businessType - 업종 타입
+ * @param {'default'|'line'} variant - 아이콘 변형
+ * @returns {string} 아이콘 이름
+ */
+export function getBusinessTypeIcon(businessType, variant = 'default') {
+  const icons = variant === 'line' ? BUSINESS_TYPE_ICONS_LINE : BUSINESS_TYPE_ICONS
+  return icons[businessType] || 'ri-store-2-line'
 }

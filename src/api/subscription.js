@@ -6,10 +6,13 @@ import apiClient from './axios'
 const subscriptionApi = {
   /**
    * 구독 정보 조회
-   * GET /api/subscription
+   * GET /api/subscription 또는 GET /api/subscription?businessId={id}
+   * @param {number|null} businessId - 슈퍼관리자가 조회할 매장 ID
    */
-  getSubscriptionInfo() {
-    return apiClient.get('/subscription')
+  getSubscriptionInfo(businessId = null) {
+    const params = businessId ? { businessId } : {}
+
+    return apiClient.get('/subscription', { params })
   },
 
   /**

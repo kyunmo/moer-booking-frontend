@@ -104,7 +104,7 @@
           <!-- 서비스 -->
           <VCol cols="12" md="6">
             <h6 class="text-h6 mb-3">
-              <VIcon icon="ri-scissors-cut-line" class="me-2" />
+              <VIcon :icon="serviceIcon" class="me-2" />
               서비스
             </h6>
             <VList density="compact">
@@ -312,6 +312,10 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
+
+const { serviceIcon } = useBusinessIcon()
+
 const props = defineProps({
   modelValue: {
     type: Boolean,

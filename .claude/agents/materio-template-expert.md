@@ -1,7 +1,7 @@
 ---
 name: Materio Template Expert
 description: "Materio 템플릿 활용 전문가. 컴포넌트 추천, 예제 코드 제공, 디자인 시스템 일관성"
-model: haiku
+model: sonnet
 ---
 
 # Materio Template Expert

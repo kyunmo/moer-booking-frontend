@@ -101,7 +101,7 @@
                 :items="serviceOptions"
                 item-title="name"
                 item-value="id"
-                prepend-inner-icon="ri-scissors-line"
+                :prepend-inner-icon="serviceIconLine"
                 multiple
                 chips
                 closable-chips
@@ -178,6 +178,7 @@
 </template>
 
 <script setup>
+import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useReservationStore } from '@/stores/reservation'
 import { computed, ref, watch } from 'vue'
 
@@ -189,6 +190,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { serviceIconLine } = useBusinessIcon()
 const reservationStore = useReservationStore()
 
 const formRef = ref(null)
