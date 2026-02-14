@@ -253,15 +253,17 @@ async function handleRegister() {
                   style="opacity: 1;"
                 >
                   <span class="me-1 text-high-emphasis">
-                    <a
-                      href="javascript:void(0)"
+                    <RouterLink
+                      to="/terms"
                       class="text-primary"
-                    >이용약관</a>
+                      target="_blank"
+                    >이용약관</RouterLink>
                     및
-                    <a
-                      href="javascript:void(0)"
+                    <RouterLink
+                      to="/privacy"
                       class="text-primary"
-                    >개인정보처리방침</a>에 동의합니다
+                      target="_blank"
+                    >개인정보처리방침</RouterLink>에 동의합니다
                   </span>
                 </VLabel>
               </div>

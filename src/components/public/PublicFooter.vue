@@ -29,9 +29,8 @@ const linkGroups = [
 
 // SNS 링크
 const socialLinks = [
-  { icon: 'ri-instagram-line', href: 'https://instagram.com/YEMO_official', label: 'Instagram' },
-  { icon: 'ri-youtube-line', href: 'https://youtube.com/YEMO', label: 'YouTube' },
-  { icon: 'ri-github-line', href: 'https://github.com/YEMO', label: 'GitHub' },
+  { icon: 'ri-instagram-line', href: '#', label: 'Instagram' },
+  { icon: 'ri-youtube-line', href: '#', label: 'YouTube' },
 ]
 </script>
 

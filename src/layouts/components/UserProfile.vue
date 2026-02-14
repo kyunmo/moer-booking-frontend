@@ -38,7 +38,7 @@ const userProfileList = [
     type: 'navItem',
     icon: 'ri-settings-4-line',
     title: '매장 설정',
-    to: '/business-settings',
+    to: '/shop-admin/business-settings',
   },
   { type: 'divider' },
   {

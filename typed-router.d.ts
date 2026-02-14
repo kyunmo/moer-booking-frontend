@@ -29,7 +29,6 @@ declare module 'vue-router/auto-routes' {
     'privacy': RouteRecordInfo<'privacy', '/privacy', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
-    'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
     'shop-admin-business-settings': RouteRecordInfo<'shop-admin-business-settings', '/shop-admin/business-settings', Record<never, never>, Record<never, never>>,
     'shop-admin-business-settings-holidays': RouteRecordInfo<'shop-admin-business-settings-holidays', '/shop-admin/business-settings/holidays', Record<never, never>, Record<never, never>>,
     'shop-admin-business-settings-hours': RouteRecordInfo<'shop-admin-business-settings-hours', '/shop-admin/business-settings/hours', Record<never, never>, Record<never, never>>,

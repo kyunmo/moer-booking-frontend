@@ -62,9 +62,9 @@ meta:
                 <VBtn
                   color="success"
                   variant="elevated"
-                  disabled
+                  to="/faq"
                 >
-                  준비 중
+                  FAQ 보기
                 </VBtn>
               </VCardText>
             </VCard>

@@ -88,10 +88,10 @@
       <VCol cols="12" sm="6" md="3">
         <VCard variant="tonal" color="warning">
           <VCardText class="d-flex align-center">
-            <VIcon icon="ri-time-line" size="32" class="me-3" />
+            <VIcon icon="ri-briefcase-line" size="32" class="me-3" />
             <div>
-              <p class="text-xs mb-1">이번 달 예약</p>
-              <h6 class="text-h6">-건</h6>
+              <p class="text-xs mb-1">총 서비스</p>
+              <h6 class="text-h6">{{ staffStore.staffs.reduce((sum, s) => sum + (s.serviceCount || 0), 0) }}건</h6>
             </div>
           </VCardText>
         </VCard>
