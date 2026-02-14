@@ -226,6 +226,7 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useStaffStore } from '@/stores/staff'
 import { computed, ref, watch } from 'vue'
@@ -237,6 +238,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { error: showError } = useSnackbar()
 const staffStore = useStaffStore()
 const categoryStore = useServiceCategoryStore()
 
@@ -368,7 +370,7 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('스태프 저장 실패:', error)
-    alert(error || '스태프 저장에 실패했습니다.')
+    showError(error.message || '스태프 저장에 실패했습니다.')
   }
   finally {
     loading.value = false

@@ -336,6 +336,7 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'
 import { computed, onMounted, ref } from 'vue'
@@ -348,7 +349,7 @@ import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
 const route = useRoute()
 
-
+const { error: showError } = useSnackbar()
 const reservationStore = useReservationStore()
 const subscriptionStore = useSubscriptionStore()
 
@@ -491,7 +492,7 @@ async function cancelReservation() {
   }
   catch (error) {
     console.error('예약 취소 실패:', error)
-    alert(error.response?.data?.message || '예약 취소에 실패했습니다.')
+    showError(error.message || '예약 취소에 실패했습니다.')
   }
 }
 
@@ -519,7 +520,7 @@ async function handleStatusChange(reservationId, newStatus) {
   catch (error) {
     console.error('❌ 상태 변경 실패:', error)
     console.error('에러 상세:', error.response?.data)
-    alert(error.response?.data?.message || error.message || '상태 변경에 실패했습니다.')
+    showError(error.message || '상태 변경에 실패했습니다.')
   }
 }
 

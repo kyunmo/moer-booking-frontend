@@ -1,7 +1,7 @@
 <template>
   <VDialog
     :model-value="modelValue"
-    max-width="800"
+    max-width="960"
     persistent
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
@@ -11,9 +11,9 @@
       <VCardTitle class="d-flex align-center pe-2">
         <VIcon icon="ri-calendar-check-line" size="24" class="me-3" />
         <span>{{ isEditMode ? '예약 수정' : '예약 등록' }}</span>
-        
+
         <VSpacer />
-        
+
         <VBtn
           icon
           variant="text"
@@ -26,107 +26,130 @@
 
       <VDivider />
 
-      <VCardText style="max-block-size: 600px;">
+      <VCardText style="max-block-size: 80vh;">
         <VForm ref="formRef" @submit.prevent="handleSubmit">
           <VRow>
-            <!-- 고객 선택 -->
-            <VCol cols="12">
-              <h6 class="text-h6 mb-3">
-                <VIcon icon="ri-user-line" class="me-2" />
-                고객 정보
-              </h6>
-            </VCol>
-
-            <VCol cols="12" md="6">
-              <VAutocomplete
-                v-model="form.customerId"
-                label="고객 선택 *"
-                placeholder="고객을 검색하세요"
-                prepend-inner-icon="ri-user-search-line"
-                :items="customerOptions"
-                item-title="nameWithPhone"
-                item-value="id"
-                :rules="[customerRequired]"
-                clearable
-                @update:model-value="handleCustomerSelect"
+            <!-- 좌측 패널: 폼 -->
+            <VCol cols="12" md="7">
+              <!-- 에러 메시지 - 폼 최상단 -->
+              <VAlert
+                v-if="errorMessage"
+                type="error"
+                variant="tonal"
+                closable
+                class="mb-4"
+                @click:close="errorMessage = ''"
               >
-                <template #item="{ props: itemProps, item }">
-                  <VListItem v-bind="itemProps">
-                    <template #prepend>
-                      <VAvatar color="primary" size="32">
-                        {{ getInitial(item.raw.name) }}
-                      </VAvatar>
+                {{ errorMessage }}
+              </VAlert>
+
+              <!-- 고객 정보 -->
+              <div class="text-subtitle-2 text-medium-emphasis mb-2">
+                <VIcon icon="ri-user-line" size="18" class="me-1" />
+                고객 정보
+              </div>
+
+              <VTabs
+                v-model="customerType"
+                density="compact"
+                class="mb-3"
+              >
+                <VTab value="existing">
+                  <VIcon icon="ri-user-search-line" size="18" start />
+                  기존 고객
+                </VTab>
+                <VTab value="new">
+                  <VIcon icon="ri-user-add-line" size="18" start />
+                  신규 고객
+                </VTab>
+              </VTabs>
+
+              <VWindow v-model="customerType" class="mb-2">
+                <VWindowItem value="existing">
+                  <VAutocomplete
+                    v-model="form.customerId"
+                    label="고객 선택 *"
+                    placeholder="고객을 검색하세요"
+                    prepend-inner-icon="ri-user-search-line"
+                    :items="customerOptions"
+                    item-title="nameWithPhone"
+                    item-value="id"
+                    :rules="customerType === 'existing' ? [customerRequired] : []"
+                    clearable
+                  >
+                    <template #item="{ props: itemProps, item }">
+                      <VListItem v-bind="itemProps">
+                        <template #prepend>
+                          <VAvatar color="primary" size="32">
+                            {{ getInitial(item.raw.name) }}
+                          </VAvatar>
+                        </template>
+                        <VListItemTitle>{{ item.raw.name }}</VListItemTitle>
+                        <VListItemSubtitle>{{ item.raw.phone }}</VListItemSubtitle>
+                      </VListItem>
                     </template>
-                    <VListItemTitle>{{ item.raw.name }}</VListItemTitle>
-                    <VListItemSubtitle>{{ item.raw.phone }}</VListItemSubtitle>
-                  </VListItem>
-                </template>
-              </VAutocomplete>
-            </VCol>
+                  </VAutocomplete>
+                </VWindowItem>
 
-            <!-- 또는 신규 고객 -->
-            <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.customerName"
-                label="신규 고객 이름"
-                placeholder="홍길동"
-                prepend-inner-icon="ri-user-add-line"
-                :disabled="!!form.customerId"
-                hint="기존 고객이 없으면 이름을 입력하세요"
-                persistent-hint
-              />
-            </VCol>
+                <VWindowItem value="new">
+                  <VRow dense>
+                    <VCol cols="12" sm="6">
+                      <VTextField
+                        v-model="form.customerName"
+                        label="고객 이름 *"
+                        placeholder="홍길동"
+                        prepend-inner-icon="ri-user-add-line"
+                        :rules="customerType === 'new' ? [required] : []"
+                      />
+                    </VCol>
+                    <VCol cols="12" sm="6">
+                      <VTextField
+                        v-model="form.customerPhone"
+                        label="전화번호 *"
+                        placeholder="010-1234-5678"
+                        prepend-inner-icon="ri-phone-line"
+                        :rules="customerType === 'new' ? [required, phoneRule] : []"
+                        persistent-hint
+                        hint="연락처가 같은 기존 고객이 있으면 자동으로 연결됩니다"
+                      />
+                    </VCol>
+                  </VRow>
+                </VWindowItem>
+              </VWindow>
 
-            <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.customerPhone"
-                label="신규 고객 전화번호"
-                placeholder="010-1234-5678"
-                prepend-inner-icon="ri-phone-line"
-                :disabled="!!form.customerId"
-                :rules="form.customerId ? [] : [phoneRule]"
-              />
-            </VCol>
-
-            <!-- 예약 일시 -->
-            <VCol cols="12">
-              <h6 class="text-h6 mb-3 mt-4">
-                <VIcon icon="ri-calendar-line" class="me-2" />
+              <!-- 예약 일시 -->
+              <div class="text-subtitle-2 text-medium-emphasis mb-2 mt-2">
+                <VIcon icon="ri-calendar-line" size="18" class="me-1" />
                 예약 일시
-              </h6>
-            </VCol>
+              </div>
 
-            <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.reservationDate"
-                label="예약 날짜 *"
-                type="date"
-                prepend-inner-icon="ri-calendar-event-line"
-                :rules="[required]"
-                required
-              />
-            </VCol>
+              <VRow dense>
+                <VCol cols="12" sm="6">
+                  <VTextField
+                    v-model="form.reservationDate"
+                    label="예약 날짜 *"
+                    type="date"
+                    prepend-inner-icon="ri-calendar-event-line"
+                    :rules="[required]"
+                  />
+                </VCol>
+                <VCol cols="12" sm="6">
+                  <VTextField
+                    v-model="form.startTime"
+                    label="시작 시간 *"
+                    type="time"
+                    prepend-inner-icon="ri-time-line"
+                    :rules="[required]"
+                  />
+                </VCol>
+              </VRow>
 
-            <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.startTime"
-                label="시작 시간 *"
-                type="time"
-                prepend-inner-icon="ri-time-line"
-                :rules="[required]"
-                required
-              />
-            </VCol>
-
-            <!-- 서비스 선택 -->
-            <VCol cols="12">
-              <h6 class="text-h6 mb-3 mt-4">
-                <VIcon :icon="serviceIcon" class="me-2" />
+              <!-- 서비스 선택 -->
+              <div class="text-subtitle-2 text-medium-emphasis mb-2 mt-2">
+                <VIcon :icon="serviceIcon" size="18" class="me-1" />
                 서비스 선택
-              </h6>
-            </VCol>
+              </div>
 
-            <VCol cols="12">
               <VAutocomplete
                 v-model="form.serviceIds"
                 label="서비스 선택 *"
@@ -139,7 +162,6 @@
                 multiple
                 chips
                 closable-chips
-                required
               >
                 <template #chip="{ props: chipProps, item }">
                   <VChip v-bind="chipProps">
@@ -148,17 +170,13 @@
                   </VChip>
                 </template>
               </VAutocomplete>
-            </VCol>
 
-            <!-- 담당 직원 -->
-            <VCol cols="12">
-              <h6 class="text-h6 mb-3 mt-4">
-                <VIcon icon="ri-user-star-line" class="me-2" />
+              <!-- 담당 직원 -->
+              <div class="text-subtitle-2 text-medium-emphasis mb-2 mt-2">
+                <VIcon icon="ri-user-star-line" size="18" class="me-1" />
                 담당 직원
-              </h6>
-            </VCol>
+              </div>
 
-            <VCol cols="12" md="6">
               <VSelect
                 v-model="form.staffId"
                 label="담당 직원"
@@ -182,46 +200,14 @@
                     <VListItemSubtitle>{{ item.raw.position }}</VListItemSubtitle>
                   </VListItem>
                 </template>
-
-                <!-- clearable 아이콘으로 "상관없음" 처리 -->
-                <template #append>
-                  <VTooltip location="top">
-                    <template #activator="{ props }">
-                      <VIcon
-                        v-bind="props"
-                        icon="ri-information-line"
-                        size="20"
-                        class="text-disabled"
-                      />
-                    </template>
-                    직원을 선택하지 않으면 관리자가 나중에 배정할 수 있습니다
-                  </VTooltip>
-                </template>
               </VSelect>
-            </VCol>
 
-            <!-- 예상 금액 표시 -->
-            <VCol cols="12" md="6">
-              <VCard variant="tonal" color="success">
-                <VCardText>
-                  <p class="text-xs text-disabled mb-1">예상 금액</p>
-                  <h5 class="text-h5">{{ calculateTotalPrice().toLocaleString() }}원</h5>
-                  <p class="text-xs text-disabled mb-0">
-                    예상 시간: {{ calculateTotalDuration() }}분
-                  </p>
-                </VCardText>
-              </VCard>
-            </VCol>
-
-            <!-- 메모 -->
-            <VCol cols="12">
-              <h6 class="text-h6 mb-3 mt-4">
-                <VIcon icon="ri-file-text-line" class="me-2" />
+              <!-- 메모 -->
+              <div class="text-subtitle-2 text-medium-emphasis mb-2 mt-4">
+                <VIcon icon="ri-file-text-line" size="18" class="me-1" />
                 메모
-              </h6>
-            </VCol>
+              </div>
 
-            <VCol cols="12">
               <VTextarea
                 v-model="form.customerMemo"
                 label="고객 요청사항"
@@ -230,10 +216,9 @@
                 rows="2"
                 counter
                 maxlength="500"
+                class="mb-2"
               />
-            </VCol>
 
-            <VCol cols="12">
               <VTextarea
                 v-model="form.staffMemo"
                 label="직원 메모"
@@ -245,16 +230,86 @@
               />
             </VCol>
 
-            <!-- 에러 메시지 -->
-            <VCol v-if="errorMessage" cols="12">
-              <VAlert
-                type="error"
+            <!-- 우측 패널: 예약 요약 -->
+            <VCol cols="12" md="5">
+              <VCard
                 variant="tonal"
-                closable
-                @click:close="errorMessage = ''"
+                color="primary"
+                class="sticky-summary"
               >
-                {{ errorMessage }}
-              </VAlert>
+                <VCardTitle class="text-subtitle-1 font-weight-bold py-3">
+                  <VIcon icon="ri-file-list-3-line" size="20" class="me-2" />
+                  예약 요약
+                </VCardTitle>
+
+                <VDivider />
+
+                <VCardText class="d-flex flex-column gap-3 pa-4">
+                  <!-- 고객 정보 -->
+                  <div>
+                    <p class="text-caption text-disabled mb-1">고객</p>
+                    <p class="text-body-2 font-weight-medium mb-0">
+                      {{ summaryCustomerName || '-' }}
+                    </p>
+                    <p v-if="summaryCustomerPhone" class="text-caption text-medium-emphasis mb-0">
+                      {{ summaryCustomerPhone }}
+                    </p>
+                  </div>
+
+                  <!-- 일시 -->
+                  <div>
+                    <p class="text-caption text-disabled mb-1">일시</p>
+                    <p class="text-body-2 font-weight-medium mb-0">
+                      {{ formatSummaryDate() }}
+                    </p>
+                  </div>
+
+                  <!-- 서비스 -->
+                  <div>
+                    <p class="text-caption text-disabled mb-1">서비스</p>
+                    <template v-if="selectedServices.length > 0">
+                      <div
+                        v-for="svc in selectedServices"
+                        :key="svc.id"
+                        class="d-flex justify-space-between align-center"
+                      >
+                        <span class="text-body-2">{{ svc.name }}</span>
+                        <span class="text-caption text-medium-emphasis">
+                          {{ svc.price.toLocaleString() }}원 / {{ svc.duration }}분
+                        </span>
+                      </div>
+                    </template>
+                    <p v-else class="text-caption text-disabled mb-0">
+                      선택된 서비스 없음
+                    </p>
+                  </div>
+
+                  <VDivider />
+
+                  <!-- 총액 -->
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-body-2 font-weight-bold">총 금액</span>
+                    <span class="text-subtitle-1 font-weight-bold">
+                      {{ totalPrice.toLocaleString() }}원
+                    </span>
+                  </div>
+
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-caption text-medium-emphasis">소요시간</span>
+                    <span class="text-body-2 font-weight-medium">
+                      {{ totalDuration }}분
+                    </span>
+                  </div>
+
+                  <!-- 담당 직원 -->
+                  <div>
+                    <p class="text-caption text-disabled mb-1">담당 직원</p>
+                    <p class="text-body-2 font-weight-medium mb-0">
+                      {{ selectedStaffName || '미지정' }}
+                    </p>
+                  </div>
+                </VCardText>
+              </VCard>
             </VCol>
           </VRow>
         </VForm>
@@ -265,7 +320,7 @@
       <!-- 액션 버튼 -->
       <VCardActions class="pa-4">
         <VSpacer />
-        
+
         <VBtn
           variant="outlined"
           @click="handleClose"
@@ -287,6 +342,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useCustomerStore } from '@/stores/customer'
 import { useReservationStore } from '@/stores/reservation'
 import { useServiceStore } from '@/stores/service'
@@ -307,6 +363,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const { serviceIcon, serviceIconLine } = useBusinessIcon()
+const { success: showSuccess } = useSnackbar()
 const reservationStore = useReservationStore()
 const customerStore = useCustomerStore()
 const staffStore = useStaffStore()
@@ -316,6 +373,7 @@ const serviceStore = useServiceStore()
 const formRef = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
+const customerType = ref('existing')
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.reservation?.id)
@@ -354,91 +412,146 @@ const form = ref({
   staffMemo: '',
 })
 
-// reservation prop 변경 시 폼 초기화
-watch(() => props.reservation, (newReservation) => {
-  if (newReservation?.id) {
+// === 요약 패널용 computed ===
+
+const summaryCustomerName = computed(() => {
+  if (customerType.value === 'existing' && form.value.customerId) {
+    const customer = customerStore.customers.find(c => c.id === form.value.customerId)
+
+    return customer?.name || ''
+  }
+
+  return form.value.customerName || ''
+})
+
+const summaryCustomerPhone = computed(() => {
+  if (customerType.value === 'existing' && form.value.customerId) {
+    const customer = customerStore.customers.find(c => c.id === form.value.customerId)
+
+    return customer?.phone || ''
+  }
+
+  return form.value.customerPhone || ''
+})
+
+const selectedServices = computed(() => {
+  if (!form.value.serviceIds || form.value.serviceIds.length === 0) return []
+
+  return form.value.serviceIds
+    .map(id => serviceStore.services.find(s => s.id === id))
+    .filter(Boolean)
+})
+
+const totalPrice = computed(() => {
+  return selectedServices.value.reduce((sum, s) => sum + (s.price || 0), 0)
+})
+
+const totalDuration = computed(() => {
+  return selectedServices.value.reduce((sum, s) => sum + (s.duration || 0), 0)
+})
+
+const selectedStaffName = computed(() => {
+  if (!form.value.staffId) return ''
+  const staff = staffStore.staffs.find(s => s.id === form.value.staffId)
+
+  return staff?.name || ''
+})
+
+// 요약 날짜 포맷
+function formatSummaryDate() {
+  if (!form.value.reservationDate) return '-'
+
+  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const date = new Date(form.value.reservationDate + 'T00:00:00')
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const dayName = days[date.getDay()]
+  const time = form.value.startTime || ''
+
+  return `${y}.${m}.${d} (${dayName}) ${time}`
+}
+
+// === Watchers ===
+
+// customerType 전환 시 반대 모드 필드 초기화
+watch(customerType, newType => {
+  if (newType === 'existing') {
+    form.value.customerName = ''
+    form.value.customerPhone = ''
+  }
+  else {
+    form.value.customerId = null
+  }
+})
+
+// 다이얼로그 열릴 때 폼 초기화
+watch(() => props.modelValue, visible => {
+  if (!visible) return
+
+  const reservation = props.reservation
+  if (reservation?.id) {
     // 수정 모드: 기존 데이터 로드
     form.value = {
-      customerId: newReservation.customerId,
+      customerId: reservation.customerId,
       customerName: '',
       customerPhone: '',
-      reservationDate: newReservation.reservationDate,
-      startTime: newReservation.startTime,
-      serviceIds: newReservation.serviceIds || [],
-      staffId: newReservation.staffId,
-      customerMemo: newReservation.customerMemo || '',
-      staffMemo: newReservation.staffMemo || '',
+      reservationDate: reservation.reservationDate,
+      startTime: reservation.startTime,
+      serviceIds: reservation.serviceIds || [],
+      staffId: reservation.staffId,
+      customerMemo: reservation.customerMemo || '',
+      staffMemo: reservation.staffMemo || '',
     }
-  } else if (newReservation?.reservationDate) {
-    // 캘린더에서 날짜 클릭한 경우
-    form.value.reservationDate = newReservation.reservationDate
-    form.value.startTime = newReservation.startTime || '10:00'
+
+    // 수정 모드에서 customerType 설정
+    customerType.value = reservation.customerId ? 'existing' : 'new'
   } else {
-    // 등록 모드: 초기화
+    // 등록 모드: 항상 초기화 후 캘린더 날짜 적용
     resetForm()
+    if (reservation?.reservationDate) {
+      form.value.reservationDate = reservation.reservationDate
+      form.value.startTime = reservation.startTime || '10:00'
+    }
   }
-}, { immediate: true })
+})
 
 // Validation Rules
 const required = value => !!value || '필수 입력 항목입니다.'
 
 const customerRequired = value => {
-  if (value) return true
-  if (form.value.customerName && form.value.customerPhone) return true
-  return '고객을 선택하거나 신규 고객 정보를 입력하세요.'
+  if (customerType.value === 'existing') {
+    return !!value || '고객을 선택하세요.'
+  }
+
+  return true
 }
 
 const servicesRequired = value => {
   if (!value || value.length === 0) return '서비스를 최소 1개 이상 선택하세요.'
+
   return true
 }
 
 const phoneRule = value => {
   if (!value) return true
   const pattern = /^010-\d{4}-\d{4}$/
+
   return pattern.test(value) || '전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)'
 }
 
 // 이니셜
 function getInitial(name) {
   if (!name) return '?'
+
   return name.charAt(0)
-}
-
-// 고객 선택 시
-function handleCustomerSelect(customerId) {
-  if (customerId) {
-    // 기존 고객 선택 시 신규 고객 입력 필드 초기화
-    form.value.customerName = ''
-    form.value.customerPhone = ''
-  }
-}
-
-// 총 금액 계산
-function calculateTotalPrice() {
-  if (!form.value.serviceIds || form.value.serviceIds.length === 0) return 0
-  
-  return form.value.serviceIds.reduce((sum, serviceId) => {
-    const service = serviceStore.services.find(s => s.id === serviceId)
-    return sum + (service?.price || 0)
-  }, 0)
-}
-
-// 총 소요시간 계산
-function calculateTotalDuration() {
-  if (!form.value.serviceIds || form.value.serviceIds.length === 0) return 0
-  
-  return form.value.serviceIds.reduce((sum, serviceId) => {
-    const service = serviceStore.services.find(s => s.id === serviceId)
-    return sum + (service?.duration || 0)
-  }, 0)
 }
 
 // 폼 초기화
 function resetForm() {
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]
-  
+
   form.value = {
     customerId: null,
     customerName: '',
@@ -450,6 +563,7 @@ function resetForm() {
     customerMemo: '',
     staffMemo: '',
   }
+  customerType.value = 'existing'
   errorMessage.value = ''
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -485,11 +599,11 @@ async function handleSubmit() {
     }
 
     if (isEditMode.value) {
-      // 수정
       await reservationStore.updateReservation(props.reservation.id, reservationData)
+      showSuccess('예약이 수정되었습니다.')
     } else {
-      // 등록
       await reservationStore.createReservation(reservationData)
+      showSuccess('예약이 등록되었습니다.')
     }
 
     emit('saved')
@@ -497,8 +611,6 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('예약 저장 실패:', error)
-    // 백엔드 에러 구조: { error: { code, message, details }, success: false }
-    // details가 가장 구체적인 에러 메시지 (예: "해당 날짜는 휴무일입니다: 2026-02-13 (ttt)")   
     errorMessage.value = error.details || '저장에 실패했습니다.'
   }
   finally {
@@ -519,3 +631,10 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.sticky-summary {
+  position: sticky;
+  inset-block-start: 0;
+}
+</style>

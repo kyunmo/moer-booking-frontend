@@ -223,6 +223,8 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
+import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'
 import koLocale from '@fullcalendar/core/locales/ko'
@@ -235,8 +237,77 @@ import StatisticsCard from '@/components/StatisticsCard.vue'
 import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
+const { error: showError } = useSnackbar()
+const businessSettingsStore = useBusinessSettingsStore()
 const reservationStore = useReservationStore()
 const subscriptionStore = useSubscriptionStore()
+
+// 요일 매핑 (FullCalendar: 0=일, 1=월, ..., 6=토)
+const dayToNumber = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+}
+
+// 영업시간 computed (store 데이터 → FullCalendar 형식 변환)
+const businessHoursConfig = computed(() => {
+  const hours = businessSettingsStore.business?.businessHours
+  if (!hours) {
+    return {
+      daysOfWeek: [1, 2, 3, 4, 5, 6],
+      startTime: '10:00',
+      endTime: '20:00',
+    }
+  }
+
+  return Object.entries(hours)
+    .filter(([, config]) => config && config.isOpen)
+    .map(([day, config]) => ({
+      daysOfWeek: [dayToNumber[day]],
+      startTime: config.openTime,
+      endTime: config.closeTime,
+    }))
+})
+
+// slotMinTime: 가장 빠른 openTime에서 1시간 뺀 값
+const calendarSlotMinTime = computed(() => {
+  const hours = businessSettingsStore.business?.businessHours
+  if (!hours) return '09:00:00'
+
+  const openTimes = Object.values(hours)
+    .filter(config => config && config.isOpen && config.openTime)
+    .map(config => config.openTime)
+
+  if (openTimes.length === 0) return '09:00:00'
+
+  const earliest = openTimes.sort()[0]
+  const [h, m] = earliest.split(':').map(Number)
+  const adjustedHour = Math.max(0, h - 1)
+
+  return `${String(adjustedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`
+})
+
+// slotMaxTime: 가장 늦은 closeTime에서 1시간 더한 값
+const calendarSlotMaxTime = computed(() => {
+  const hours = businessSettingsStore.business?.businessHours
+  if (!hours) return '21:00:00'
+
+  const closeTimes = Object.values(hours)
+    .filter(config => config && config.isOpen && config.closeTime)
+    .map(config => config.closeTime)
+
+  if (closeTimes.length === 0) return '21:00:00'
+
+  const latest = closeTimes.sort().at(-1)
+  const [h, m] = latest.split(':').map(Number)
+  const adjustedHour = Math.min(24, h + 1)
+
+  return `${String(adjustedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`
+})
 
 // Refs
 const calendarRef = ref(null)
@@ -303,13 +374,9 @@ const calendarOptions = computed(() => ({
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
-  slotMinTime: '09:00:00',
-  slotMaxTime: '21:00:00',
-  businessHours: {
-    daysOfWeek: [1, 2, 3, 4, 5, 6],
-    startTime: '10:00',
-    endTime: '20:00',
-  },
+  slotMinTime: calendarSlotMinTime.value,
+  slotMaxTime: calendarSlotMaxTime.value,
+  businessHours: businessHoursConfig.value,
   height: 'auto',
   events: filteredEvents.value,
   eventClick: handleEventClick,
@@ -390,7 +457,7 @@ async function cancelReservation() {
   }
   catch (error) {
     console.error('예약 취소 실패:', error)
-    alert(error.response?.data?.message || '예약 취소에 실패했습니다.')
+    showError(error.message || '예약 취소에 실패했습니다.')
   }
 }
 
@@ -414,7 +481,7 @@ async function handleStatusChange(reservationId, newStatus) {
   catch (error) {
     console.error('❌ 상태 변경 실패:', error)
     console.error('에러 상세:', error.response?.data)
-    alert(error.response?.data?.message || error.message || '상태 변경에 실패했습니다.')
+    showError(error.message || '상태 변경에 실패했습니다.')
   }
 }
 
@@ -450,8 +517,11 @@ watch(() => isLeftSidebarOpen.value, (val) => {
 
 // 컴포넌트 마운트
 onMounted(async () => {
-  await loadReservations()
-  await subscriptionStore.fetchSubscriptionInfo()
+  await Promise.all([
+    loadReservations(),
+    subscriptionStore.fetchSubscriptionInfo(),
+    businessSettingsStore.fetchBusinessInfo(),
+  ])
 })
 </script>
 

@@ -44,6 +44,7 @@ declare module 'vue' {
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     Notifications: typeof import('./src/@core/components/Notifications.vue')['default']
+    OnboardingWizard: typeof import('./src/components/OnboardingWizard.vue')['default']
     PaymentProvidersDialog: typeof import('./src/components/dialogs/PaymentProvidersDialog.vue')['default']
     PlanChangeDialog: typeof import('./src/components/subscription/PlanChangeDialog.vue')['default']
     PricingCard: typeof import('./src/components/pricing/PricingCard.vue')['default']

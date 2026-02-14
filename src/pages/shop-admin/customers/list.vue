@@ -307,11 +307,13 @@
 
 <script setup>
 import StatisticsCard from '@/components/StatisticsCard.vue'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, onMounted, ref, watch } from 'vue'
 import CustomerDetailDialog from './components/CustomerDetailDialog.vue'
 import CustomerFormDialog from './components/CustomerFormDialog.vue'
 
+const { error: showError } = useSnackbar()
 const customerStore = useCustomerStore()
 
 // Refs
@@ -450,7 +452,7 @@ async function deleteCustomer() {
   }
   catch (error) {
     console.error('고객 삭제 실패:', error)
-    alert(error.response?.data?.message || '고객 삭제에 실패했습니다.')
+    showError(error.message || '고객 삭제에 실패했습니다.')
   }
 }
 

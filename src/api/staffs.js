@@ -37,4 +37,58 @@ export default {
       params: date ? { date } : {},
     })
   },
+
+  // 근무 스케줄 조회
+  getStaffSchedules(businessId, staffId) {
+    return apiClient.get(`/businesses/${businessId}/staffs/${staffId}/schedules`)
+  },
+
+  // 근무 스케줄 일괄 저장
+  saveStaffSchedules(businessId, staffId, schedules) {
+    return apiClient.put(`/businesses/${businessId}/staffs/${staffId}/schedules`, { schedules })
+  },
+
+  // 특정 날짜 가용 시간 조회
+  getAvailableTimes(businessId, staffId, date) {
+    return apiClient.get(`/businesses/${businessId}/staffs/${staffId}/available-times`, {
+      params: { date },
+    })
+  },
+
+  // 프로필 이미지 업로드
+  uploadProfileImage(businessId, staffId, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return apiClient.post(
+      `/businesses/${businessId}/staffs/${staffId}/profile-image`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+  },
+
+  // 포트폴리오 목록 조회
+  getPortfolios(businessId, staffId) {
+    return apiClient.get(`/businesses/${businessId}/staffs/${staffId}/portfolios`)
+  },
+
+  // 포트폴리오 추가
+  addPortfolio(businessId, staffId, file, data = {}) {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (data.title) formData.append('title', data.title)
+    if (data.description) formData.append('description', data.description)
+    if (data.serviceCategory) formData.append('serviceCategory', data.serviceCategory)
+
+    return apiClient.post(
+      `/businesses/${businessId}/staffs/${staffId}/portfolios`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+  },
+
+  // 포트폴리오 삭제
+  deletePortfolio(businessId, staffId, portfolioId) {
+    return apiClient.delete(`/businesses/${businessId}/staffs/${staffId}/portfolios/${portfolioId}`)
+  },
 }

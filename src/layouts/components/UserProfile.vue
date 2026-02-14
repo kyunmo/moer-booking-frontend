@@ -1,11 +1,14 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useAuthStore } from '@/stores/auth'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ProfileDialog from '@/layouts/components/ProfileDialog.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const isProfileDialogOpen = ref(false)
 
 // 사용자 정보
 const userName = computed(() => authStore.userName || '사용자')
@@ -23,8 +26,8 @@ const userInitial = computed(() => {
   return name ? name.charAt(0).toUpperCase() : 'U'
 })
 
-// 프로필 이미지 (현재는 없으므로 항상 null)
-const userAvatar = computed(() => authStore.user?.avatar || null)
+// 프로필 이미지
+const userAvatar = computed(() => authStore.user?.profileImageUrl || null)
 
 const userProfileList = [
   { type: 'divider' },
@@ -32,7 +35,7 @@ const userProfileList = [
     type: 'navItem',
     icon: 'ri-user-line',
     title: '프로필',
-    to: '/profile',
+    action: 'profile',
   },
   {
     type: 'navItem',
@@ -48,6 +51,12 @@ const userProfileList = [
     to: '/support',
   },
 ]
+
+function handleMenuClick(item) {
+  if (item.action === 'profile') {
+    isProfileDialogOpen.value = true
+  }
+}
 
 // 로그아웃
 async function handleLogout() {
@@ -116,8 +125,9 @@ async function handleLogout() {
             >
               <VListItem
                 v-if="item.type === 'navItem'"
-                :to="item.to"
+                :to="item.to || undefined"
                 class="px-4"
+                @click="item.action ? handleMenuClick(item) : undefined"
               >
                 <template #prepend>
                   <VIcon
@@ -163,6 +173,9 @@ async function handleLogout() {
       <!-- !SECTION -->
     </VAvatar>
   </VBadge>
+
+  <!-- 프로필 다이얼로그 -->
+  <ProfileDialog v-model="isProfileDialogOpen" />
 </template>
 
 <style lang="scss">

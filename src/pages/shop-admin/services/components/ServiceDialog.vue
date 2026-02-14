@@ -184,6 +184,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { computed, ref, watch } from 'vue'
@@ -196,6 +197,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const { serviceIconLine } = useBusinessIcon()
+const { error: showError } = useSnackbar()
 const serviceStore = useServiceStore()
 const categoryStore = useServiceCategoryStore()
 
@@ -285,7 +287,7 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('서비스 저장 실패:', error)
-    alert(error || '서비스 저장에 실패했습니다.')
+    showError(error.message || '서비스 저장에 실패했습니다.')
   }
   finally {
     loading.value = false

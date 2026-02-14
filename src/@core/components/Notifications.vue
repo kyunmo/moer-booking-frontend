@@ -64,7 +64,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
         <!-- 👉 Header -->
         <VCardItem class="notification-section">
           <h6 class="text-h6 text-truncate">
-            Notifications
+            알림
           </h6>
 
           <template #append>
@@ -75,7 +75,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
               variant="tonal"
               color="primary"
             >
-              {{ totalUnreadNotifications }} new
+              {{ totalUnreadNotifications }} 새 알림
             </VChip>
 
             <IconBtn
@@ -92,7 +92,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
                 activator="parent"
                 location="start"
               >
-                {{ !isAllMarkRead ? 'Mark all as unread' : 'Mark all as read' }}
+                {{ !isAllMarkRead ? '전체 읽지 않음' : '전체 읽음' }}
               </VTooltip>
             </IconBtn>
           </template>
@@ -187,7 +187,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
               class="text-center text-medium-emphasis"
               style="block-size: 56px;"
             >
-              <VListItemTitle>No Notification Found!</VListItemTitle>
+              <VListItemTitle>알림이 없습니다</VListItemTitle>
             </VListItem>
           </VList>
         </PerfectScrollbar>
@@ -203,7 +203,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
             block
             size="small"
           >
-            View All Notifications
+            모든 알림 보기
           </VBtn>
         </VCardText>
       </VCard>

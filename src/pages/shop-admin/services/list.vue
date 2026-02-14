@@ -300,6 +300,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { computed, onMounted, ref } from 'vue'
@@ -308,6 +309,7 @@ import ServiceDetailDialog from './components/ServiceDetailDialog.vue'
 import ServiceFormDialog from './components/ServiceFormDialog.vue'
 
 const { serviceIcon, serviceIconLine, getCategoryIcon, getCategoryColor } = useBusinessIcon()
+const { error: showError } = useSnackbar()
 
 const serviceStore = useServiceStore()
 const categoryStore = useServiceCategoryStore()
@@ -408,7 +410,7 @@ async function deleteService() {
   }
   catch (error) {
     console.error('서비스 삭제 실패:', error)
-    alert(error.response?.data?.message || '서비스 삭제에 실패했습니다.')
+    showError(error.message || '서비스 삭제에 실패했습니다.')
   }
 }
 

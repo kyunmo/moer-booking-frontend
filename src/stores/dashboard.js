@@ -1,3 +1,4 @@
+import dashboardApi from '@/api/dashboard'
 import apiClient from '@/api/axios'
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
@@ -5,6 +6,8 @@ import { useAuthStore } from './auth'
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     dashboardData: null,
+    periodStats: null,
+    goals: null,
     loading: false,
     error: null,
   }),
@@ -26,32 +29,58 @@ export const useDashboardStore = defineStore('dashboard', {
         const params = date ? { date } : {}
         const response = await apiClient.get(
           `/businesses/${businessId}/dashboard`,
-          { params }
+          { params },
         )
 
-        console.log('🔍 Full API Response:', response)
-        console.log('🔍 Response.data:', response.data)
-        console.log('🔍 Response.data.data:', response.data?.data)
-
-        // API 응답 구조에 따라 데이터 추출
-        // 응답 구조: { data: { todayStats: ..., weekStats: ... }, success: true }
-        const apiData = response.data?.data || response.data
-
-        console.log('🔍 Extracted apiData:', apiData)
-        console.log('🔍 apiData.todayStats:', apiData?.todayStats)
+        const apiData = response.data || response
 
         this.dashboardData = apiData
-
-        console.log('✅ dashboardData assigned:', this.dashboardData)
       }
       catch (error) {
-        console.error('❌ 대시보드 조회 실패:', error)
-        console.error('❌ Error details:', error.response?.data || error.message)
-        this.error = error.response?.data?.message || '대시보드 데이터를 불러오는데 실패했습니다'
+        console.error('대시보드 조회 실패:', error)
+        this.error = error.message || '대시보드 데이터를 불러오는데 실패했습니다'
         this.dashboardData = null
       }
       finally {
         this.loading = false
+      }
+    },
+
+    async fetchPeriodStats(startDate, endDate, compareWith = null) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) return
+
+      try {
+        const params = { startDate, endDate }
+        if (compareWith) params.compareWith = compareWith
+
+        const response = await dashboardApi.getStats(businessId, params)
+
+        this.periodStats = response.data || response
+      }
+      catch (error) {
+        console.error('기간별 통계 조회 실패:', error)
+        throw error
+      }
+    },
+
+    async fetchGoals(month = null) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) return
+
+      try {
+        const params = month ? { month } : {}
+        const response = await dashboardApi.getGoals(businessId, params)
+
+        this.goals = response.data || response
+      }
+      catch (error) {
+        console.error('목표 달성률 조회 실패:', error)
+        throw error
       }
     },
   },

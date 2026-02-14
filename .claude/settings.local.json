@@ -13,7 +13,12 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: update site branding and add meta tags\n\n- Change site name from moer to YEMO across all pages\n- Add meta tags \\(title, description, keywords\\) to all public pages\n  - Landing page \\(index.vue\\)\n  - Features page \\(features.vue\\)\n  - Pricing page \\(pricing.vue\\)\n  - FAQ page \\(faq.vue\\)\n  - Support page \\(support.vue\\)\n  - Privacy page \\(privacy.vue\\)\n  - Terms page \\(terms.vue\\)\n- Add theme toggle functionality to PublicHeader\n  - Desktop: Theme toggle icon button\n  - Mobile: Theme toggle in navigation drawer\n  - Light/Dark mode switching\n- Update email addresses and URLs to use YEMO branding\n- Update PublicFooter with YEMO branding\n\nImproves SEO and branding consistency across all public pages.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(npx vue-tsc:*)",
       "Bash(npx vite build:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 서비스 카테고리 관리 기능 추가 및 UI/UX 개선\n\n- 서비스 카테고리 DB 기반 동적 관리 기능 구현\n  - 카테고리 CRUD API 모듈 및 Pinia 스토어 \\(5분 캐시\\)\n  - CategoryManageDialog 컴포넌트 \\(추가/수정/삭제\\)\n  - 서비스 목록 페이지에 ''카테고리 관리'' 버튼 추가\n  - 하드코딩된 카테고리를 DB 기반으로 전환 \\(categoryId 사용\\)\n  - ServiceFormDialog, ServiceDialog, ServiceDetailDialog, StaffDialog 업데이트\n  - useBusinessIcon에 getCategoryColor\\(\\) 함수 추가\n\n- 슈퍼관리자 businessId 처리 개선\n  - axios 인터셉터에 X-Business-Id 헤더 추가\n  - subscription API에 businessId 파라미터 지원\n\n- 퍼블릭 페이지 디자인 수정\n  - PublicHeader: 네비게이션 중앙 정렬, 로그인 상태별 버튼 표시\n  - PublicFooter: 4컬럼 레이아웃 오류 수정\n  - 랜딩 페이지: 이모지를 아이콘으로 교체\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Phase 1 Quick Fix 7건 수정 및 문서 정리\n\n- support.vue: FAQ 버튼 disabled 제거, /faq 페이지로 연결\n- register.vue: 약관 링크 javascript:void\\(0\\) → RouterLink /terms, /privacy 연결\n- UserProfile.vue: 매장 설정 경로 /business-settings → /shop-admin/business-settings\n- staffs/list.vue: \"이번 달 예약 -건\" 하드코딩 → \"총 서비스\" 실데이터 표시\n- second-page.vue: Materio 템플릿 잔재 삭제\n- horizontal/index.js: 템플릿 기본 메뉴\\(Home, Second page\\) 제거\n- PublicFooter.vue: GitHub 링크 제거, SNS 링크 임시 # 처리\n- docs/TODO-2026-02-14.md 추가, 구버전 설계 문서 정리\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(dir:*)"
     ]
   }
 }

@@ -309,9 +309,11 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { computed, onMounted, ref } from 'vue'
 
+const { error: showError } = useSnackbar()
 const settingsStore = useBusinessSettingsStore()
 
 const formRef = ref(null)
@@ -469,7 +471,7 @@ async function deleteHoliday() {
   }
   catch (error) {
     console.error('휴무일 삭제 실패:', error)
-    alert(error.response?.data?.message || '휴무일 삭제에 실패했습니다.')
+    showError(error.message || '휴무일 삭제에 실패했습니다.')
   }
   finally {
     loading.value = false

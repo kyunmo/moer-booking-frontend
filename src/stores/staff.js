@@ -50,8 +50,6 @@ export const useStaffStore = defineStore('staff', {
       const authStore = useAuthStore()
       const businessId = authStore.businessId
 
-      console.log(businessId);
-      
       if (!businessId) {
         console.error('businessId가 없습니다')
         return

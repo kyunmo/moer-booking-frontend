@@ -40,4 +40,34 @@ export default {
   resetPassword(token, newPassword) {
     return apiClient.post('/auth/reset-password', { token, newPassword })
   },
+
+  // 프로필 정보 수정
+  updateProfile(data) {
+    return apiClient.patch('/auth/profile', data)
+  },
+
+  // 프로필 이미지 업로드
+  uploadProfileImage(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return apiClient.post('/auth/profile/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  // SNS 연결 계정 목록 조회
+  getSocialAccounts() {
+    return apiClient.get('/auth/social-accounts')
+  },
+
+  // SNS 계정 연결 해제
+  disconnectSocialAccount(provider) {
+    return apiClient.delete(`/auth/social-accounts/${provider}`)
+  },
+
+  // 회원 탈퇴
+  deleteAccount(data) {
+    return apiClient.delete('/auth/account', { data })
+  },
 }

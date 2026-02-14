@@ -302,5 +302,45 @@ export const useAuthStore = defineStore('auth', {
       this.selectedBusinessForSuperAdmin = null
       localStorage.removeItem('selectedBusinessForSuperAdmin')
     },
+
+    /**
+     * 프로필 정보 수정
+     */
+    async updateProfile(data) {
+      const { data: updatedUser } = await authApi.updateProfile(data)
+      this.user = updatedUser
+
+      return updatedUser
+    },
+
+    /**
+     * 프로필 이미지 업로드
+     */
+    async uploadProfileImage(file) {
+      const { data: result } = await authApi.uploadProfileImage(file)
+      if (this.user) {
+        this.user.profileImageUrl = result.profileImageUrl
+      }
+
+      return result
+    },
+
+    /**
+     * 회원 탈퇴
+     */
+    async deleteAccount(data) {
+      await authApi.deleteAccount(data)
+
+      // 상태 초기화
+      this.user = null
+      this.business = null
+      this.trial = null
+      this.accessToken = null
+      this.refreshToken = null
+      this.selectedBusinessForSuperAdmin = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('selectedBusinessForSuperAdmin')
+    },
   },
 })

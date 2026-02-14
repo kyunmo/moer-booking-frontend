@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <!-- 헤더 -->
     <VCard class="mb-4">
@@ -8,16 +8,15 @@
 
         <VSpacer />
 
-        <!-- 검색 -->
-        <VTextField
-          v-model="searchQuery"
-          placeholder="이름 검색"
-          prepend-inner-icon="ri-search-line"
-          density="compact"
-          style="max-inline-size: 250px;"
-          class="me-3"
-          clearable
-        />
+        <!-- 직급 관리 -->
+        <VBtn
+          variant="outlined"
+          prepend-icon="ri-shield-star-line"
+          class="me-2"
+          @click="isPositionDialogVisible = true"
+        >
+          직급 관리
+        </VBtn>
 
         <!-- 새 스태프 등록 -->
         <VTooltip
@@ -45,6 +44,61 @@
           스태프 등록
         </VBtn>
       </VCardTitle>
+
+      <!-- 검색 필터 -->
+      <VCardText class="pb-4">
+        <VRow dense>
+          <!-- 이름 검색 -->
+          <VCol cols="12" sm="6" md="3">
+            <VTextField
+              v-model="filters.name"
+              placeholder="이름 검색"
+              prepend-inner-icon="ri-search-line"
+              density="compact"
+              clearable
+              hide-details
+              @click:clear="filters.name = ''"
+            />
+          </VCol>
+
+          <!-- 직급 필터 -->
+          <VCol cols="12" sm="6" md="3">
+            <VSelect
+              v-model="filters.positionId"
+              placeholder="직급 전체"
+              prepend-inner-icon="ri-shield-star-line"
+              :items="positionFilterOptions"
+              density="compact"
+              clearable
+              hide-details
+            />
+          </VCol>
+
+          <!-- 전문분야 검색 -->
+          <VCol cols="12" sm="6" md="3">
+            <VTextField
+              v-model="filters.specialty"
+              placeholder="전문분야 검색"
+              prepend-inner-icon="ri-star-line"
+              density="compact"
+              clearable
+              hide-details
+              @click:clear="filters.specialty = ''"
+            />
+          </VCol>
+
+          <!-- 정렬 -->
+          <VCol cols="12" sm="6" md="3">
+            <VSelect
+              v-model="sortOption"
+              prepend-inner-icon="ri-sort-desc"
+              :items="sortOptions"
+              density="compact"
+              hide-details
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
     </VCard>
 
     <!-- 통계 카드 -->
@@ -67,7 +121,7 @@
             <VIcon icon="ri-checkbox-circle-line" size="32" class="me-3" />
             <div>
               <p class="text-xs mb-1">활성 스태프</p>
-              <h6 class="text-h6">{{ staffStore.activeStaffs.length }}명</h6>
+              <h6 class="text-h6">{{ activeCount }}명</h6>
             </div>
           </VCardText>
         </VCard>
@@ -90,8 +144,8 @@
           <VCardText class="d-flex align-center">
             <VIcon icon="ri-briefcase-line" size="32" class="me-3" />
             <div>
-              <p class="text-xs mb-1">총 서비스</p>
-              <h6 class="text-h6">{{ staffStore.staffs.reduce((sum, s) => sum + (s.serviceCount || 0), 0) }}건</h6>
+              <p class="text-xs mb-1">검색 결과</p>
+              <h6 class="text-h6">{{ staffStore.staffs.length }}명</h6>
             </div>
           </VCardText>
         </VCard>
@@ -104,10 +158,10 @@
     </div>
 
     <!-- 스태프 카드 그리드 -->
-    <div v-else-if="filteredStaffs.length > 0">
+    <div v-else-if="staffStore.staffs.length > 0">
       <VRow>
         <VCol
-          v-for="staff in filteredStaffs"
+          v-for="staff in staffStore.staffs"
           :key="staff.id"
           cols="12"
           sm="6"
@@ -120,11 +174,11 @@
               <!-- 프로필 이미지 -->
               <VAvatar
                 :color="staff.profileImageUrl ? undefined : 'primary'"
-                :image="staff.profileImageUrl"
                 size="80"
                 class="mb-3"
               >
-                <span v-if="!staff.profileImageUrl" class="text-h5">
+                <VImg v-if="staff.profileImageUrl" :src="getImageUrl(staff.profileImageUrl)" />
+                <span v-else class="text-h5">
                   {{ getInitial(staff.name) }}
                 </span>
               </VAvatar>
@@ -136,12 +190,12 @@
 
               <!-- 직급 -->
               <VChip
-                v-if="staff.position"
-                :color="getPositionColor(staff.position)"
+                v-if="staff.positionName || staff.position"
+                :color="getPositionColor(staff.positionName || staff.position)"
                 size="small"
                 class="mb-2"
               >
-                {{ staff.position }}
+                {{ staff.positionName || staff.position }}
               </VChip>
 
               <!-- 활성/비활성 -->
@@ -243,12 +297,22 @@
           size="64"
           class="mb-4 text-disabled"
         />
-        <p class="text-h6 mb-2">등록된 스태프가 없습니다</p>
-        <p class="text-disabled mb-4">
-          첫 스태프를 등록하고 예약을 시작하세요
+        <p class="text-h6 mb-2">
+          {{ hasActiveFilters ? '검색 결과가 없습니다' : '등록된 스태프가 없습니다' }}
         </p>
+        <p class="text-disabled mb-4">
+          {{ hasActiveFilters ? '다른 검색 조건을 시도해보세요' : '첫 스태프를 등록하고 예약을 시작하세요' }}
+        </p>
+        <VBtn
+          v-if="hasActiveFilters"
+          variant="outlined"
+          class="me-2"
+          @click="clearFilters"
+        >
+          필터 초기화
+        </VBtn>
         <VTooltip
-          v-if="!subscriptionStore.canAddStaff"
+          v-if="!subscriptionStore.canAddStaff && !hasActiveFilters"
           location="bottom"
         >
           <template #activator="{ props }">
@@ -264,7 +328,7 @@
           <span>직원 수 제한에 도달했습니다. 플랜을 업그레이드하세요.</span>
         </VTooltip>
         <VBtn
-          v-else
+          v-else-if="!hasActiveFilters"
           color="primary"
           @click="openCreateDialog"
         >
@@ -273,6 +337,12 @@
         </VBtn>
       </VCardText>
     </VCard>
+
+    <!-- 직급 관리 다이얼로그 -->
+    <PositionManageDialog
+      v-model="isPositionDialogVisible"
+      @updated="handlePositionUpdated"
+    />
 
     <!-- 스태프 상세보기 다이얼로그 -->
     <StaffDetailDialog
@@ -301,7 +371,7 @@
             <strong>{{ selectedStaff?.name }}</strong> 스태프를 삭제하시겠습니까?
           </p>
           <p class="text-error text-sm mt-2">
-            ⚠️ 삭제된 스태프 정보는 복구할 수 없습니다.
+            삭제된 스태프 정보는 복구할 수 없습니다.
           </p>
         </VCardText>
 
@@ -327,43 +397,109 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useStaffStore } from '@/stores/staff'
+import { useStaffPositionStore } from '@/stores/staff-position'
 import { useSubscriptionStore } from '@/stores/subscription'
-import { computed, onMounted, ref } from 'vue'
+import { getImageUrl } from '@/utils/image'
+import { useDebounceFn } from '@vueuse/core'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import PositionManageDialog from './components/PositionManageDialog.vue'
 import StaffDetailDialog from './components/StaffDetailDialog.vue'
 import StaffFormDialog from './components/StaffFormDialog.vue'
 
+const { error: showError } = useSnackbar()
 const staffStore = useStaffStore()
+const staffPositionStore = useStaffPositionStore()
 const subscriptionStore = useSubscriptionStore()
 
 // Refs
-const searchQuery = ref('')
 const isDetailDialogVisible = ref(false)
 const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
+const isPositionDialogVisible = ref(false)
 const selectedStaff = ref(null)
 const staffToEdit = ref(null)
 
-// 검색 필터링
-const filteredStaffs = computed(() => {
-  if (!searchQuery.value) return staffStore.staffs
-  
-  const query = searchQuery.value.toLowerCase()
-  return staffStore.staffs.filter(s => 
-    s.name.toLowerCase().includes(query),
-  )
+// 검색 필터
+const filters = reactive({
+  name: '',
+  positionId: null,
+  specialty: '',
 })
 
-// 평균 경력
+// 정렬 옵션
+const sortOption = ref('created_at:desc')
+
+const sortOptions = [
+  { title: '최근 등록순', value: 'created_at:desc' },
+  { title: '이름순', value: 'name:asc' },
+  { title: '경력 높은순', value: 'career_years:desc' },
+  { title: '경력 낮은순', value: 'career_years:asc' },
+  { title: '직급순', value: 'position:asc' },
+]
+
+// 직급 필터 옵션 (store에서 가져옴)
+const positionFilterOptions = computed(() => staffPositionStore.positionOptions)
+
+// 필터 활성 여부
+const hasActiveFilters = computed(() => {
+  return !!(filters.name || filters.positionId || filters.specialty)
+})
+
+// 통계
+const activeCount = computed(() => {
+  return staffStore.staffs.filter(s => s.isActive !== false).length
+})
+
 const averageCareer = computed(() => {
   if (staffStore.staffs.length === 0) return 0
   const total = staffStore.staffs.reduce((sum, s) => sum + (s.careerYears || 0), 0)
+
   return Math.round(total / staffStore.staffs.length)
 })
+
+// 서버 검색 실행
+async function searchStaffs() {
+  const [sortBy, sortOrder] = sortOption.value.split(':')
+
+  const params = {}
+  if (filters.name) params.name = filters.name
+  if (filters.positionId) params.positionId = filters.positionId
+  if (filters.specialty) params.specialty = filters.specialty
+  params.sortBy = sortBy
+  params.sortOrder = sortOrder
+
+  await staffStore.fetchStaffs(params)
+}
+
+// 디바운스된 검색 (텍스트 입력용 300ms)
+const debouncedSearch = useDebounceFn(searchStaffs, 300)
+
+// 필터 변경 감지 → 검색 실행
+watch(
+  () => [filters.name, filters.specialty],
+  () => debouncedSearch(),
+)
+
+// 즉시 실행 필터 (select)
+watch(
+  () => [filters.positionId, sortOption.value],
+  () => searchStaffs(),
+)
+
+// 필터 초기화
+function clearFilters() {
+  filters.name = ''
+  filters.positionId = null
+  filters.specialty = ''
+  sortOption.value = 'created_at:desc'
+}
 
 // 전문분야 파싱 (String → Array)
 function parseSpecialty(specialty) {
   if (!specialty) return []
+
   return specialty.split(',').map(s => s.trim()).filter(Boolean)
 }
 
@@ -380,6 +516,7 @@ function getPositionColor(position) {
     '디자이너': 'info',
     '인턴': 'warning',
   }
+
   return colors[position] || 'default'
 }
 
@@ -387,6 +524,7 @@ function getPositionColor(position) {
 function truncateText(text, maxLength) {
   if (!text) return ''
   if (text.length <= maxLength) return text
+
   return text.substring(0, maxLength) + '...'
 }
 
@@ -433,21 +571,30 @@ async function deleteStaff() {
   }
   catch (error) {
     console.error('스태프 삭제 실패:', error)
-    alert(error.response?.data?.message || '스태프 삭제에 실패했습니다.')
+    showError(error.message || '스태프 삭제에 실패했습니다.')
   }
+}
+
+// 직급 변경 후
+async function handlePositionUpdated() {
+  await staffPositionStore.fetchPositions(true)
+  await searchStaffs()
 }
 
 // 스태프 저장 후
 async function handleStaffSaved() {
   isFormDialogVisible.value = false
   staffToEdit.value = null
-  await staffStore.fetchStaffs()
+  await searchStaffs()
 }
 
 // 컴포넌트 마운트 시
 onMounted(async () => {
-  await staffStore.fetchStaffs()
-  await subscriptionStore.fetchSubscriptionInfo()
+  await Promise.all([
+    searchStaffs(),
+    staffPositionStore.fetchPositions(),
+    subscriptionStore.fetchSubscriptionInfo(),
+  ])
 })
 </script>
 

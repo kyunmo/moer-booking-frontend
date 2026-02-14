@@ -43,11 +43,12 @@
             <!-- 직급 -->
             <VCol cols="12" md="6">
               <VSelect
-                v-model="form.position"
+                v-model="form.positionId"
                 label="직급"
                 placeholder="선택하세요"
                 prepend-inner-icon="ri-shield-star-line"
                 :items="positionOptions"
+                :loading="staffPositionStore.loading"
                 clearable
               />
             </VCol>
@@ -100,16 +101,61 @@
               />
             </VCol>
 
-            <!-- 프로필 이미지 URL -->
+            <!-- 프로필 이미지 업로드 -->
             <VCol cols="12">
-              <VTextField
-                v-model="form.profileImageUrl"
-                label="프로필 이미지 URL"
-                placeholder="https://example.com/image.jpg"
-                prepend-inner-icon="ri-image-line"
-                hint="이미지 URL을 입력하세요 (선택사항)"
-                persistent-hint
-              />
+              <div class="d-flex align-center gap-4">
+                <VAvatar
+                  :color="form.profileImageUrl ? undefined : 'primary'"
+                  size="80"
+                  class="cursor-pointer"
+                  :class="{ 'border-dashed': !form.profileImageUrl }"
+                  @click="triggerFileInput"
+                >
+                  <VProgressCircular
+                    v-if="imageUploading"
+                    indeterminate
+                    size="40"
+                    color="white"
+                  />
+                  <VImg
+                    v-else-if="form.profileImageUrl"
+                    :src="getImageUrl(form.profileImageUrl)"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-camera-line"
+                    size="28"
+                  />
+                </VAvatar>
+
+                <div>
+                  <VBtn
+                    v-if="isEditMode"
+                    variant="outlined"
+                    size="small"
+                    :loading="imageUploading"
+                    @click="triggerFileInput"
+                  >
+                    <VIcon icon="ri-upload-2-line" class="me-1" />
+                    이미지 변경
+                  </VBtn>
+                  <p v-if="!isEditMode" class="text-sm text-medium-emphasis mb-0">
+                    등록 후 프로필 이미지를 변경할 수 있습니다.
+                  </p>
+                  <p v-else class="text-xs text-medium-emphasis mb-0 mt-1">
+                    클릭하여 프로필 이미지를 업로드하세요
+                  </p>
+                </div>
+
+                <!-- 숨겨진 파일 인풋 -->
+                <input
+                  ref="fileInputRef"
+                  type="file"
+                  accept="image/*"
+                  style="display: none;"
+                  @change="handleImageSelected"
+                >
+              </div>
             </VCol>
 
             <!-- 소개글 -->
@@ -166,8 +212,13 @@
 </template>
 
 <script setup>
+import staffApi from '@/api/staffs'
+import { useSnackbar } from '@/composables/useSnackbar'
+import { getImageUrl } from '@/utils/image'
+import { useAuthStore } from '@/stores/auth'
 import { useStaffStore } from '@/stores/staff'
-import { computed, ref, watch } from 'vue'
+import { useStaffPositionStore } from '@/stores/staff-position'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -183,28 +234,27 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const staffStore = useStaffStore()
+const staffPositionStore = useStaffPositionStore()
+const authStore = useAuthStore()
+const { success: showSuccess, error: showError } = useSnackbar()
 
 // Refs
 const formRef = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
+const fileInputRef = ref(null)
+const imageUploading = ref(false)
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.staff)
 
-// 직급 옵션
-const positionOptions = [
-  '원장',
-  '실장',
-  '디자이너',
-  '스타일리스트',
-  '인턴',
-]
+// 직급 옵션 (API에서 로드)
+const positionOptions = computed(() => staffPositionStore.positionOptions)
 
 // 폼 데이터
 const form = ref({
   name: '',
-  position: null,
+  positionId: null,
   phone: '',
   email: '',
   specialty: '',
@@ -219,7 +269,7 @@ watch(() => props.staff, (newStaff) => {
     // 수정 모드: 기존 데이터 로드
     form.value = {
       name: newStaff.name || '',
-      position: newStaff.position || null,
+      positionId: newStaff.positionId || null,
       phone: newStaff.phone || '',
       email: newStaff.email || '',
       specialty: newStaff.specialty || '',
@@ -257,7 +307,7 @@ const minValueRule = value => {
 function resetForm() {
   form.value = {
     name: '',
-    position: null,
+    positionId: null,
     phone: '',
     email: '',
     specialty: '',
@@ -268,6 +318,47 @@ function resetForm() {
   errorMessage.value = ''
   if (formRef.value) {
     formRef.value.resetValidation()
+  }
+}
+
+// 파일 인풋 트리거
+function triggerFileInput() {
+  if (!isEditMode.value) return
+  fileInputRef.value?.click()
+}
+
+// 이미지 선택 처리
+async function handleImageSelected(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // 파일 인풋 초기화
+  event.target.value = ''
+
+  if (!isEditMode.value || !props.staff?.id) return
+
+  imageUploading.value = true
+  try {
+    const response = await staffApi.uploadProfileImage(
+      authStore.businessId,
+      props.staff.id,
+      file,
+    )
+
+    // 업로드 성공 시 반환된 URL을 form에 반영
+    const imageUrl = response.data?.profileImageUrl || response.data?.imageUrl
+    if (imageUrl) {
+      form.value.profileImageUrl = imageUrl
+    }
+
+    showSuccess('프로필 이미지가 업로드되었습니다.')
+  }
+  catch (error) {
+    console.error('프로필 이미지 업로드 실패:', error)
+    showError('이미지 업로드에 실패했습니다.')
+  }
+  finally {
+    imageUploading.value = false
   }
 }
 
@@ -289,7 +380,7 @@ async function handleSubmit() {
     // 빈 문자열을 null로 변환
     const staffData = {
       name: form.value.name,
-      position: form.value.position || null,
+      positionId: form.value.positionId || null,
       phone: form.value.phone || null,
       email: form.value.email || null,
       specialty: form.value.specialty || null,
@@ -311,10 +402,15 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('스태프 저장 실패:', error)
-    errorMessage.value = error.response?.data?.message || '저장에 실패했습니다.'
+    errorMessage.value = error.message || '저장에 실패했습니다.'
   }
   finally {
     loading.value = false
   }
 }
+
+// 직급 목록 로드
+onMounted(() => {
+  staffPositionStore.fetchPositions()
+})
 </script>

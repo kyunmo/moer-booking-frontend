@@ -1,99 +1,98 @@
 <script setup>
-import avatar4 from '@images/avatars/avatar-4.png'
-import avatar5 from '@images/avatars/avatar-5.png'
+import { useNotificationStore } from '@/stores/notification'
+import { useRouter } from 'vue-router'
+import { onMounted, onUnmounted, computed } from 'vue'
 
-const notifications = ref([
-  {
-    id: 1,
-    img: avatar4,
-    title: 'Congratulation Flora! 🎉',
-    subtitle: 'Won the monthly best seller badge',
-    time: 'Today',
-    isSeen: true,
-  },
-  {
-    id: 2,
-    text: 'Cecilia Becker',
-    title: 'Cecilia Becker',
-    subtitle: 'Accepted your connection',
-    time: '12h ago',
-    isSeen: false,
-    color: 'primary',
-  },
-  {
-    id: 3,
-    img: avatar5,
-    title: 'New message received 👋🏻',
-    subtitle: 'You have 10 unread messages',
-    time: '11 Aug',
-    isSeen: true,
-  },
-  {
-    id: 4,
-    icon: 'ri-bar-chart-line',
-    title: 'Monthly report generated',
-    subtitle: 'July month financial report is generated',
-    time: 'Apr 24, 10:30 AM',
-    isSeen: false,
-    color: 'info',
-  },
-  {
-    id: 5,
-    text: 'Meta Gadgets',
-    title: 'Application has been approved 🚀',
-    subtitle: 'Your Meta Gadgets project application has been approved.',
-    time: 'Feb 17, 12:17 PM',
-    isSeen: false,
-    color: 'success',
-  },
-  {
-    id: 6,
-    icon: 'ri-mail-line',
-    title: 'New message from Harry',
-    subtitle: 'You have new message from Harry',
-    time: 'Jan 6, 1:48 PM',
-    isSeen: true,
-    color: 'error',
-  },
-])
+const notificationStore = useNotificationStore()
+const router = useRouter()
 
-const removeNotification = notificationId => {
-  notifications.value.forEach((item, index) => {
-    if (notificationId === item.id)
-      notifications.value.splice(index, 1)
+// Map notification type to icon and color
+function getNotificationIcon(type) {
+  const map = {
+    RESERVATION_NEW: { icon: 'ri-calendar-line', color: 'primary' },
+    RESERVATION_CONFIRMED: { icon: 'ri-calendar-check-line', color: 'success' },
+    RESERVATION_CANCELLED: { icon: 'ri-calendar-close-line', color: 'error' },
+    RESERVATION_COMPLETED: { icon: 'ri-checkbox-circle-line', color: 'info' },
+    RESERVATION_NO_SHOW: { icon: 'ri-user-unfollow-line', color: 'warning' },
+    SYSTEM: { icon: 'ri-notification-2-line', color: 'secondary' },
+  }
+  return map[type] || map.SYSTEM
+}
+
+// Relative time formatter
+function getRelativeTime(dateStr) {
+  if (!dateStr) return ''
+  const now = new Date()
+  const date = new Date(dateStr.replace(' ', 'T'))
+  const diffMs = now - date
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHour = Math.floor(diffMs / 3600000)
+  const diffDay = Math.floor(diffMs / 86400000)
+
+  if (diffMin < 1) return '방금 전'
+  if (diffMin < 60) return `${diffMin}분 전`
+  if (diffHour < 24) return `${diffHour}시간 전`
+  if (diffDay < 7) return `${diffDay}일 전`
+  return dateStr.substring(0, 10)
+}
+
+// Transform API notifications to @core/Notifications.vue format
+const mappedNotifications = computed(() => {
+  return notificationStore.notifications.map(n => {
+    const { icon, color } = getNotificationIcon(n.type)
+    return {
+      id: n.id,
+      icon,
+      color,
+      title: n.title,
+      subtitle: n.message,
+      time: getRelativeTime(n.createdAt),
+      isSeen: n.read,
+      link: n.link,
+    }
   })
+})
+
+const handleNotificationClick = (notification) => {
+  if (!notification.isSeen) {
+    notificationStore.markAsRead(notification.id)
+  }
+  if (notification.link) {
+    router.push(notification.link)
+  }
 }
 
-const markRead = notificationId => {
-  notifications.value.forEach(item => {
-    notificationId.forEach(id => {
-      if (id === item.id)
-        item.isSeen = true
-    })
-  })
+const handleMarkRead = (ids) => {
+  if (ids.length === notificationStore.notifications.length) {
+    notificationStore.markAllAsRead()
+  } else {
+    ids.forEach(id => notificationStore.markAsRead(id))
+  }
 }
 
-const markUnRead = notificationId => {
-  notifications.value.forEach(item => {
-    notificationId.forEach(id => {
-      if (id === item.id)
-        item.isSeen = false
-    })
-  })
+const handleMarkUnread = () => {
+  // Not supported by API, no-op
 }
 
-const handleNotificationClick = notification => {
-  if (!notification.isSeen)
-    markRead([notification.id])
+const handleRemove = () => {
+  // Not supported by API, no-op
 }
+
+onMounted(() => {
+  notificationStore.startPolling()
+})
+
+onUnmounted(() => {
+  notificationStore.stopPolling()
+})
 </script>
 
 <template>
   <Notifications
-    :notifications="notifications"
-    @remove="removeNotification"
-    @read="markRead"
-    @unread="markUnRead"
+    :notifications="mappedNotifications"
+    @read="handleMarkRead"
+    @unread="handleMarkUnread"
+    @remove="handleRemove"
     @click:notification="handleNotificationClick"
   />
 </template>

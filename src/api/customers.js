@@ -50,4 +50,9 @@ export default {
   deleteCustomer(businessId, customerId) {
     return apiClient.delete(`/businesses/${businessId}/customers/${customerId}`)
   },
+
+  // 고객 예약 이력 조회
+  getCustomerReservations(businessId, customerId, params = {}) {
+    return apiClient.get(`/businesses/${businessId}/customers/${customerId}/reservations`, { params })
+  },
 }

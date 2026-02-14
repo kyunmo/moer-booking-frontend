@@ -172,6 +172,7 @@
 </template>
 
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, ref, watch } from 'vue'
 
@@ -182,6 +183,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
+const { error: showError } = useSnackbar()
 const customerStore = useCustomerStore()
 
 const formRef = ref(null)
@@ -293,7 +295,7 @@ async function handleSubmit() {
   }
   catch (error) {
     console.error('고객 저장 실패:', error)
-    alert(error || '고객 저장에 실패했습니다.')
+    showError(error.message || '고객 저장에 실패했습니다.')
   }
   finally {
     loading.value = false
