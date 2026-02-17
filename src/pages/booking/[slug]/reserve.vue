@@ -45,7 +45,6 @@ const submitting = ref(false)
 const isCompleted = ref(false)
 
 // Step 2: calendar state
-const currentMonth = ref(new Date())
 const datesLoading = ref(false)
 
 // Step 3: slots state
@@ -93,87 +92,64 @@ function isServiceSelected(service) {
 }
 
 // =====================================================
-// Step 2: Calendar
+// Step 2: Calendar (VDatePicker)
 // =====================================================
-const monthLabel = computed(() => {
-  const y = currentMonth.value.getFullYear()
-  const m = currentMonth.value.getMonth() + 1
-  return `${y}년 ${m}월`
-})
+
+// Date picker month/year control
+const datePickerMonth = ref(new Date().getMonth())
+const datePickerYear = ref(new Date().getFullYear())
 
 const monthKey = computed(() => {
-  const y = currentMonth.value.getFullYear()
-  const m = String(currentMonth.value.getMonth() + 1).padStart(2, '0')
-  return `${y}-${m}`
+  const m = String(datePickerMonth.value + 1).padStart(2, '0')
+  return `${datePickerYear.value}-${m}`
 })
 
-const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-
-const calendarWeeks = computed(() => {
-  const year = currentMonth.value.getFullYear()
-  const month = currentMonth.value.getMonth()
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const startDayOfWeek = firstDay.getDay()
-
-  const weeks = []
-  let currentWeek = []
-
-  // Fill empty cells before the first day
-  for (let i = 0; i < startDayOfWeek; i++) {
-    currentWeek.push(null)
-  }
-
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    currentWeek.push({
-      day,
-      date: dateStr,
-      isPast: new Date(dateStr) < new Date(new Date().toDateString()),
-      hasSlots: availableDates.value.includes(dateStr),
-      isSelected: selectedDate.value === dateStr,
-    })
-
-    if (currentWeek.length === 7) {
-      weeks.push(currentWeek)
-      currentWeek = []
-    }
-  }
-
-  // Fill remaining cells
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) {
-      currentWeek.push(null)
-    }
-    weeks.push(currentWeek)
-  }
-
-  return weeks
+// Today's date string for VDatePicker min prop
+const todayStr = computed(() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 })
 
-function prevMonth() {
-  const d = new Date(currentMonth.value)
-  d.setMonth(d.getMonth() - 1)
-  // Don't go before current month
-  const now = new Date()
-  if (d.getFullYear() < now.getFullYear() || (d.getFullYear() === now.getFullYear() && d.getMonth() < now.getMonth())) {
-    return
+// Bidirectional model for VDatePicker (Date object <-> string)
+const selectedDateModel = computed({
+  get: () => {
+    if (!selectedDate.value) return null
+    return new Date(selectedDate.value + 'T00:00:00')
+  },
+  set: (val) => {
+    if (val) {
+      const d = new Date(val)
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      bookingStore.selectedDate = dateStr
+      // Reset time and staff when date changes
+      bookingStore.selectedTime = null
+      bookingStore.selectedStaff = null
+    }
+  },
+})
+
+// Allowed dates function for VDatePicker
+function isDateAllowed(date) {
+  // VDatePicker passes a date value (may be Date or internal adapter value)
+  let dateStr
+  if (typeof date === 'string') {
+    dateStr = date
+  } else if (date instanceof Date) {
+    dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  } else {
+    // Vuetify internal adapter date - try converting
+    const d = new Date(date)
+    dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
-  currentMonth.value = d
+  return availableDates.value.includes(dateStr)
 }
 
-function nextMonth() {
-  const d = new Date(currentMonth.value)
-  d.setMonth(d.getMonth() + 1)
-  currentMonth.value = d
+function handleMonthUpdate(month) {
+  datePickerMonth.value = month
 }
 
-function selectDate(cell) {
-  if (!cell || cell.isPast || !cell.hasSlots) return
-  bookingStore.selectedDate = cell.date
-  // Reset time and staff when date changes
-  bookingStore.selectedTime = null
-  bookingStore.selectedStaff = null
+function handleYearUpdate(year) {
+  datePickerYear.value = year
 }
 
 async function loadAvailableDates() {
@@ -518,35 +494,28 @@ onUnmounted(() => {
         </div>
 
         <!-- Step Indicators (Desktop) -->
-        <VCard class="d-none d-md-block mb-6 pa-4" rounded="lg" variant="outlined">
-          <div class="d-flex align-center justify-space-between">
+        <VStepper
+          v-model="step"
+          class="d-none d-md-block mb-6 booking-stepper"
+          flat
+          alt-labels
+          bg-color="transparent"
+          hide-actions
+        >
+          <VStepperHeader>
             <template v-for="(item, index) in stepperItems" :key="item.value">
-              <div
-                class="d-flex align-center cursor-pointer"
-                @click="item.value < step ? step = item.value : null"
-              >
-                <VAvatar
-                  :color="step >= item.value ? 'primary' : 'grey-lighten-2'"
-                  :size="36"
-                >
-                  <VIcon v-if="step > item.value" size="18" color="white">
-                    ri-check-line
-                  </VIcon>
-                  <span v-else :class="step === item.value ? 'text-white' : 'text-medium-emphasis'" class="text-body-2 font-weight-bold">
-                    {{ item.value }}
-                  </span>
-                </VAvatar>
-                <span
-                  class="ms-2 text-body-2 font-weight-medium"
-                  :class="step >= item.value ? 'text-high-emphasis' : 'text-medium-emphasis'"
-                >
-                  {{ item.title }}
-                </span>
-              </div>
-              <VDivider v-if="index < stepperItems.length - 1" class="mx-3" />
+              <VStepperItem
+                :value="item.value"
+                :title="item.title"
+                :complete="step > item.value"
+                :editable="step > item.value"
+                :color="step >= item.value ? 'primary' : undefined"
+                complete-icon="ri-check-line"
+              />
+              <VDivider v-if="index < stepperItems.length - 1" />
             </template>
-          </div>
-        </VCard>
+          </VStepperHeader>
+        </VStepper>
 
         <!-- Step Content -->
         <VWindow v-model="step">
@@ -686,72 +655,27 @@ onUnmounted(() => {
               <VDivider />
 
               <VCardText class="pa-5">
-                <!-- Month Navigation -->
-                <div class="d-flex align-center justify-center mb-5">
-                  <VBtn
-                    icon
-                    variant="text"
-                    size="small"
-                    @click="prevMonth"
-                  >
-                    <VIcon>ri-arrow-left-s-line</VIcon>
-                  </VBtn>
-                  <h3 class="text-h6 font-weight-bold mx-4">
-                    {{ monthLabel }}
-                  </h3>
-                  <VBtn
-                    icon
-                    variant="text"
-                    size="small"
-                    @click="nextMonth"
-                  >
-                    <VIcon>ri-arrow-right-s-line</VIcon>
-                  </VBtn>
-                </div>
-
                 <!-- Loading -->
                 <div v-if="datesLoading" class="text-center py-8">
                   <VProgressCircular indeterminate color="primary" />
                 </div>
 
-                <!-- Calendar Grid -->
-                <div v-else class="calendar-grid">
-                  <!-- Day Headers -->
-                  <div class="calendar-header">
-                    <div
-                      v-for="dayName in dayNames"
-                      :key="dayName"
-                      class="calendar-header-cell text-body-2 font-weight-bold text-medium-emphasis text-center"
-                      :class="{ 'text-error': dayName === '일', 'text-info': dayName === '토' }"
-                    >
-                      {{ dayName }}
-                    </div>
-                  </div>
-
-                  <!-- Weeks -->
-                  <div v-for="(week, wi) in calendarWeeks" :key="wi" class="calendar-row">
-                    <div
-                      v-for="(cell, ci) in week"
-                      :key="ci"
-                      class="calendar-cell"
-                    >
-                      <VBtn
-                        v-if="cell"
-                        :color="cell.isSelected ? 'primary' : undefined"
-                        :variant="cell.isSelected ? 'elevated' : (cell.hasSlots && !cell.isPast ? 'text' : 'text')"
-                        :disabled="cell.isPast || !cell.hasSlots"
-                        :class="[
-                          'calendar-day',
-                          { 'calendar-day--available': cell.hasSlots && !cell.isPast && !cell.isSelected },
-                        ]"
-                        size="small"
-                        icon
-                        @click="selectDate(cell)"
-                      >
-                        {{ cell.day }}
-                      </VBtn>
-                    </div>
-                  </div>
+                <!-- Date Picker -->
+                <div v-else class="d-flex justify-center">
+                  <VDatePicker
+                    v-model="selectedDateModel"
+                    :allowed-dates="isDateAllowed"
+                    :min="todayStr"
+                    :month="datePickerMonth"
+                    :year="datePickerYear"
+                    color="primary"
+                    width="100%"
+                    max-width="400"
+                    show-adjacent-months
+                    hide-header
+                    @update:month="handleMonthUpdate"
+                    @update:year="handleYearUpdate"
+                  />
                 </div>
 
                 <!-- Selected date display -->
@@ -1343,41 +1267,10 @@ onUnmounted(() => {
   }
 }
 
-// Calendar
-.calendar-grid {
-  max-inline-size: 400px;
-  margin-inline: auto;
-}
-
-.calendar-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-block-end: 8px;
-}
-
-.calendar-header-cell {
-  padding-block: 8px;
-}
-
-.calendar-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-
-.calendar-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-block: 4px;
-}
-
-.calendar-day {
-  block-size: 40px !important;
-  inline-size: 40px !important;
-  min-inline-size: 40px !important;
-
-  &--available:hover {
-    background: rgba(var(--v-theme-primary), 0.08);
+// Booking Stepper
+.booking-stepper {
+  :deep(.v-stepper-header) {
+    box-shadow: none;
   }
 }
 

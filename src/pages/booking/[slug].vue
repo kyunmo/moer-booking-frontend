@@ -230,6 +230,31 @@ onMounted(() => {
 
     <!-- Business Detail -->
     <template v-else-if="business">
+      <!-- Cover Image Section -->
+      <section class="business-cover">
+        <VImg
+          v-if="business.coverImageUrl"
+          :src="business.coverImageUrl"
+          :alt="`${business.name} 커버`"
+          height="220"
+          cover
+          class="d-none d-md-block"
+        />
+        <VImg
+          v-if="business.coverImageUrl"
+          :src="business.coverImageUrl"
+          :alt="`${business.name} 커버`"
+          height="160"
+          cover
+          class="d-md-none"
+        />
+        <!-- Fallback gradient when no cover image -->
+        <div
+          v-if="!business.coverImageUrl"
+          class="business-cover-gradient"
+        />
+      </section>
+
       <!-- Header Section -->
       <section class="business-header-section py-8 py-md-12">
         <VContainer style="max-inline-size: 1200px;">
@@ -876,37 +901,19 @@ onMounted(() => {
             <VIcon icon="ri-close-line" />
           </VBtn>
 
-          <VImg
-            v-if="portfolioImages[portfolioViewIndex]"
-            :src="portfolioImages[portfolioViewIndex]?.imageUrl || portfolioImages[portfolioViewIndex]?.url"
-            max-height="80vh"
-            contain
-          />
-
-          <!-- Navigation -->
-          <div v-if="portfolioImages.length > 1" class="d-flex justify-center align-center pa-3 gap-4">
-            <VBtn
-              icon
-              variant="text"
-              color="white"
-              :disabled="portfolioViewIndex <= 0"
-              @click="portfolioViewIndex--"
-            >
-              <VIcon icon="ri-arrow-left-s-line" />
-            </VBtn>
-            <span class="text-white text-body-2">
-              {{ portfolioViewIndex + 1 }} / {{ portfolioImages.length }}
-            </span>
-            <VBtn
-              icon
-              variant="text"
-              color="white"
-              :disabled="portfolioViewIndex >= portfolioImages.length - 1"
-              @click="portfolioViewIndex++"
-            >
-              <VIcon icon="ri-arrow-right-s-line" />
-            </VBtn>
-          </div>
+          <VCarousel
+            v-model="portfolioViewIndex"
+            :show-arrows="portfolioImages.length > 1"
+            hide-delimiters
+            height="80vh"
+          >
+            <VCarouselItem
+              v-for="(item, index) in portfolioImages"
+              :key="item.id || index"
+              :src="item.imageUrl || item.url"
+              cover
+            />
+          </VCarousel>
         </VCard>
       </VDialog>
 
@@ -915,14 +922,12 @@ onMounted(() => {
         class="d-md-none mobile-fab"
         color="primary"
         size="large"
-        icon
+        prepend-icon="ri-calendar-check-line"
+        rounded="xl"
         elevation="8"
         @click="goToReserve"
       >
-        <VIcon icon="ri-calendar-check-line" />
-        <VTooltip activator="parent" location="top">
-          예약하기
-        </VTooltip>
+        예약하기
       </VBtn>
     </template>
   </div>
@@ -935,6 +940,20 @@ onMounted(() => {
 
   @media (min-width: 960px) {
     padding-block-end: 0;
+  }
+}
+
+.business-cover-gradient {
+  block-size: 180px;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--v-theme-primary), 0.15) 0%,
+    rgba(var(--v-theme-info), 0.1) 50%,
+    rgba(var(--v-theme-success), 0.08) 100%
+  );
+
+  @media (min-width: 960px) {
+    block-size: 220px;
   }
 }
 

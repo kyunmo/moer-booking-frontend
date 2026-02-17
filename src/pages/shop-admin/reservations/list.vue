@@ -8,6 +8,18 @@
 
         <VSpacer />
 
+        <!-- 날짜 필터 -->
+        <VTextField
+          v-model="dateFilter"
+          type="date"
+          label="예약 날짜"
+          density="compact"
+          style="max-inline-size: 180px;"
+          class="me-3"
+          clearable
+          hide-details
+        />
+
         <!-- 상태 필터 -->
         <VSelect
           v-model="statusFilter"
@@ -351,6 +363,7 @@ const subscriptionStore = useSubscriptionStore()
 
 // Refs
 const searchQuery = ref('')
+const dateFilter = ref(null)
 const statusFilter = ref(null)
 const isDetailDialogVisible = ref(false)
 const isFormDialogVisible = ref(false)
@@ -384,6 +397,11 @@ const headers = [
 // 필터링된 예약 목록
 const filteredReservations = computed(() => {
   let result = reservationStore.reservations
+
+  // 날짜 필터
+  if (dateFilter.value) {
+    result = result.filter(r => r.reservationDate === dateFilter.value)
+  }
 
   // 상태 필터
   if (statusFilter.value) {

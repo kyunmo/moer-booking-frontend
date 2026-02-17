@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   title: {
     type: String,
@@ -20,7 +22,23 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  trend: {
+    type: Number,
+    default: null,
+  },
+  trendLabel: {
+    type: String,
+    default: '전일 대비',
+  },
 })
+
+const trendColor = computed(() =>
+  props.trend === null ? '' : props.trend >= 0 ? 'success' : 'error',
+)
+
+const trendIcon = computed(() =>
+  props.trend === null ? '' : props.trend >= 0 ? 'ri-arrow-up-line' : 'ri-arrow-down-line',
+)
 </script>
 
 <template>
@@ -34,8 +52,29 @@ const props = defineProps({
           <h4 class="text-h4">
             {{ value }}
           </h4>
+          <!-- Trend indicator -->
           <div
-            v-if="subtitle"
+            v-if="trend !== null"
+            class="d-flex align-center gap-1"
+          >
+            <VChip
+              :color="trendColor"
+              size="x-small"
+              variant="tonal"
+              label
+            >
+              <VIcon
+                :icon="trendIcon"
+                size="12"
+                start
+              />
+              {{ Math.abs(trend) }}%
+            </VChip>
+            <span class="text-caption text-medium-emphasis">{{ trendLabel }}</span>
+          </div>
+          <!-- Subtitle fallback -->
+          <div
+            v-else-if="subtitle"
             class="text-body-2"
           >
             {{ subtitle }}

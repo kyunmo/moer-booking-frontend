@@ -182,14 +182,18 @@
 
             <!-- 액션 버튼 -->
             <VCardActions>
-              <VBtn
-                variant="text"
-                size="small"
-                @click="viewService(service)"
-              >
-                <VIcon icon="ri-eye-line" class="me-1" />
-                상세
-              </VBtn>
+              <!-- 활성/비활성 토글 -->
+              <VSwitch
+                :model-value="service.isActive !== false"
+                color="success"
+                hide-details
+                density="compact"
+                :loading="toggleLoadingId === service.id"
+                :disabled="toggleLoadingId === service.id"
+                @update:model-value="toggleServiceActive(service)"
+              />
+
+              <VSpacer />
 
               <VBtn
                 variant="text"
@@ -200,8 +204,6 @@
                 <VIcon icon="ri-edit-line" class="me-1" />
                 수정
               </VBtn>
-
-              <VSpacer />
 
               <VBtn
                 icon
@@ -289,6 +291,7 @@ const isDeleteDialogVisible = ref(false)
 const isCategoryDialogVisible = ref(false)
 const selectedService = ref(null)
 const serviceToEdit = ref(null)
+const toggleLoadingId = ref(null)
 
 // 카테고리 필터 옵션 (DB 카테고리 사용)
 const categoryFilterOptions = computed(() => {
@@ -331,6 +334,21 @@ function truncateText(text, maxLength) {
   if (!text) return ''
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength) + '...'
+}
+
+// 서비스 활성/비활성 토글
+async function toggleServiceActive(service) {
+  toggleLoadingId.value = service.id
+  try {
+    await serviceStore.toggleServiceActive(service.id)
+  }
+  catch (error) {
+    console.error('서비스 상태 변경 실패:', error)
+    showError(error.message || '서비스 상태 변경에 실패했습니다.')
+  }
+  finally {
+    toggleLoadingId.value = null
+  }
 }
 
 // 서비스 상세보기
