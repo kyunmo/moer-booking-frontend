@@ -198,7 +198,7 @@
             variant="tonal"
             class="mt-4"
           >
-            ⚠️ 취소된 예약은 다시 복구할 수 없습니다.
+            취소된 예약은 다시 복구할 수 없습니다.
           </VAlert>
         </VCardText>
 

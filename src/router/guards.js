@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/auth'
+import { useCustomerAuthStore } from '@/stores/customer-auth'
 
 export function setupRouterGuards(router) {
   let isInitialized = false
@@ -7,13 +8,17 @@ export function setupRouterGuards(router) {
     console.log('🔍 라우터 가드 실행:', to.path)
 
     const authStore = useAuthStore()
+    const customerAuthStore = useCustomerAuthStore()
 
     // 1. 인증 초기화
     if (!isInitialized) {
       console.log('🔄 인증 초기화 중...')
-      await authStore.initialize()
+      await Promise.all([
+        authStore.initialize(),
+        customerAuthStore.initialize(),
+      ])
       isInitialized = true
-      console.log('✅ 인증 초기화 완료, isAuthenticated:', authStore.isAuthenticated)
+      console.log('✅ 인증 초기화 완료, admin:', authStore.isAuthenticated, 'customer:', customerAuthStore.isAuthenticated)
     }
 
     // 2. 공개 페이지 체크 (메타 정보 우선)

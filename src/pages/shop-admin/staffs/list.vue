@@ -291,18 +291,11 @@
 
     <!-- 데이터 없음 -->
     <VCard v-else>
-      <VCardText class="text-center pa-10">
-        <VIcon
-          icon="ri-team-line"
-          size="64"
-          class="mb-4 text-disabled"
-        />
-        <p class="text-h6 mb-2">
-          {{ hasActiveFilters ? '검색 결과가 없습니다' : '등록된 스태프가 없습니다' }}
-        </p>
-        <p class="text-disabled mb-4">
-          {{ hasActiveFilters ? '다른 검색 조건을 시도해보세요' : '첫 스태프를 등록하고 예약을 시작하세요' }}
-        </p>
+      <EmptyState
+        icon="ri-team-line"
+        :title="hasActiveFilters ? '검색 결과가 없습니다' : '등록된 스태프가 없습니다'"
+        :description="hasActiveFilters ? '다른 검색 조건을 시도해보세요' : '첫 스태프를 등록하고 예약을 시작하세요'"
+      >
         <VBtn
           v-if="hasActiveFilters"
           variant="outlined"
@@ -335,7 +328,7 @@
           <VIcon icon="ri-user-add-line" class="me-2" />
           스태프 등록하기
         </VBtn>
-      </VCardText>
+      </EmptyState>
     </VCard>
 
     <!-- 직급 관리 다이얼로그 -->
@@ -360,43 +353,19 @@
     />
 
     <!-- 삭제 확인 다이얼로그 -->
-    <VDialog
+    <ConfirmDeleteDialog
       v-model="isDeleteDialogVisible"
-      max-width="400"
-    >
-      <VCard>
-        <VCardTitle>스태프 삭제</VCardTitle>
-        <VCardText>
-          <p class="mb-0">
-            <strong>{{ selectedStaff?.name }}</strong> 스태프를 삭제하시겠습니까?
-          </p>
-          <p class="text-error text-sm mt-2">
-            삭제된 스태프 정보는 복구할 수 없습니다.
-          </p>
-        </VCardText>
-
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            color="secondary"
-            variant="outlined"
-            @click="isDeleteDialogVisible = false"
-          >
-            취소
-          </VBtn>
-          <VBtn
-            color="error"
-            @click="deleteStaff"
-          >
-            삭제
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+      title="스태프 삭제"
+      :item-name="`${selectedStaff?.name} 스태프`"
+      message="삭제된 스태프 정보는 복구할 수 없습니다."
+      @confirm="deleteStaff"
+    />
   </div>
 </template>
 
 <script setup>
+import EmptyState from '@/components/EmptyState.vue'
+import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useStaffStore } from '@/stores/staff'
 import { useStaffPositionStore } from '@/stores/staff-position'

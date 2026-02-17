@@ -74,15 +74,15 @@ function quickLogin() {
 
 // SNS 로그인
 function handleGoogleLogin() {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/google`
+  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/google?loginType=admin`
 }
 
 function handleNaverLogin() {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/naver`
+  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/naver?loginType=admin`
 }
 
 function handleKakaoLogin() {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/kakao`
+  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/kakao?loginType=admin`
 }
 </script>
 

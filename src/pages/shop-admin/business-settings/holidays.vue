@@ -130,24 +130,14 @@
 
         <!-- 데이터 없음 -->
         <template #no-data>
-          <div class="text-center pa-10">
-            <VIcon
-              icon="ri-calendar-line"
-              size="64"
-              class="mb-4 text-disabled"
-            />
-            <p class="text-h6 mb-2">등록된 휴무일이 없습니다</p>
-            <p class="text-disabled mb-4">
-              휴무일을 추가하세요
-            </p>
-            <VBtn
-              color="primary"
-              @click="openCreateDialog"
-            >
-              <VIcon icon="ri-add-line" class="me-2" />
-              휴무일 추가하기
-            </VBtn>
-          </div>
+          <EmptyState
+            icon="ri-calendar-line"
+            title="등록된 휴무일이 없습니다"
+            description="휴무일을 추가하세요"
+            action-label="휴무일 추가하기"
+            action-icon="ri-add-line"
+            @action="openCreateDialog"
+          />
         </template>
       </VDataTable>
     </VCard>
@@ -266,49 +256,20 @@
     </VDialog>
 
     <!-- 삭제 확인 다이얼로그 -->
-    <VDialog
+    <ConfirmDeleteDialog
       v-model="isDeleteDialogVisible"
-      max-width="400"
-    >
-      <VCard>
-        <VCardTitle>휴무일 삭제</VCardTitle>
-
-        <VCardText>
-          <p class="mb-4">
-            <strong>{{ selectedHoliday?.name }}</strong> ({{ formatDate(selectedHoliday?.date) }})를 삭제하시겠습니까?
-          </p>
-
-          <VAlert
-            type="warning"
-            variant="tonal"
-          >
-            삭제된 휴무일은 복구할 수 없습니다.
-          </VAlert>
-        </VCardText>
-
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            color="secondary"
-            variant="outlined"
-            @click="isDeleteDialogVisible = false"
-          >
-            취소
-          </VBtn>
-          <VBtn
-            color="error"
-            :loading="loading"
-            @click="deleteHoliday"
-          >
-            삭제
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+      title="휴무일 삭제"
+      :item-name="`${selectedHoliday?.name} (${formatDate(selectedHoliday?.date)})`"
+      message="삭제된 휴무일은 복구할 수 없습니다."
+      :loading="loading"
+      @confirm="deleteHoliday"
+    />
   </div>
 </template>
 
 <script setup>
+import EmptyState from '@/components/EmptyState.vue'
+import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { computed, onMounted, ref } from 'vue'

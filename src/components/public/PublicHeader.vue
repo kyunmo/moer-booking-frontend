@@ -1,24 +1,60 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { useAuthStore } from '@/stores/auth'
+import { useCustomerAuthStore } from '@/stores/customer-auth'
 
+const route = useRoute()
 const router = useRouter()
 const theme = useTheme()
 const authStore = useAuthStore()
+const customerAuthStore = useCustomerAuthStore()
 const mobileDrawer = ref(false)
+const customerMenu = ref(false)
 
-// 네비게이션 메뉴
-const navItems = [
+// booking 경로 여부 판별
+const isBookingPage = computed(() => route.path.startsWith('/booking'))
+
+// 고객 로그인 상태
+const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
+
+// 고객 표시 이름 (이름 또는 이메일 앞부분)
+const customerDisplayName = computed(() => {
+  if (customerAuthStore.customerName) return customerAuthStore.customerName
+  if (customerAuthStore.customerEmail) return customerAuthStore.customerEmail.split('@')[0]
+  return '고객'
+})
+
+// 고객 이니셜 (아바타용)
+const customerInitial = computed(() => {
+  return customerDisplayName.value.charAt(0).toUpperCase()
+})
+
+// 기본 네비게이션 메뉴
+const defaultNavItems = [
   { title: '홈', to: '/', icon: 'ri-home-line' },
   { title: '기능', to: '/features', icon: 'ri-function-line' },
   { title: '요금제', to: '/pricing', icon: 'ri-price-tag-3-line' },
   { title: 'FAQ', to: '/faq', icon: 'ri-question-line' },
   { title: '지원', to: '/support', icon: 'ri-customer-service-line' },
 ]
+
+// 예약 페이지 전용 네비게이션 (고객 로그인 시 추가 메뉴)
+const bookingNavItems = computed(() => {
+  const items = [
+    { title: '매장 검색', to: '/booking', icon: 'ri-search-line' },
+    { title: '예약 확인', to: '/booking/reservation', icon: 'ri-calendar-check-line' },
+  ]
+  if (customerAuthStore.isAuthenticated) {
+    items.push({ title: '내 예약', to: '/booking/my-reservations', icon: 'ri-calendar-line' })
+  }
+  return items
+})
+
+const navItems = computed(() => isBookingPage.value ? bookingNavItems.value : defaultNavItems)
 
 function navigateTo(path) {
   router.push(path)
@@ -30,18 +66,29 @@ function toggleTheme() {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
-// 로그아웃
+// 관리자 로그아웃
 async function handleLogout() {
   mobileDrawer.value = false
   try {
-    // logout() 내부에서 상태 초기화 및 /login 리다이렉트 처리
     await authStore.logout()
   }
   catch (error) {
     console.error('로그아웃 실패:', error)
-    // 실패 시에도 홈으로 이동
     router.push('/')
   }
+}
+
+// 고객 로그아웃
+function handleCustomerLogout() {
+  customerMenu.value = false
+  mobileDrawer.value = false
+  customerAuthStore.logout()
+  router.push('/booking')
+}
+
+// 고객 로그인 페이지로 이동
+function goToCustomerLogin() {
+  customerAuthStore.startKakaoLogin(route.fullPath)
 }
 </script>
 
@@ -87,45 +134,142 @@ async function handleLogout() {
           <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
         </VBtn>
 
-        <template v-if="authStore.isAuthenticated">
-          <!-- 로그인된 상태 -->
+        <!-- booking 페이지 + 고객 로그인 상태 -->
+        <template v-if="isBookingPage && isCustomerLoggedIn">
+          <!-- 관리자도 로그인된 경우 관리자 바로가기 -->
           <VBtn
+            v-if="authStore.isAuthenticated"
             to="/shop-admin/dashboard"
             variant="text"
             class="mx-1"
             prepend-icon="ri-dashboard-line"
+            size="small"
           >
             관리자
           </VBtn>
 
+          <!-- 고객 프로필 메뉴 -->
+          <VMenu v-model="customerMenu" :close-on-content-click="false">
+            <template #activator="{ props }">
+              <VBtn
+                v-bind="props"
+                variant="text"
+                class="ms-1"
+              >
+                <VAvatar
+                  size="32"
+                  :image="customerAuthStore.profileImageUrl"
+                  :color="customerAuthStore.profileImageUrl ? undefined : 'primary'"
+                  class="me-2"
+                >
+                  <span v-if="!customerAuthStore.profileImageUrl" class="text-caption font-weight-bold">
+                    {{ customerInitial }}
+                  </span>
+                </VAvatar>
+                <span class="text-body-2">{{ customerDisplayName }}</span>
+                <VIcon end size="18">
+                  ri-arrow-down-s-line
+                </VIcon>
+              </VBtn>
+            </template>
+
+            <VList min-width="200">
+              <VListItem
+                prepend-icon="ri-user-line"
+                title="내 프로필"
+                @click="customerMenu = false; navigateTo('/booking/profile')"
+              />
+              <VListItem
+                prepend-icon="ri-calendar-line"
+                title="내 예약"
+                @click="customerMenu = false; navigateTo('/booking/my-reservations')"
+              />
+              <VDivider class="my-1" />
+              <VListItem
+                prepend-icon="ri-logout-box-r-line"
+                title="로그아웃"
+                class="text-error"
+                @click="handleCustomerLogout"
+              />
+            </VList>
+          </VMenu>
+        </template>
+
+        <!-- booking 페이지 + 고객 미로그인 -->
+        <template v-else-if="isBookingPage && !isCustomerLoggedIn">
+          <!-- 관리자 로그인 상태이면 관리자 메뉴 유지 -->
+          <template v-if="authStore.isAuthenticated">
+            <VBtn
+              to="/shop-admin/dashboard"
+              variant="text"
+              class="mx-1"
+              prepend-icon="ri-dashboard-line"
+            >
+              관리자
+            </VBtn>
+            <VBtn
+              color="error"
+              variant="outlined"
+              class="ms-2"
+              prepend-icon="ri-logout-box-r-line"
+              @click="handleLogout"
+            >
+              로그아웃
+            </VBtn>
+          </template>
+
+          <!-- 고객 로그인 버튼 -->
           <VBtn
-            color="error"
+            color="primary"
             variant="outlined"
             class="ms-2"
-            prepend-icon="ri-logout-box-r-line"
-            @click="handleLogout"
+            prepend-icon="ri-kakao-talk-fill"
+            @click="goToCustomerLogin"
           >
-            로그아웃
+            고객 로그인
           </VBtn>
         </template>
 
+        <!-- 일반 페이지 (non-booking) -->
         <template v-else>
-          <!-- 미로그인 상태 -->
-          <VBtn
-            to="/login"
-            variant="text"
-            class="mx-1"
-          >
-            로그인
-          </VBtn>
+          <template v-if="authStore.isAuthenticated">
+            <VBtn
+              to="/shop-admin/dashboard"
+              variant="text"
+              class="mx-1"
+              prepend-icon="ri-dashboard-line"
+            >
+              관리자
+            </VBtn>
 
-          <VBtn
-            to="/register"
-            color="primary"
-            class="ms-2"
-          >
-            무료로 시작하기
-          </VBtn>
+            <VBtn
+              color="error"
+              variant="outlined"
+              class="ms-2"
+              prepend-icon="ri-logout-box-r-line"
+              @click="handleLogout"
+            >
+              로그아웃
+            </VBtn>
+          </template>
+
+          <template v-else>
+            <VBtn
+              to="/login"
+              variant="text"
+              class="mx-1"
+            >
+              로그인
+            </VBtn>
+
+            <VBtn
+              to="/register"
+              color="primary"
+              class="ms-2"
+            >
+              무료로 시작하기
+            </VBtn>
+          </template>
         </template>
       </div>
 
@@ -191,8 +335,52 @@ async function handleLogout() {
 
       <!-- CTA 버튼들 -->
       <div class="d-flex flex-column gap-2">
-        <template v-if="authStore.isAuthenticated">
+        <!-- booking 페이지 + 고객 로그인 상태 -->
+        <template v-if="isBookingPage && isCustomerLoggedIn">
+          <!-- 고객 정보 -->
+          <div class="d-flex align-center mb-2 px-2">
+            <VAvatar
+              size="36"
+              :image="customerAuthStore.profileImageUrl"
+              :color="customerAuthStore.profileImageUrl ? undefined : 'primary'"
+              class="me-3"
+            >
+              <span v-if="!customerAuthStore.profileImageUrl" class="text-caption font-weight-bold">
+                {{ customerInitial }}
+              </span>
+            </VAvatar>
+            <div>
+              <div class="text-body-1 font-weight-medium">
+                {{ customerDisplayName }}
+              </div>
+              <div v-if="customerAuthStore.customerEmail" class="text-caption text-medium-emphasis">
+                {{ customerAuthStore.customerEmail }}
+              </div>
+            </div>
+          </div>
+
+          <VDivider class="mb-2" />
+
           <VBtn
+            block
+            variant="outlined"
+            prepend-icon="ri-user-line"
+            @click="navigateTo('/booking/profile')"
+          >
+            내 프로필
+          </VBtn>
+          <VBtn
+            block
+            variant="outlined"
+            prepend-icon="ri-calendar-line"
+            @click="navigateTo('/booking/my-reservations')"
+          >
+            내 예약
+          </VBtn>
+
+          <!-- 관리자도 로그인된 경우 -->
+          <VBtn
+            v-if="authStore.isAuthenticated"
             block
             variant="outlined"
             prepend-icon="ri-dashboard-line"
@@ -200,32 +388,89 @@ async function handleLogout() {
           >
             관리자 페이지
           </VBtn>
+
           <VBtn
             block
             color="error"
             variant="outlined"
             prepend-icon="ri-logout-box-r-line"
-            @click="handleLogout"
+            @click="handleCustomerLogout"
           >
             로그아웃
           </VBtn>
         </template>
 
-        <template v-else>
-          <VBtn
-            block
-            variant="outlined"
-            @click="navigateTo('/login')"
-          >
-            로그인
-          </VBtn>
+        <!-- booking 페이지 + 고객 미로그인 -->
+        <template v-else-if="isBookingPage && !isCustomerLoggedIn">
+          <!-- 관리자 로그인 상태 -->
+          <template v-if="authStore.isAuthenticated">
+            <VBtn
+              block
+              variant="outlined"
+              prepend-icon="ri-dashboard-line"
+              @click="navigateTo('/shop-admin/dashboard')"
+            >
+              관리자 페이지
+            </VBtn>
+            <VBtn
+              block
+              color="error"
+              variant="outlined"
+              prepend-icon="ri-logout-box-r-line"
+              @click="handleLogout"
+            >
+              관리자 로그아웃
+            </VBtn>
+          </template>
+
           <VBtn
             block
             color="primary"
-            @click="navigateTo('/register')"
+            prepend-icon="ri-kakao-talk-fill"
+            @click="mobileDrawer = false; goToCustomerLogin()"
           >
-            무료로 시작하기
+            고객 로그인
           </VBtn>
+        </template>
+
+        <!-- 일반 페이지 (non-booking) -->
+        <template v-else>
+          <template v-if="authStore.isAuthenticated">
+            <VBtn
+              block
+              variant="outlined"
+              prepend-icon="ri-dashboard-line"
+              @click="navigateTo('/shop-admin/dashboard')"
+            >
+              관리자 페이지
+            </VBtn>
+            <VBtn
+              block
+              color="error"
+              variant="outlined"
+              prepend-icon="ri-logout-box-r-line"
+              @click="handleLogout"
+            >
+              로그아웃
+            </VBtn>
+          </template>
+
+          <template v-else>
+            <VBtn
+              block
+              variant="outlined"
+              @click="navigateTo('/login')"
+            >
+              로그인
+            </VBtn>
+            <VBtn
+              block
+              color="primary"
+              @click="navigateTo('/register')"
+            >
+              무료로 시작하기
+            </VBtn>
+          </template>
         </template>
       </div>
     </div>

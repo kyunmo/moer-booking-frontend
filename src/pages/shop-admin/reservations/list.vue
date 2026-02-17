@@ -224,16 +224,11 @@
 
         <!-- 데이터 없음 -->
         <template #no-data>
-          <div class="text-center pa-10">
-            <VIcon
-              icon="ri-calendar-line"
-              size="64"
-              class="mb-4 text-disabled"
-            />
-            <p class="text-h6 mb-2">등록된 예약이 없습니다</p>
-            <p class="text-disabled mb-4">
-              첫 예약을 등록하세요
-            </p>
+          <EmptyState
+            icon="ri-calendar-line"
+            title="등록된 예약이 없습니다"
+            description="첫 예약을 등록하세요"
+          >
             <VTooltip
               v-if="!subscriptionStore.canCreateReservation"
               location="bottom"
@@ -258,7 +253,7 @@
               <VIcon icon="ri-add-line" class="me-2" />
               예약 등록하기
             </VBtn>
-          </div>
+          </EmptyState>
         </template>
       </VDataTable>
     </VCard>
@@ -311,7 +306,7 @@
             variant="tonal"
             class="mt-4"
           >
-            ⚠️ 취소된 예약은 다시 복구할 수 없습니다.
+            취소된 예약은 다시 복구할 수 없습니다.
           </VAlert>
         </VCardText>
 
@@ -336,6 +331,7 @@
 </template>
 
 <script setup>
+import EmptyState from '@/components/EmptyState.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'

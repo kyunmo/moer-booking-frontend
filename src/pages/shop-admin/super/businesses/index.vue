@@ -251,7 +251,7 @@
             class="mb-4"
           >
             <VAlertTitle>
-              {{ deleteHard ? '⚠️ 복구 불가능' : '⚠️ 주의' }}
+              {{ deleteHard ? '복구 불가능' : '주의' }}
             </VAlertTitle>
             <template v-if="deleteHard">
               매장 및 관련된 모든 데이터가 영구적으로 삭제됩니다.

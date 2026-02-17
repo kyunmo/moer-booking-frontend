@@ -220,24 +220,15 @@
       </div>
 
       <!-- 데이터 없음 -->
-      <div v-else class="text-center pa-10">
-        <VIcon
-          icon="ri-coupon-line"
-          size="64"
-          class="mb-4 text-disabled"
-        />
-        <p class="text-h6 mb-2">등록된 쿠폰이 없습니다</p>
-        <p class="text-disabled mb-4">
-          첫 쿠폰을 생성하여 고객에게 할인 혜택을 제공하세요
-        </p>
-        <VBtn
-          color="primary"
-          @click="openCreateDialog"
-        >
-          <VIcon icon="ri-coupon-line" class="me-2" />
-          쿠폰 생성하기
-        </VBtn>
-      </div>
+      <EmptyState
+        v-else
+        icon="ri-coupon-line"
+        title="등록된 쿠폰이 없습니다"
+        description="첫 쿠폰을 생성하여 고객에게 할인 혜택을 제공하세요"
+        action-label="쿠폰 생성하기"
+        action-icon="ri-coupon-line"
+        @action="openCreateDialog"
+      />
     </VCard>
 
     <!-- 쿠폰 생성 다이얼로그 -->
@@ -352,43 +343,20 @@
     </VDialog>
 
     <!-- 삭제 확인 다이얼로그 -->
-    <VDialog
+    <ConfirmDeleteDialog
       v-model="isDeleteDialogOpen"
-      max-width="400"
-    >
-      <VCard>
-        <VCardTitle>쿠폰 삭제</VCardTitle>
-        <VCardText>
-          <p class="mb-0">
-            <strong>{{ selectedCoupon?.name }}</strong> 쿠폰을 삭제하시겠습니까?
-          </p>
-          <p class="text-error text-sm mt-2">
-            ⚠️ 삭제된 쿠폰은 복구할 수 없습니다.
-          </p>
-        </VCardText>
-
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            variant="text"
-            @click="isDeleteDialogOpen = false"
-          >
-            취소
-          </VBtn>
-          <VBtn
-            color="error"
-            :loading="loading"
-            @click="deleteCoupon"
-          >
-            삭제
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+      title="쿠폰 삭제"
+      :item-name="`${selectedCoupon?.name} 쿠폰`"
+      message="삭제된 쿠폰은 복구할 수 없습니다."
+      :loading="loading"
+      @confirm="deleteCoupon"
+    />
   </div>
 </template>
 
 <script setup>
+import EmptyState from '@/components/EmptyState.vue'
+import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useCouponStore } from '@/stores/coupon'
 import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted } from 'vue'

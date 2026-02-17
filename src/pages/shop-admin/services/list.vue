@@ -220,24 +220,14 @@
 
     <!-- 데이터 없음 -->
     <VCard v-else>
-      <VCardText class="text-center pa-10">
-        <VIcon
-          :icon="serviceIcon"
-          size="64"
-          class="mb-4 text-disabled"
-        />
-        <p class="text-h6 mb-2">등록된 서비스가 없습니다</p>
-        <p class="text-disabled mb-4">
-          첫 서비스를 등록하고 예약을 시작하세요
-        </p>
-        <VBtn
-          color="primary"
-          @click="openCreateDialog"
-        >
-          <VIcon icon="ri-add-line" class="me-2" />
-          서비스 등록하기
-        </VBtn>
-      </VCardText>
+      <EmptyState
+        :icon="serviceIcon"
+        title="등록된 서비스가 없습니다"
+        description="첫 서비스를 등록하고 예약을 시작하세요"
+        action-label="서비스 등록하기"
+        action-icon="ri-add-line"
+        @action="openCreateDialog"
+      />
     </VCard>
 
     <!-- 서비스 상세보기 다이얼로그 -->
@@ -262,43 +252,19 @@
     />
 
     <!-- 삭제 확인 다이얼로그 -->
-    <VDialog
+    <ConfirmDeleteDialog
       v-model="isDeleteDialogVisible"
-      max-width="400"
-    >
-      <VCard>
-        <VCardTitle>서비스 삭제</VCardTitle>
-        <VCardText>
-          <p class="mb-0">
-            <strong>{{ selectedService?.name }}</strong> 서비스를 삭제하시겠습니까?
-          </p>
-          <p class="text-error text-sm mt-2">
-            ⚠️ 삭제된 서비스 정보는 복구할 수 없습니다.
-          </p>
-        </VCardText>
-
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            color="secondary"
-            variant="outlined"
-            @click="isDeleteDialogVisible = false"
-          >
-            취소
-          </VBtn>
-          <VBtn
-            color="error"
-            @click="deleteService"
-          >
-            삭제
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+      title="서비스 삭제"
+      :item-name="`${selectedService?.name} 서비스`"
+      message="삭제된 서비스 정보는 복구할 수 없습니다."
+      @confirm="deleteService"
+    />
   </div>
 </template>
 
 <script setup>
+import EmptyState from '@/components/EmptyState.vue'
+import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'

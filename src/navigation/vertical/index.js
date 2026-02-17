@@ -39,6 +39,7 @@ import { useAuthStore } from '@/stores/auth'
 
 // 기본 메뉴 (모든 사용자)
 export default [
+  // ── 핵심 운영 (heading 없음, 최상단 기본 그룹) ──
   {
     title: '대시보드',
     to: { name: 'shop-admin-dashboard' },
@@ -77,6 +78,34 @@ export default [
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
   },
+
+  // ── 분석 · 피드백 ──
+  {
+    heading: '분석 · 피드백',
+  },
+  {
+    title: '매출 · 통계',
+    to: { name: 'shop-admin-statistics' },
+    icon: { icon: 'ri-bar-chart-box-line' },
+    get disabled() {
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
+    },
+  },
+  {
+    title: '리뷰 관리',
+    to: { name: 'shop-admin-reviews-list' },
+    icon: { icon: 'ri-chat-3-line' },
+    get disabled() {
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
+    },
+  },
+
+  // ── 매장 설정 ──
+  {
+    heading: '매장 설정',
+  },
   {
     title: '서비스 관리',
     to: { name: 'shop-admin-services-list' },
@@ -97,6 +126,36 @@ export default [
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
+  },
+  {
+    title: '매장 정보',
+    icon: { icon: 'ri-store-2-line' },
+    get disabled() {
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
+    },
+    children: [
+      {
+        title: '기본 정보',
+        to: { name: 'shop-admin-business-settings' },
+        icon: { icon: 'ri-settings-3-line' },
+      },
+      {
+        title: '영업시간',
+        to: { name: 'shop-admin-business-settings-hours' },
+        icon: { icon: 'ri-time-line' },
+      },
+      {
+        title: '휴무일',
+        to: { name: 'shop-admin-business-settings-holidays' },
+        icon: { icon: 'ri-calendar-close-line' },
+      },
+    ],
+  },
+
+  // ── 구독 · 결제 ──
+  {
+    heading: '구독 · 결제',
   },
   {
     title: '구독 & 결제',
@@ -124,28 +183,12 @@ export default [
     ],
   },
   {
-    title: '설정',
-    icon: { icon: 'ri-settings-3-line' },
+    title: '알림 이력',
+    to: { name: 'shop-admin-notification-logs-list' },
+    icon: { icon: 'ri-notification-3-line' },
     get disabled() {
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
-    children: [
-      {
-        title: '매장 설정',
-        to: { name: 'shop-admin-business-settings' },
-        icon: { icon: 'ri-store-2-line' },
-      },
-      {
-        title: '영업시간',
-        to: { name: 'shop-admin-business-settings-hours' },
-        icon: { icon: 'ri-time-line' },
-      },
-      {
-        title: '휴무일',
-        to: { name: 'shop-admin-business-settings-holidays' },
-        icon: { icon: 'ri-calendar-close-line' },
-      },
-    ],
   },
 ]
