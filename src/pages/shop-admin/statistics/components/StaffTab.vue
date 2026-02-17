@@ -148,10 +148,10 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useStatisticsStore } from '@/stores/statistics'
+import { useTheme } from 'vuetify'
 
 const RADAR_KEYS = ['reservationVolume', 'revenue', 'completionRate', 'customerSatisfaction', 'efficiency']
 const RADAR_LABELS = ['예약량', '매출', '완료율', '고객 만족도', '효율성']
-const RADAR_COLORS = ['#9155FD', '#FF4C51', '#56CA00', '#FFB400', '#16B1FF']
 
 const props = defineProps({
   filters: {
@@ -161,6 +161,15 @@ const props = defineProps({
 })
 
 const statisticsStore = useStatisticsStore()
+const theme = useTheme()
+
+const themeColors = computed(() => [
+  theme.current.value.colors.primary,
+  theme.current.value.colors.error,
+  theme.current.value.colors.success,
+  theme.current.value.colors.warning,
+  theme.current.value.colors.info,
+])
 
 const selectedStaffId = ref(null)
 const chartKey = ref(0)
@@ -249,7 +258,7 @@ const barChartOptions = computed(() => {
         borderRadius: 4,
       },
     },
-    colors: ['#9155FD'],
+    colors: [theme.current.value.colors.primary],
     xaxis: {
       labels: {
         formatter: val => formatCurrencyShort(val),
@@ -315,7 +324,7 @@ const radarChartOptions = computed(() => ({
   legend: {
     position: 'bottom',
   },
-  colors: RADAR_COLORS,
+  colors: themeColors.value,
 }))
 
 const radarChartSeries = computed(() => {
@@ -359,7 +368,7 @@ const lineChartOptions = computed(() => {
     legend: {
       position: 'bottom',
     },
-    colors: RADAR_COLORS,
+    colors: themeColors.value,
     markers: {
       size: 4,
     },

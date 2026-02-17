@@ -47,10 +47,10 @@ const isCompleted = ref(false)
 // Step 2: calendar state
 const datesLoading = ref(false)
 
-// Step 3: slots state
+// Step 2: slots state (integrated with calendar)
 const slotsLoading = ref(false)
 
-// Step 4: form validation
+// Step 3: form validation
 const customerFormRef = ref(null)
 const customerFormValid = ref(false)
 
@@ -174,8 +174,15 @@ watch(monthKey, () => {
   }
 })
 
+// Auto-load time slots when date is selected in step 2
+watch(selectedDate, newDate => {
+  if (newDate && step.value === 2) {
+    loadAvailableSlots()
+  }
+})
+
 // =====================================================
-// Step 3: Time Slots + Staff
+// Step 2: Time Slots + Staff (integrated with calendar)
 // =====================================================
 const currentSlotStaffs = computed(() => {
   if (!selectedTime.value) return []
@@ -207,7 +214,7 @@ async function loadAvailableSlots() {
 }
 
 // =====================================================
-// Step 4: Customer Form Validation
+// Step 3: Customer Form Validation
 // =====================================================
 
 // Phone formatting (010-0000-0000)
@@ -246,15 +253,14 @@ const emailRules = [
 const canGoNext = computed(() => {
   switch (step.value) {
     case 1: return selectedServices.value.length > 0
-    case 2: return !!selectedDate.value
-    case 3: return !!selectedTime.value
-    case 4:
+    case 2: return !!selectedDate.value && !!selectedTime.value
+    case 3:
       if (isCustomerLoggedIn.value) {
         // 고객 로그인 시 전화번호 등록 여부 확인
         return customerAuthStore.hasPhone
       }
       return customerFormValid.value
-    case 5: return true
+    case 4: return true
     default: return false
   }
 })
@@ -262,20 +268,18 @@ const canGoNext = computed(() => {
 async function goNext() {
   if (!canGoNext.value) return
 
-  if (step.value === 4 && !isCustomerLoggedIn.value) {
+  if (step.value === 3 && !isCustomerLoggedIn.value) {
     // 비회원: Validate form explicitly before proceeding
     const { valid } = await customerFormRef.value.validate()
     if (!valid) return
   }
 
-  step.value = Math.min(step.value + 1, 5)
+  step.value = Math.min(step.value + 1, 4)
 
   // Trigger data loading when entering steps
   await nextTick()
   if (step.value === 2) {
     loadAvailableDates()
-  } else if (step.value === 3) {
-    loadAvailableSlots()
   }
 }
 
@@ -284,7 +288,7 @@ function goPrev() {
 }
 
 // =====================================================
-// Step 5: Submit Reservation
+// Step 4: Submit Reservation
 // =====================================================
 async function submitReservation() {
   submitting.value = true
@@ -355,10 +359,9 @@ function formatDate(dateStr) {
 // =====================================================
 const stepperItems = computed(() => [
   { title: '서비스 선택', value: 1 },
-  { title: '날짜 선택', value: 2 },
-  { title: '시간/담당자', value: 3 },
-  { title: isCustomerLoggedIn.value ? '정보 확인' : '고객 정보', value: 4 },
-  { title: '예약 확인', value: 5 },
+  { title: '날짜/시간', value: 2 },
+  { title: isCustomerLoggedIn.value ? '정보 확인' : '고객 정보', value: 3 },
+  { title: '예약 확인', value: 4 },
 ])
 
 // =====================================================
@@ -433,6 +436,75 @@ onUnmounted(() => {
             </VIcon>
           </VCard>
 
+          <!-- Reservation Summary -->
+          <VCard variant="outlined" rounded="lg" class="mb-8 text-start" style="max-inline-size: 400px; margin-inline: auto;">
+            <VList lines="two" class="pa-0">
+              <VListItem>
+                <template #prepend>
+                  <VAvatar color="primary" variant="tonal" rounded size="36">
+                    <VIcon icon="ri-calendar-check-line" size="18" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-body-2 font-weight-bold">
+                  날짜 / 시간
+                </VListItemTitle>
+                <VListItemSubtitle class="text-body-2">
+                  {{ formatDate(selectedDate) }}
+                  <br>
+                  {{ selectedTime?.startTime }} ~ {{ selectedTime?.endTime }}
+                </VListItemSubtitle>
+              </VListItem>
+
+              <VDivider />
+
+              <VListItem>
+                <template #prepend>
+                  <VAvatar color="info" variant="tonal" rounded size="36">
+                    <VIcon icon="ri-service-line" size="18" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-body-2 font-weight-bold">
+                  서비스
+                </VListItemTitle>
+                <VListItemSubtitle class="text-body-2">
+                  {{ selectedServices.map(s => s.name).join(', ') }}
+                </VListItemSubtitle>
+              </VListItem>
+
+              <VDivider />
+
+              <VListItem v-if="selectedStaff">
+                <template #prepend>
+                  <VAvatar color="warning" variant="tonal" rounded size="36">
+                    <VIcon icon="ri-user-star-line" size="18" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-body-2 font-weight-bold">
+                  담당자
+                </VListItemTitle>
+                <VListItemSubtitle class="text-body-2">
+                  {{ selectedStaff.name }}
+                </VListItemSubtitle>
+              </VListItem>
+
+              <VDivider v-if="selectedStaff" />
+
+              <VListItem>
+                <template #prepend>
+                  <VAvatar color="success" variant="tonal" rounded size="36">
+                    <VIcon icon="ri-money-dollar-circle-line" size="18" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-body-2 font-weight-bold">
+                  총 금액
+                </VListItemTitle>
+                <VListItemSubtitle class="text-body-2 font-weight-bold text-primary">
+                  {{ formatPrice(totalPrice) }}원 / {{ totalDuration }}분
+                </VListItemSubtitle>
+              </VListItem>
+            </VList>
+          </VCard>
+
           <div class="d-flex flex-column flex-sm-row justify-center ga-3">
             <VBtn
               color="primary"
@@ -482,11 +554,11 @@ onUnmounted(() => {
               {{ stepperItems[step - 1]?.title }}
             </span>
             <span class="text-body-2 text-medium-emphasis">
-              {{ step }} / 5
+              {{ step }} / 4
             </span>
           </div>
           <VProgressLinear
-            :model-value="(step / 5) * 100"
+            :model-value="(step / 4) * 100"
             color="primary"
             rounded
             height="6"
@@ -641,7 +713,7 @@ onUnmounted(() => {
           </VWindowItem>
 
           <!-- ============================================= -->
-          <!-- Step 2: Date Selection -->
+          <!-- Step 2: Date + Time + Staff Selection -->
           <!-- ============================================= -->
           <VWindowItem :value="2">
             <VCard rounded="lg" variant="outlined">
@@ -649,191 +721,151 @@ onUnmounted(() => {
                 <VIcon start color="primary" size="22">
                   ri-calendar-line
                 </VIcon>
-                날짜 선택
+                날짜 및 시간 선택
               </VCardTitle>
 
               <VDivider />
 
               <VCardText class="pa-5">
-                <!-- Loading -->
+                <!-- Loading dates -->
                 <div v-if="datesLoading" class="text-center py-8">
                   <VProgressCircular indeterminate color="primary" />
                 </div>
 
-                <!-- Date Picker -->
-                <div v-else class="d-flex justify-center">
-                  <VDatePicker
-                    v-model="selectedDateModel"
-                    :allowed-dates="isDateAllowed"
-                    :min="todayStr"
-                    :month="datePickerMonth"
-                    :year="datePickerYear"
-                    color="primary"
-                    width="100%"
-                    max-width="400"
-                    show-adjacent-months
-                    hide-header
-                    @update:month="handleMonthUpdate"
-                    @update:year="handleYearUpdate"
-                  />
-                </div>
-
-                <!-- Selected date display -->
-                <div v-if="selectedDate" class="text-center mt-4">
-                  <VChip color="primary" variant="tonal">
-                    <VIcon start size="16">
-                      ri-calendar-check-line
-                    </VIcon>
-                    {{ formatDate(selectedDate) }}
-                  </VChip>
-                </div>
-              </VCardText>
-
-              <VDivider />
-              <VCardActions class="pa-5 d-flex flex-column flex-sm-row ga-3">
-                <VBtn
-                  variant="outlined"
-                  size="large"
-                  block
-                  class="flex-sm-grow-0"
-                  min-width="140"
-                  @click="goPrev"
-                >
-                  <VIcon start>
-                    ri-arrow-left-line
-                  </VIcon>
-                  이전
-                </VBtn>
-                <VSpacer class="d-none d-sm-block" />
-                <VBtn
-                  color="primary"
-                  size="large"
-                  :disabled="!canGoNext"
-                  block
-                  class="flex-sm-grow-0"
-                  min-width="140"
-                  @click="goNext"
-                >
-                  다음
-                  <VIcon end>
-                    ri-arrow-right-line
-                  </VIcon>
-                </VBtn>
-              </VCardActions>
-            </VCard>
-          </VWindowItem>
-
-          <!-- ============================================= -->
-          <!-- Step 3: Time + Staff Selection -->
-          <!-- ============================================= -->
-          <VWindowItem :value="3">
-            <VCard rounded="lg" variant="outlined">
-              <VCardTitle class="text-h6 font-weight-bold pa-5 pb-3">
-                <VIcon start color="primary" size="22">
-                  ri-time-line
-                </VIcon>
-                시간 및 담당자 선택
-              </VCardTitle>
-
-              <VDivider />
-
-              <VCardText class="pa-5">
-                <!-- Loading -->
-                <div v-if="slotsLoading" class="text-center py-8">
-                  <VProgressCircular indeterminate color="primary" />
-                </div>
-
                 <template v-else>
-                  <!-- No Slots -->
-                  <div v-if="availableSlots.length === 0" class="text-center py-8">
-                    <VIcon icon="ri-time-line" size="48" color="grey-lighten-1" class="mb-3" />
-                    <p class="text-body-1 text-medium-emphasis">
-                      선택한 날짜에 예약 가능한 시간이 없습니다
-                    </p>
+                  <!-- Date Picker -->
+                  <div class="d-flex justify-center">
+                    <VDatePicker
+                      v-model="selectedDateModel"
+                      :allowed-dates="isDateAllowed"
+                      :min="todayStr"
+                      :month="datePickerMonth"
+                      :year="datePickerYear"
+                      color="primary"
+                      width="100%"
+                      max-width="400"
+                      show-adjacent-months
+                      hide-header
+                      @update:month="handleMonthUpdate"
+                      @update:year="handleYearUpdate"
+                    />
                   </div>
 
-                  <template v-else>
-                    <!-- Time Slots Grid -->
-                    <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                      시간 선택
-                    </h3>
-                    <VRow class="mb-6">
-                      <VCol
-                        v-for="slot in availableSlots"
-                        :key="slot.startTime"
-                        cols="6"
-                        sm="4"
-                      >
-                        <VBtn
-                          :color="selectedTime?.startTime === slot.startTime ? 'primary' : undefined"
-                          :variant="selectedTime?.startTime === slot.startTime ? 'elevated' : 'outlined'"
-                          block
-                          class="time-slot-btn"
-                          @click="selectTime(slot)"
-                        >
-                          {{ slot.startTime }} ~ {{ slot.endTime }}
-                        </VBtn>
-                      </VCol>
-                    </VRow>
+                  <!-- Selected date display -->
+                  <div v-if="selectedDate" class="text-center mt-4">
+                    <VChip color="primary" variant="tonal">
+                      <VIcon start size="16">
+                        ri-calendar-check-line
+                      </VIcon>
+                      {{ formatDate(selectedDate) }}
+                    </VChip>
+                  </div>
 
-                    <!-- Staff Selection (after time selected) -->
-                    <template v-if="selectedTime">
-                      <VDivider class="mb-5" />
-                      <h3 class="text-subtitle-1 font-weight-bold mb-3">
-                        담당자 선택
-                      </h3>
+                  <!-- Time Slots (shown after date selection) -->
+                  <template v-if="selectedDate">
+                    <VDivider class="my-5" />
 
-                      <div class="d-flex flex-wrap ga-3">
-                        <!-- "아무나" option -->
-                        <VCard
-                          :variant="selectedStaff === null ? 'outlined' : 'flat'"
-                          :color="selectedStaff === null ? 'primary' : undefined"
-                          :class="[
-                            'staff-card cursor-pointer pa-3 text-center',
-                            { 'staff-card--selected': selectedStaff === null },
-                          ]"
-                          :style="selectedStaff !== null ? 'border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))' : ''"
-                          rounded="lg"
-                          min-width="100"
-                          @click="selectStaff(null)"
-                        >
-                          <VAvatar color="grey-lighten-2" size="48" class="mb-2">
-                            <VIcon icon="ri-group-line" size="24" />
-                          </VAvatar>
-                          <div class="text-body-2 font-weight-medium">
-                            아무나
-                          </div>
-                          <div class="text-caption text-medium-emphasis">
-                            자동 배정
-                          </div>
-                        </VCard>
+                    <!-- Loading slots -->
+                    <div v-if="slotsLoading" class="text-center py-6">
+                      <VProgressCircular indeterminate color="primary" size="32" />
+                      <p class="text-body-2 text-medium-emphasis mt-2">
+                        시간 정보를 불러오는 중...
+                      </p>
+                    </div>
 
-                        <!-- Available Staffs -->
-                        <VCard
-                          v-for="staff in currentSlotStaffs"
-                          :key="staff.id"
-                          :variant="selectedStaff?.id === staff.id ? 'outlined' : 'flat'"
-                          :color="selectedStaff?.id === staff.id ? 'primary' : undefined"
-                          :class="[
-                            'staff-card cursor-pointer pa-3 text-center',
-                            { 'staff-card--selected': selectedStaff?.id === staff.id },
-                          ]"
-                          :style="selectedStaff?.id !== staff.id ? 'border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))' : ''"
-                          rounded="lg"
-                          min-width="100"
-                          @click="selectStaff(staff)"
-                        >
-                          <VAvatar color="primary" variant="tonal" size="48" class="mb-2">
-                            <VImg v-if="staff.profileImageUrl" :src="staff.profileImageUrl" />
-                            <span v-else class="text-body-1 font-weight-bold">
-                              {{ staff.name?.charAt(0) }}
-                            </span>
-                          </VAvatar>
-                          <div class="text-body-2 font-weight-medium">
-                            {{ staff.name }}
-                          </div>
-                        </VCard>
+                    <template v-else>
+                      <!-- No Slots -->
+                      <div v-if="availableSlots.length === 0" class="text-center py-6">
+                        <VIcon icon="ri-time-line" size="48" color="grey-lighten-1" class="mb-3" />
+                        <p class="text-body-1 text-medium-emphasis">
+                          선택한 날짜에 예약 가능한 시간이 없습니다
+                        </p>
                       </div>
+
+                      <template v-else>
+                        <!-- Time Slots Grid -->
+                        <h3 class="text-subtitle-1 font-weight-bold mb-3">
+                          시간 선택
+                        </h3>
+                        <VRow class="mb-2">
+                          <VCol
+                            v-for="slot in availableSlots"
+                            :key="slot.startTime"
+                            cols="6"
+                            sm="4"
+                          >
+                            <VBtn
+                              :color="selectedTime?.startTime === slot.startTime ? 'primary' : undefined"
+                              :variant="selectedTime?.startTime === slot.startTime ? 'elevated' : 'outlined'"
+                              block
+                              class="time-slot-btn"
+                              @click="selectTime(slot)"
+                            >
+                              {{ slot.startTime }} ~ {{ slot.endTime }}
+                            </VBtn>
+                          </VCol>
+                        </VRow>
+
+                        <!-- Staff Selection (after time selected) -->
+                        <template v-if="selectedTime">
+                          <VDivider class="my-5" />
+                          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+                            담당자 선택
+                          </h3>
+
+                          <div class="d-flex flex-wrap ga-3">
+                            <!-- "아무나" option -->
+                            <VCard
+                              :variant="selectedStaff === null ? 'outlined' : 'flat'"
+                              :color="selectedStaff === null ? 'primary' : undefined"
+                              :class="[
+                                'staff-card cursor-pointer pa-3 text-center',
+                                { 'staff-card--selected': selectedStaff === null },
+                              ]"
+                              :style="selectedStaff !== null ? 'border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))' : ''"
+                              rounded="lg"
+                              min-width="100"
+                              @click="selectStaff(null)"
+                            >
+                              <VAvatar color="grey-lighten-2" size="48" class="mb-2">
+                                <VIcon icon="ri-group-line" size="24" />
+                              </VAvatar>
+                              <div class="text-body-2 font-weight-medium">
+                                아무나
+                              </div>
+                              <div class="text-caption text-medium-emphasis">
+                                자동 배정
+                              </div>
+                            </VCard>
+
+                            <!-- Available Staffs -->
+                            <VCard
+                              v-for="staff in currentSlotStaffs"
+                              :key="staff.id"
+                              :variant="selectedStaff?.id === staff.id ? 'outlined' : 'flat'"
+                              :color="selectedStaff?.id === staff.id ? 'primary' : undefined"
+                              :class="[
+                                'staff-card cursor-pointer pa-3 text-center',
+                                { 'staff-card--selected': selectedStaff?.id === staff.id },
+                              ]"
+                              :style="selectedStaff?.id !== staff.id ? 'border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))' : ''"
+                              rounded="lg"
+                              min-width="100"
+                              @click="selectStaff(staff)"
+                            >
+                              <VAvatar color="primary" variant="tonal" size="48" class="mb-2">
+                                <VImg v-if="staff.profileImageUrl" :src="staff.profileImageUrl" />
+                                <span v-else class="text-body-1 font-weight-bold">
+                                  {{ staff.name?.charAt(0) }}
+                                </span>
+                              </VAvatar>
+                              <div class="text-body-2 font-weight-medium">
+                                {{ staff.name }}
+                              </div>
+                            </VCard>
+                          </div>
+                        </template>
+                      </template>
                     </template>
                   </template>
                 </template>
@@ -874,9 +906,9 @@ onUnmounted(() => {
           </VWindowItem>
 
           <!-- ============================================= -->
-          <!-- Step 4: Customer Info -->
+          <!-- Step 3: Customer Info -->
           <!-- ============================================= -->
-          <VWindowItem :value="4">
+          <VWindowItem :value="3">
             <VCard rounded="lg" variant="outlined">
               <VCardTitle class="text-h6 font-weight-bold pa-5 pb-3">
                 <VIcon start color="primary" size="22">
@@ -1062,9 +1094,9 @@ onUnmounted(() => {
           </VWindowItem>
 
           <!-- ============================================= -->
-          <!-- Step 5: Reservation Confirmation -->
+          <!-- Step 4: Reservation Confirmation -->
           <!-- ============================================= -->
-          <VWindowItem :value="5">
+          <VWindowItem :value="4">
             <VCard rounded="lg" variant="outlined">
               <VCardTitle class="text-h6 font-weight-bold pa-5 pb-3">
                 <VIcon start color="primary" size="22">

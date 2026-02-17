@@ -310,6 +310,7 @@
 import { useStatisticsStore } from '@/stores/statistics'
 import { computed, ref, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+import { useTheme } from 'vuetify'
 
 const props = defineProps({
   filters: {
@@ -319,6 +320,7 @@ const props = defineProps({
 })
 
 const statisticsStore = useStatisticsStore()
+const theme = useTheme()
 const chartKey = ref(0)
 
 const data = computed(() => statisticsStore.revenueData)
@@ -441,7 +443,7 @@ const trendChartOptions = computed(() => {
         },
       },
     ],
-    colors: ['#9155FD', '#56CA00'],
+    colors: [theme.current.value.colors.primary, theme.current.value.colors.success],
     legend: {
       position: 'top',
     },

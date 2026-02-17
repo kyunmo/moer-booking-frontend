@@ -180,7 +180,48 @@
 
         <!-- 상태 -->
         <template #item.status="{ item }">
+          <!-- 변경 가능한 상태: PENDING, CONFIRMED -->
+          <VMenu v-if="['PENDING', 'CONFIRMED'].includes(item.status)">
+            <template #activator="{ props }">
+              <VChip
+                v-bind="props"
+                :color="getStatusColor(item.status)"
+                size="small"
+                variant="tonal"
+                class="cursor-pointer"
+                append-icon="ri-arrow-down-s-line"
+              >
+                {{ getStatusText(item.status) }}
+              </VChip>
+            </template>
+            <VList density="compact" min-width="140">
+              <!-- PENDING → 확정 -->
+              <VListItem
+                v-if="item.status === 'PENDING'"
+                prepend-icon="ri-check-line"
+                title="예약 확정"
+                @click="handleStatusChange(item.id, 'CONFIRMED')"
+              />
+              <!-- CONFIRMED → 완료 -->
+              <VListItem
+                v-if="item.status === 'CONFIRMED'"
+                prepend-icon="ri-checkbox-circle-line"
+                title="완료 처리"
+                @click="handleStatusChange(item.id, 'COMPLETED')"
+              />
+              <!-- 공통: 취소 -->
+              <VListItem
+                prepend-icon="ri-close-circle-line"
+                title="예약 취소"
+                class="text-error"
+                @click="confirmCancel(item)"
+              />
+            </VList>
+          </VMenu>
+
+          <!-- 변경 불가 상태: COMPLETED, CANCELLED, NO_SHOW -->
           <VChip
+            v-else
             :color="getStatusColor(item.status)"
             size="small"
             variant="tonal"

@@ -234,6 +234,7 @@
 import { useStatisticsStore } from '@/stores/statistics'
 import { computed, ref, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+import { useTheme } from 'vuetify'
 
 const props = defineProps({
   filters: {
@@ -243,6 +244,7 @@ const props = defineProps({
 })
 
 const statisticsStore = useStatisticsStore()
+const theme = useTheme()
 const chartKey = ref(0)
 
 const data = computed(() => statisticsStore.serviceData)
@@ -340,7 +342,7 @@ const rankingChartOptions = computed(() => {
       },
     },
     categories: data.value.serviceRankings.map(s => s.serviceName),
-    colors: ['#9155FD'],
+    colors: [theme.current.value.colors.primary],
     tooltip: {
       y: {
         formatter: val => formatCurrency(val),
@@ -361,7 +363,7 @@ const categoryDonutOptions = computed(() => ({
     toolbar: { show: false },
   },
   labels: data.value?.categoryDistribution?.map(c => c.categoryName) || [],
-  colors: ['#9155FD', '#56CA00', '#FF4C51', '#FFB400', '#16B1FF'],
+  colors: [theme.current.value.colors.primary, theme.current.value.colors.success, theme.current.value.colors.error, theme.current.value.colors.warning, theme.current.value.colors.info],
   legend: {
     position: 'bottom',
   },
@@ -425,7 +427,7 @@ const trendChartOptions = computed(() => {
         },
       },
     },
-    colors: ['#9155FD', '#56CA00', '#FF4C51', '#FFB400', '#16B1FF'],
+    colors: [theme.current.value.colors.primary, theme.current.value.colors.success, theme.current.value.colors.error, theme.current.value.colors.warning, theme.current.value.colors.info],
     legend: {
       position: 'top',
     },

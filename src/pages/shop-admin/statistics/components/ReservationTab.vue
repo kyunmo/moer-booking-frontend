@@ -246,6 +246,7 @@
 import { useStatisticsStore } from '@/stores/statistics'
 import { computed, ref, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+import { useTheme } from 'vuetify'
 
 const props = defineProps({
   filters: {
@@ -255,6 +256,7 @@ const props = defineProps({
 })
 
 const statisticsStore = useStatisticsStore()
+const theme = useTheme()
 const chartKey = ref(0)
 
 const data = computed(() => statisticsStore.reservationData)
@@ -372,7 +374,7 @@ const trendChartOptions = computed(() => {
       title: { text: '예약건수' },
       min: 0,
     },
-    colors: ['#56CA00', '#FF4C51', '#FFB400', '#16B1FF'],
+    colors: [theme.current.value.colors.success, theme.current.value.colors.error, theme.current.value.colors.warning, theme.current.value.colors.info],
     legend: {
       position: 'top',
     },
@@ -396,7 +398,7 @@ const statusDonutOptions = computed(() => ({
     toolbar: { show: false },
   },
   labels: data.value?.statusDistribution?.map(s => s.statusName) || [],
-  colors: ['#56CA00', '#FF4C51', '#FFB400', '#16B1FF'],
+  colors: [theme.current.value.colors.success, theme.current.value.colors.error, theme.current.value.colors.warning, theme.current.value.colors.info],
   legend: {
     position: 'bottom',
   },
@@ -436,7 +438,7 @@ const heatmapOptions = computed(() => ({
     enabled: true,
     style: { fontSize: '11px' },
   },
-  colors: ['#9155FD'],
+  colors: [theme.current.value.colors.primary],
   plotOptions: {
     heatmap: {
       radius: 4,
@@ -485,7 +487,7 @@ const dailyDistChartOptions = computed(() => {
       title: { text: '평균 예약건수' },
       min: 0,
     },
-    colors: ['#9155FD'],
+    colors: [theme.current.value.colors.primary],
     tooltip: {
       y: {
         formatter: val => `${val.toFixed(1)}건`,

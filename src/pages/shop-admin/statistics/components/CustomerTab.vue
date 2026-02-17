@@ -269,6 +269,7 @@
 import { useStatisticsStore } from '@/stores/statistics'
 import { computed, ref, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+import { useTheme } from 'vuetify'
 
 const props = defineProps({
   filters: {
@@ -278,6 +279,7 @@ const props = defineProps({
 })
 
 const statisticsStore = useStatisticsStore()
+const theme = useTheme()
 
 const chartKey = ref(0)
 
@@ -383,7 +385,7 @@ const customerTrendOptions = computed(() => {
       min: 0,
       title: { text: '고객 수' },
     },
-    colors: ['#56CA00', '#9155FD'],
+    colors: [theme.current.value.colors.success, theme.current.value.colors.primary],
     legend: {
       position: 'top',
     },
@@ -411,7 +413,7 @@ const segmentDonutOptions = computed(() => {
       type: 'donut',
     },
     labels: data.value.segments.map(s => s.segmentName),
-    colors: ['#FF4C51', '#56CA00', '#16B1FF', '#FFB400'],
+    colors: [theme.current.value.colors.error, theme.current.value.colors.success, theme.current.value.colors.info, theme.current.value.colors.warning],
     legend: {
       position: 'bottom',
     },
@@ -485,7 +487,7 @@ const returningRateOptions = computed(() => {
       },
       title: { text: '재방문율 (%)' },
     },
-    colors: ['#9155FD'],
+    colors: [theme.current.value.colors.primary],
     fill: {
       type: 'gradient',
       gradient: {
@@ -540,7 +542,7 @@ const ltvDistributionOptions = computed(() => {
       min: 0,
       title: { text: '고객 수' },
     },
-    colors: ['#16B1FF'],
+    colors: [theme.current.value.colors.info],
     tooltip: {
       y: {
         formatter: val => `${val}명`,

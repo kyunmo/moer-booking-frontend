@@ -376,5 +376,10 @@ function goToBusinessPage() {
 <style lang="scss" scoped>
 .review-page {
   min-block-size: 80vh;
+  padding-block-end: 56px; // VBottomNavigation height
+
+  @media (min-width: 600px) {
+    padding-block-end: 0;
+  }
 }
 </style>

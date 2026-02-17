@@ -936,10 +936,10 @@ onMounted(() => {
 <style lang="scss" scoped>
 .business-detail-page {
   width: 100%;
-  padding-block-end: 80px;
+  padding-block-end: 136px; // FAB(56px) + BottomNav(56px) + gap(24px)
 
-  @media (min-width: 960px) {
-    padding-block-end: 0;
+  @media (min-width: 600px) {
+    padding-block-end: 0; // sm and up: no bottom nav
   }
 }
 
@@ -963,7 +963,7 @@ onMounted(() => {
 
 .mobile-fab {
   position: fixed;
-  inset-block-end: 24px;
+  inset-block-end: 80px; // Above VBottomNavigation (56px + 24px gap)
   inset-inline-end: 24px;
   z-index: 100;
 }

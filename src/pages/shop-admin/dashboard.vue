@@ -81,65 +81,83 @@
       </VAlert>
 
       <template v-else>
-        <!-- 실시간 액션 알림 -->
-        <VCard v-if="stats.actionAlerts" class="mb-6" color="warning" variant="tonal">
+        <!-- 실시간 액션 알림 (VTimeline) -->
+        <VCard v-if="hasActionAlerts" class="mb-6">
+          <VCardTitle class="d-flex align-center py-4">
+            <VBadge :content="totalAlerts" color="error" inline>
+              <VIcon icon="ri-alarm-warning-line" size="24" color="warning" />
+            </VBadge>
+            <span class="ms-3 text-subtitle-1 font-weight-bold">처리가 필요한 항목</span>
+          </VCardTitle>
+
+          <VDivider />
+
           <VCardText>
-            <div class="d-flex align-center mb-2">
-              <VIcon icon="ri-alarm-warning-line" size="24" class="me-2" />
-              <h5 class="text-h5 mb-0">
-                처리 필요 ({{ totalAlerts }}건)
-              </h5>
-            </div>
-
-            <VRow class="mt-4">
-              <VCol cols="12" sm="6" md="3">
-                <div class="d-flex align-center">
-                  <VAvatar color="warning" variant="tonal" size="40" class="me-3">
-                    <VIcon icon="ri-time-line" />
-                  </VAvatar>
+            <VTimeline density="compact" side="end" truncate-line="both">
+              <VTimelineItem
+                v-if="stats.actionAlerts?.pendingReservations > 0"
+                dot-color="warning"
+                size="small"
+              >
+                <div class="d-flex align-center justify-space-between">
                   <div>
-                    <div class="text-caption">확정 대기</div>
-                    <div class="text-h6">{{ stats.actionAlerts.pendingReservations }}건</div>
+                    <span class="text-body-2 font-weight-medium">예약 확정 대기</span>
+                    <div class="text-caption text-medium-emphasis">확인이 필요한 예약이 있습니다</div>
                   </div>
+                  <VChip color="warning" size="small" variant="tonal">
+                    {{ stats.actionAlerts.pendingReservations }}건
+                  </VChip>
                 </div>
-              </VCol>
+              </VTimelineItem>
 
-              <VCol cols="12" sm="6" md="3">
-                <div class="d-flex align-center">
-                  <VAvatar color="error" variant="tonal" size="40" class="me-3">
-                    <VIcon icon="ri-alarm-line" />
-                  </VAvatar>
+              <VTimelineItem
+                v-if="stats.actionAlerts?.upcomingReservations > 0"
+                dot-color="error"
+                size="small"
+              >
+                <div class="d-flex align-center justify-space-between">
                   <div>
-                    <div class="text-caption">1시간 내 시작</div>
-                    <div class="text-h6">{{ stats.actionAlerts.upcomingReservations }}건</div>
+                    <span class="text-body-2 font-weight-medium">곧 시작하는 예약</span>
+                    <div class="text-caption text-medium-emphasis">1시간 내 시작 예정</div>
                   </div>
+                  <VChip color="error" size="small" variant="tonal">
+                    {{ stats.actionAlerts.upcomingReservations }}건
+                  </VChip>
                 </div>
-              </VCol>
+              </VTimelineItem>
 
-              <VCol cols="12" sm="6" md="3">
-                <div class="d-flex align-center">
-                  <VAvatar color="success" variant="tonal" size="40" class="me-3">
-                    <VIcon icon="ri-cake-line" />
-                  </VAvatar>
+              <VTimelineItem
+                v-if="stats.actionAlerts?.birthdayCustomers > 0"
+                dot-color="success"
+                size="small"
+              >
+                <div class="d-flex align-center justify-space-between">
                   <div>
-                    <div class="text-caption">생일 고객</div>
-                    <div class="text-h6">{{ stats.actionAlerts.birthdayCustomers }}명</div>
+                    <span class="text-body-2 font-weight-medium">생일 고객</span>
+                    <div class="text-caption text-medium-emphasis">오늘 생일인 고객이 있습니다</div>
                   </div>
+                  <VChip color="success" size="small" variant="tonal">
+                    {{ stats.actionAlerts.birthdayCustomers }}명
+                  </VChip>
                 </div>
-              </VCol>
+              </VTimelineItem>
 
-              <VCol cols="12" sm="6" md="3">
-                <div class="d-flex align-center">
-                  <VAvatar color="info" variant="tonal" size="40" class="me-3">
-                    <VIcon icon="ri-user-unfollow-line" />
-                  </VAvatar>
+              <VTimelineItem
+                v-if="stats.actionAlerts?.inactiveCustomers > 0"
+                dot-color="info"
+                size="small"
+              >
+                <div class="d-flex align-center justify-space-between">
                   <div>
-                    <div class="text-caption">재방문 유도</div>
-                    <div class="text-h6">{{ stats.actionAlerts.inactiveCustomers }}명</div>
+                    <span class="text-body-2 font-weight-medium">재방문 유도</span>
+                    <div class="text-caption text-medium-emphasis">장기 미방문 고객이 있습니다</div>
                   </div>
+                  <VChip color="info" size="small" variant="tonal">
+                    {{ stats.actionAlerts.inactiveCustomers }}명
+                  </VChip>
                 </div>
-              </VCol>
-            </VRow>
+              </VTimelineItem>
+            </VTimeline>
           </VCardText>
         </VCard>
 
@@ -387,8 +405,10 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useOnboardingStore } from '@/stores/onboarding'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
+import { useTheme } from 'vuetify'
 
 const { serviceIconLine } = useBusinessIcon()
+const theme = useTheme()
 
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
@@ -465,12 +485,14 @@ const totalAlerts = computed(() => {
   const alerts = stats.value.actionAlerts
 
   return (
-    alerts.pendingReservations +
-    alerts.upcomingReservations +
-    alerts.birthdayCustomers +
-    alerts.inactiveCustomers
+    (alerts.pendingReservations || 0) +
+    (alerts.upcomingReservations || 0) +
+    (alerts.birthdayCustomers || 0) +
+    (alerts.inactiveCustomers || 0)
   )
 })
+
+const hasActionAlerts = computed(() => totalAlerts.value > 0)
 
 // 차트 데이터
 const chartSeries = computed(() => {
@@ -506,7 +528,7 @@ const chartOptions = computed(() => {
         return date.toLocaleDateString('ko-KR', { weekday: 'short' })
       }),
     },
-    colors: ['#9155FD'],
+    colors: [theme.current.value.colors.primary],
   }
 })
 

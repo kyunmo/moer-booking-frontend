@@ -1,6 +1,7 @@
 <script setup>
 import PublicHeader from '@/components/public/PublicHeader.vue'
 import PublicFooter from '@/components/public/PublicFooter.vue'
+import BookingBottomNav from '@/components/public/BookingBottomNav.vue'
 
 const { injectSkinClasses } = useSkins()
 
@@ -46,6 +47,9 @@ watch([
 
       <!-- Footer -->
       <PublicFooter />
+
+      <!-- Mobile Bottom Navigation (booking pages only) -->
+      <BookingBottomNav />
     </div>
   </VApp>
 </template>

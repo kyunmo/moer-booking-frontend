@@ -361,6 +361,11 @@ onMounted(() => {
 <style lang="scss" scoped>
 .booking-search-page {
   min-block-size: 100vh;
+  padding-block-end: 56px; // VBottomNavigation height
+
+  @media (min-width: 600px) {
+    padding-block-end: 0;
+  }
 }
 
 .hero-section {
