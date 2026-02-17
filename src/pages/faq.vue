@@ -3,12 +3,12 @@ meta:
   layout: public
   public: true
   title: 자주 묻는 질문 - YEMO
-  description: YEMO 예약 시스템에 대해 자주 묻는 질문과 답변을 확인하세요. 가격, 기능, 지원 등 궁금한 점을 해결해드립니다.
+  description: YEMO 예약 시스템에 대해 자주 묻는 질문과 답변을 확인하세요.
   keywords: FAQ, 자주 묻는 질문, 예약 시스템 질문, 가격 문의, 기능 문의
 </route>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -17,13 +17,12 @@ const selectedCategory = ref('all')
 
 // FAQ 카테고리
 const categories = [
-  { id: 'all', title: '전체', icon: 'ri-list-check' },
-  { id: 'start', title: '시작하기', icon: 'ri-rocket-line' },
-  { id: 'feature', title: '기능', icon: 'ri-function-line' },
-  { id: 'pricing', title: '요금 & 결제', icon: 'ri-money-dollar-circle-line' },
-  { id: 'support', title: '기술 지원', icon: 'ri-customer-service-line' },
-  { id: 'industry', title: '업종별', icon: 'ri-building-line' },
-  { id: 'etc', title: '기타', icon: 'ri-question-line' },
+  { id: 'start', title: '시작하기', icon: 'ri-rocket-line', color: 'primary' },
+  { id: 'feature', title: '기능', icon: 'ri-function-line', color: 'info' },
+  { id: 'pricing', title: '요금 & 결제', icon: 'ri-money-dollar-circle-line', color: 'success' },
+  { id: 'support', title: '기술 지원', icon: 'ri-customer-service-line', color: 'warning' },
+  { id: 'industry', title: '업종별', icon: 'ri-building-line', color: 'error' },
+  { id: 'etc', title: '기타', icon: 'ri-question-line', color: 'secondary' },
 ]
 
 // FAQ 데이터
@@ -74,26 +73,63 @@ const faqs = [
   { category: 'etc', q: '외국어는 지원하나요?', a: '현재는 한국어만 지원합니다.\n\n향후 계획:\n• 영어 (2026년 하반기)\n• 일본어 (2027년)\n• 중국어 (2027년)\n\n현재 사용 가능 국가: 대한민국\n\n해외 진출 준비 중, 글로벌 서비스 목표!' },
 ]
 
+// 카테고리별 FAQ 수
+function getCategoryCount(categoryId) {
+  return faqs.filter(f => f.category === categoryId).length
+}
+
 // 필터링된 FAQ
+const isSearching = computed(() => searchQuery.value.trim().length > 0)
+
 const filteredFaqs = computed(() => {
   let result = faqs
 
-  // 카테고리 필터
   if (selectedCategory.value !== 'all') {
     result = result.filter(faq => faq.category === selectedCategory.value)
   }
 
-  // 검색어 필터
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(faq =>
       faq.q.toLowerCase().includes(query) ||
-      faq.a.toLowerCase().includes(query)
+      faq.a.toLowerCase().includes(query),
     )
   }
 
   return result
 })
+
+// 카테고리별 그룹
+const groupedFaqs = computed(() => {
+  const faqsToGroup = isSearching.value ? filteredFaqs.value : faqs
+  const groups = {}
+
+  for (const cat of categories) {
+    const items = faqsToGroup.filter(f => f.category === cat.id)
+    if (items.length > 0) {
+      groups[cat.id] = items
+    }
+  }
+
+  return groups
+})
+
+function selectCategory(catId) {
+  selectedCategory.value = catId
+  nextTick(() => {
+    const el = document.getElementById('faq-content')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+
+function resetCategory() {
+  selectedCategory.value = 'all'
+  searchQuery.value = ''
+}
+
+function getCategoryInfo(catId) {
+  return categories.find(c => c.id === catId)
+}
 
 function startFreeTrial() {
   router.push('/register')
@@ -106,146 +142,349 @@ function contactSupport() {
 
 <template>
   <div class="faq-page">
-    <!-- 히어로 섹션 -->
-    <section class="hero-section">
+    <!-- Hero Search Section -->
+    <section class="faq-hero-section">
       <VContainer>
-        <div class="text-center mb-8">
-          <h1 class="text-h2 text-md-h1 font-weight-bold mb-4">
-            자주 묻는 질문
+        <div class="text-center py-12">
+          <VChip
+            color="primary"
+            variant="tonal"
+            class="mb-4"
+            prepend-icon="ri-question-answer-line"
+          >
+            도움말 센터
+          </VChip>
+          <h1 class="text-h3 text-md-h2 font-weight-bold mb-4">
+            무엇을 도와드릴까요?
           </h1>
-          <p class="text-h6 text-medium-emphasis mb-6">
-            궁금하신 점을 빠르게 찾아보세요<br>
-            찾으시는 답변이 없다면 1:1 문의를 이용해주세요
+          <p class="text-body-1 text-medium-emphasis mb-8">
+            자주 묻는 질문에서 빠르게 답변을 찾아보세요
           </p>
 
-          <!-- 검색 바 -->
+          <!-- Search Bar -->
           <VRow justify="center">
-            <VCol cols="12" md="8" lg="6">
+            <VCol
+              cols="12"
+              md="8"
+              lg="6"
+            >
               <VTextField
                 v-model="searchQuery"
-                placeholder="질문 검색..."
+                placeholder="궁금한 내용을 검색하세요..."
                 prepend-inner-icon="ri-search-line"
-                variant="outlined"
+                variant="solo"
+                rounded
                 clearable
                 hide-details
+                class="faq-search-field"
               />
+              <div
+                v-if="isSearching"
+                class="text-body-2 text-medium-emphasis mt-3"
+              >
+                <strong class="text-primary">{{ filteredFaqs.length }}</strong>개의 결과를 찾았습니다
+              </div>
             </VCol>
           </VRow>
         </div>
       </VContainer>
     </section>
 
-    <!-- FAQ 섹션 -->
-    <section class="faq-section py-12">
+    <!-- Knowledge Base Category Grid -->
+    <section
+      v-if="!isSearching && selectedCategory === 'all'"
+      class="category-grid-section"
+    >
       <VContainer>
-        <!-- 카테고리 탭 -->
-        <VTabs
-          v-model="selectedCategory"
-          class="mb-8"
-          show-arrows
-          center-active
-        >
-          <VTab
+        <div class="text-center mb-8">
+          <h2 class="text-h5 font-weight-bold">
+            카테고리별 도움말
+          </h2>
+          <p class="text-body-2 text-medium-emphasis">
+            카테고리를 선택하면 관련 질문을 바로 확인할 수 있습니다
+          </p>
+        </div>
+
+        <VRow>
+          <VCol
             v-for="cat in categories"
             :key="cat.id"
-            :value="cat.id"
+            cols="12"
+            sm="6"
+            md="4"
           >
-            <VIcon :icon="cat.icon" start size="20" />
-            {{ cat.title }}
-          </VTab>
-        </VTabs>
-
-        <!-- FAQ 목록 -->
-        <VRow justify="center">
-          <VCol cols="12" md="10" lg="8">
-            <div v-if="filteredFaqs.length > 0">
-              <VExpansionPanels>
-                <VExpansionPanel
-                  v-for="(faq, index) in filteredFaqs"
-                  :key="index"
+            <VCard
+              class="category-card h-100 cursor-pointer"
+              hover
+              @click="selectCategory(cat.id)"
+            >
+              <VCardText class="d-flex align-center pa-5">
+                <VAvatar
+                  :color="cat.color"
+                  variant="tonal"
+                  size="52"
+                  class="me-4"
                 >
-                  <VExpansionPanelTitle class="text-h6 font-weight-medium">
-                    <VIcon icon="ri-question-line" class="me-3" color="primary" />
-                    {{ faq.q }}
-                  </VExpansionPanelTitle>
-                  <VExpansionPanelText>
-                    <div class="text-body-1 pa-4" style="white-space: pre-line;">
-                      {{ faq.a }}
-                    </div>
-                  </VExpansionPanelText>
-                </VExpansionPanel>
-              </VExpansionPanels>
-            </div>
-
-            <!-- 검색 결과 없음 -->
-            <VCard v-else class="text-center pa-12" variant="tonal">
-              <VIcon icon="ri-emotion-sad-line" size="64" color="warning" class="mb-4" />
-              <h3 class="text-h5 mb-4">
-                찾으시는 질문이 없으신가요?
-              </h3>
-              <p class="text-body-1 text-medium-emphasis mb-6">
-                아래 방법으로 문의해주세요
-              </p>
-              <div class="mb-6">
-                <VCard variant="outlined" class="pa-4 mb-3">
-                  <div class="d-flex align-center">
-                    <VIcon icon="ri-mail-line" size="32" color="primary" class="me-3" />
-                    <div class="text-left">
-                      <div class="font-weight-bold">이메일</div>
-                      <div class="text-body-2">support@yemo.io (평균 응답: 4시간 이내)</div>
-                    </div>
-                  </div>
-                </VCard>
-                <VCard variant="outlined" class="pa-4">
-                  <div class="d-flex align-center">
-                    <VIcon icon="ri-kakao-talk-line" size="32" color="success" class="me-3" />
-                    <div class="text-left">
-                      <div class="font-weight-bold">카카오톡</div>
-                      <div class="text-body-2">@yemo (실시간 상담)</div>
-                    </div>
-                  </div>
-                </VCard>
-              </div>
-              <VBtn color="primary" size="large" @click="contactSupport">
-                1:1 문의하기
-              </VBtn>
+                  <VIcon
+                    :icon="cat.icon"
+                    size="28"
+                  />
+                </VAvatar>
+                <div>
+                  <h6 class="text-h6 mb-1">
+                    {{ cat.title }}
+                  </h6>
+                  <span class="text-body-2 text-medium-emphasis">
+                    {{ getCategoryCount(cat.id) }}개의 질문
+                  </span>
+                </div>
+                <VSpacer />
+                <VIcon
+                  icon="ri-arrow-right-s-line"
+                  color="medium-emphasis"
+                />
+              </VCardText>
             </VCard>
           </VCol>
         </VRow>
       </VContainer>
     </section>
 
-    <!-- CTA 섹션 -->
-    <section class="cta-section py-16 bg-surface">
+    <!-- FAQ Content -->
+    <section
+      id="faq-content"
+      class="faq-content-section"
+    >
       <VContainer>
-        <VRow align="center" justify="center">
-          <VCol cols="12" md="8" class="text-center">
-            <h2 class="text-h3 font-weight-bold mb-4">
-              더 궁금한 점이 있으신가요?
-            </h2>
-            <p class="text-h6 text-medium-emphasis mb-6">
-              직접 체험해보시면 더 쉽게 이해하실 수 있습니다
-            </p>
-            <div class="d-flex flex-wrap justify-center gap-4">
-              <VBtn
-                size="large"
-                variant="outlined"
-                prepend-icon="ri-customer-service-line"
-                @click="contactSupport"
+        <!-- Category filter indicator -->
+        <div
+          v-if="selectedCategory !== 'all'"
+          class="mb-6"
+        >
+          <VBtn
+            variant="text"
+            prepend-icon="ri-arrow-left-line"
+            class="mb-4"
+            @click="resetCategory"
+          >
+            전체 카테고리
+          </VBtn>
+          <div class="d-flex align-center gap-3">
+            <VAvatar
+              :color="getCategoryInfo(selectedCategory)?.color"
+              variant="tonal"
+              size="40"
+            >
+              <VIcon
+                :icon="getCategoryInfo(selectedCategory)?.icon"
+                size="22"
+              />
+            </VAvatar>
+            <h3 class="text-h5 font-weight-bold">
+              {{ getCategoryInfo(selectedCategory)?.title }}
+            </h3>
+            <VChip
+              size="small"
+              variant="tonal"
+            >
+              {{ filteredFaqs.length }}개
+            </VChip>
+          </div>
+        </div>
+
+        <!-- Grouped FAQ display (all categories) -->
+        <template v-if="selectedCategory === 'all'">
+          <div
+            v-for="(items, catId) in groupedFaqs"
+            :key="catId"
+            class="mb-8"
+          >
+            <div class="d-flex align-center gap-3 mb-4">
+              <VAvatar
+                :color="getCategoryInfo(catId)?.color"
+                variant="tonal"
+                size="36"
               >
-                1:1 문의하기
-              </VBtn>
-              <VBtn
-                size="large"
-                color="primary"
-                prepend-icon="ri-rocket-line"
-                @click="startFreeTrial"
-              >
-                무료 체험 시작하기
-              </VBtn>
+                <VIcon
+                  :icon="getCategoryInfo(catId)?.icon"
+                  size="20"
+                />
+              </VAvatar>
+              <h4 class="text-h6 font-weight-bold">
+                {{ getCategoryInfo(catId)?.title }}
+              </h4>
             </div>
+            <VExpansionPanels>
+              <VExpansionPanel
+                v-for="(faq, idx) in items"
+                :key="idx"
+              >
+                <VExpansionPanelTitle class="font-weight-medium">
+                  {{ faq.q }}
+                </VExpansionPanelTitle>
+                <VExpansionPanelText>
+                  <div
+                    class="text-body-1"
+                    style="white-space: pre-line;"
+                  >
+                    {{ faq.a }}
+                  </div>
+                </VExpansionPanelText>
+              </VExpansionPanel>
+            </VExpansionPanels>
+          </div>
+        </template>
+
+        <!-- Filtered FAQ display (single category or search) -->
+        <template v-else>
+          <VExpansionPanels v-if="filteredFaqs.length > 0">
+            <VExpansionPanel
+              v-for="(faq, idx) in filteredFaqs"
+              :key="idx"
+            >
+              <VExpansionPanelTitle class="font-weight-medium">
+                {{ faq.q }}
+              </VExpansionPanelTitle>
+              <VExpansionPanelText>
+                <div
+                  class="text-body-1"
+                  style="white-space: pre-line;"
+                >
+                  {{ faq.a }}
+                </div>
+              </VExpansionPanelText>
+            </VExpansionPanel>
+          </VExpansionPanels>
+        </template>
+
+        <!-- No results -->
+        <VCard
+          v-if="filteredFaqs.length === 0 && (isSearching || selectedCategory !== 'all')"
+          class="text-center pa-12"
+          variant="outlined"
+        >
+          <VIcon
+            icon="ri-search-line"
+            size="64"
+            color="disabled"
+            class="mb-4"
+          />
+          <h3 class="text-h5 mb-2">
+            검색 결과가 없습니다
+          </h3>
+          <p class="text-body-1 text-medium-emphasis mb-6">
+            다른 키워드로 검색하거나 카테고리를 선택해보세요
+          </p>
+          <VBtn
+            variant="tonal"
+            @click="resetCategory"
+          >
+            전체 보기
+          </VBtn>
+        </VCard>
+      </VContainer>
+    </section>
+
+    <!-- Still Need Help? -->
+    <section class="help-footer-section">
+      <VContainer>
+        <div class="text-center mb-8">
+          <h2 class="text-h4 font-weight-bold mb-2">
+            원하시는 답변을 찾지 못하셨나요?
+          </h2>
+          <p class="text-body-1 text-medium-emphasis">
+            전문 상담원이 친절하게 도와드리겠습니다
+          </p>
+        </div>
+
+        <VRow justify="center">
+          <VCol
+            cols="12"
+            sm="6"
+            md="5"
+          >
+            <VCard
+              variant="outlined"
+              class="h-100"
+            >
+              <VCardText class="text-center pa-8">
+                <VAvatar
+                  color="primary"
+                  variant="tonal"
+                  size="64"
+                  class="mb-4"
+                >
+                  <VIcon
+                    icon="ri-mail-line"
+                    size="32"
+                  />
+                </VAvatar>
+                <h5 class="text-h6 font-weight-bold mb-2">
+                  이메일 문의
+                </h5>
+                <p class="text-body-2 text-medium-emphasis mb-4">
+                  support@yemo.io<br>
+                  평균 응답: 4시간 이내
+                </p>
+                <VBtn
+                  variant="tonal"
+                  color="primary"
+                  href="mailto:support@yemo.io"
+                >
+                  이메일 보내기
+                </VBtn>
+              </VCardText>
+            </VCard>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+            md="5"
+          >
+            <VCard
+              variant="outlined"
+              class="h-100"
+            >
+              <VCardText class="text-center pa-8">
+                <VAvatar
+                  color="warning"
+                  variant="tonal"
+                  size="64"
+                  class="mb-4"
+                >
+                  <VIcon
+                    icon="ri-kakao-talk-line"
+                    size="32"
+                  />
+                </VAvatar>
+                <h5 class="text-h6 font-weight-bold mb-2">
+                  카카오톡 문의
+                </h5>
+                <p class="text-body-2 text-medium-emphasis mb-4">
+                  @yemo 채널 추가<br>
+                  실시간 상담 가능
+                </p>
+                <VBtn
+                  variant="tonal"
+                  color="warning"
+                >
+                  카카오톡 문의
+                </VBtn>
+              </VCardText>
+            </VCard>
           </VCol>
         </VRow>
+
+        <div class="text-center mt-8">
+          <VBtn
+            size="large"
+            color="primary"
+            prepend-icon="ri-rocket-line"
+            @click="startFreeTrial"
+          >
+            무료 체험 시작하기
+          </VBtn>
+        </div>
       </VContainer>
     </section>
   </div>
@@ -253,19 +492,41 @@ function contactSupport() {
 
 <style lang="scss" scoped>
 .faq-page {
-  width: 100%;
+  inline-size: 100%;
 }
 
-.hero-section {
-  padding-block: 80px 40px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+.faq-hero-section {
+  padding-block: 2rem;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
 }
 
-.faq-section {
+.faq-search-field {
+  :deep(.v-field) {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.category-grid-section {
+  padding-block: 3rem;
+  background-color: rgb(var(--v-theme-surface));
+}
+
+.category-card {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
+.faq-content-section {
+  padding-block: 3rem;
   background-color: rgb(var(--v-theme-background));
 }
 
-.cta-section {
+.help-footer-section {
+  padding-block: 4rem;
   background-color: rgb(var(--v-theme-surface));
 }
 </style>

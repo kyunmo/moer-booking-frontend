@@ -28,7 +28,7 @@
       </VCard>
 
       <!-- 퀵 액션 -->
-      <VRow class="mb-6">
+      <VRow id="dashboard-quick-actions" class="mb-6">
         <VCol
           v-for="action in quickActions"
           :key="action.title"
@@ -162,7 +162,7 @@
         </VCard>
 
         <!-- 오늘 통계 -->
-        <VRow class="mb-4">
+        <VRow id="dashboard-stats" class="mb-4">
           <VCol cols="12" sm="6" md="3">
             <StatisticsCard
               title="오늘 예약"
@@ -403,6 +403,7 @@ import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useOnboardingStore } from '@/stores/onboarding'
+import { useTour } from '@/composables/useTour'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import { useTheme } from 'vuetify'
@@ -417,6 +418,8 @@ const onboardingStore = useOnboardingStore()
 const chartKey = ref(0)
 const chartReady = ref(false)
 const showOnboarding = ref(false)
+
+const { startDashboardTour, isTourCompleted } = useTour()
 
 const businessName = computed(() => authStore.user?.name || '사장님')
 
@@ -469,12 +472,22 @@ const stats = computed(() => dashboardStore.dashboardData)
 async function handleOnboardingComplete() {
   showOnboarding.value = false
   await loadDashboard()
+
+  // 온보딩 완료 후 대시보드 투어 자동 시작
+  if (!isTourCompleted('dashboard')) {
+    setTimeout(() => startDashboardTour(), 500)
+  }
 }
 
 async function handleOnboardingSkip() {
   await onboardingStore.skipOnboarding()
   showOnboarding.value = false
   await loadDashboard()
+
+  // 온보딩 건너뛰기 후 대시보드 투어 자동 시작
+  if (!isTourCompleted('dashboard')) {
+    setTimeout(() => startDashboardTour(), 500)
+  }
 }
 
 // ==================== 대시보드 ====================
@@ -605,6 +618,11 @@ onMounted(async () => {
 
   // 대시보드 로드
   await loadDashboard()
+
+  // 투어 미완료 사용자에게 자동 시작
+  if (!isTourCompleted('dashboard')) {
+    setTimeout(() => startDashboardTour(), 800)
+  }
 })
 
 onBeforeUnmount(() => {

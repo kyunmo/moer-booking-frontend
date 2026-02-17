@@ -12,12 +12,19 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 import NavBarI18n from '@core/components/I18n.vue'
 import BusinessSelector from '@/layouts/components/BusinessSelector.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
+import { useTour } from '@/composables/useTour'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
 
 const configStore = useConfigStore()
 const authStore = useAuthStore()
+const route = useRoute()
+const { startPageTour } = useTour()
+
+function handleTourClick() {
+  startPageTour(route.name)
+}
 
 // 역할에 따른 네비게이션 아이템
 const navItems = computed(() => {
@@ -73,6 +80,16 @@ watch([
           v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig"
         />
+        <IconBtn
+          id="tour-trigger-btn"
+          class="me-1"
+          @click="handleTourClick"
+        >
+          <VTooltip activator="parent" location="bottom">
+            가이드 투어
+          </VTooltip>
+          <VIcon icon="ri-compass-discover-line" />
+        </IconBtn>
         <NavBarNotifications class="me-1" />
         <UserProfile />
       </div>
@@ -92,6 +109,8 @@ watch([
 </template>
 
 <style lang="scss">
+@use "@core/scss/template/libs/shepherd.scss";
+
 @keyframes rotate-180 {
   from { transform: rotate(0deg); }
   to { transform: rotate(180deg); }

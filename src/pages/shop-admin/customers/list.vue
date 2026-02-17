@@ -10,6 +10,7 @@
 
         <!-- 필터 -->
         <VBtnToggle
+          id="customer-filter"
           v-model="filterType"
           density="compact"
           class="me-3"
@@ -43,6 +44,7 @@
 
         <!-- 새 고객 등록 -->
         <VBtn
+          id="customer-create-btn"
           color="primary"
           prepend-icon="ri-user-add-line"
           @click="openCreateDialog"
@@ -53,7 +55,7 @@
     </VCard>
 
     <!-- 통계 카드 -->
-    <VRow class="mb-4">
+    <VRow id="customer-stats" class="mb-4">
       <VCol cols="12" sm="6" md="3">
         <StatisticsCard
           title="전체 고객"
@@ -92,7 +94,7 @@
     </VRow>
 
     <!-- 고객 테이블 -->
-    <VCard>
+    <VCard id="customer-table">
       <!-- 로딩 -->
       <div v-if="customerStore.loading" class="text-center pa-10">
         <VProgressCircular indeterminate color="primary" />

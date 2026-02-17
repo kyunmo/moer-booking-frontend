@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 통계 카드 -->
-    <VRow class="mb-4">
+    <VRow id="reservation-stats" class="mb-4">
       <VCol cols="12" sm="6" md="3">
         <StatisticsCard
           title="대기"
@@ -44,6 +44,7 @@
       <VLayout style="z-index: 0;">
         <!-- 👉 왼쪽 사이드바 -->
         <VNavigationDrawer
+          id="reservation-sidebar"
           v-model="isLeftSidebarOpen"
           width="280"
           absolute
@@ -73,6 +74,7 @@
             </VTooltip>
             <VBtn
               v-else
+              id="reservation-create-btn"
               block
               color="primary"
               prepend-icon="ri-add-line"
@@ -85,24 +87,20 @@
           <VDivider />
 
           <!-- 인라인 날짜 선택 -->
-          <div class="pa-5">
-            <h6 class="text-h6 mb-4">
-              <VIcon icon="ri-calendar-line" class="me-2" />
-              날짜 선택
-            </h6>
-            <VDatePicker
-              v-model="selectedDate"
-              :show-adjacent-months="true"
-              hide-header
-              width="100%"
-              @update:model-value="jumpToDate"
+          <div class="d-flex align-center justify-center pa-2">
+            <AppDateTimePicker
+              id="calendar-date-picker"
+              :model-value="selectedDateStr"
+              :config="{ inline: true, locale: Korean }"
+              class="calendar-date-picker"
+              @update:model-value="onDatePickerChange"
             />
           </div>
 
           <VDivider />
 
           <!-- 상태 필터 -->
-          <div class="pa-5">
+          <div id="reservation-status-filter" class="pa-5">
             <h6 class="text-h6 mb-4">
               <VIcon icon="ri-filter-line" class="me-2" />
               상태 필터
@@ -149,6 +147,7 @@
 
             <VCardText>
               <FullCalendar
+                id="reservation-calendar"
                 ref="calendarRef"
                 :options="calendarOptions"
               />
@@ -223,11 +222,13 @@
 </template>
 
 <script setup>
+import AppDateTimePicker from '@/@core/components/app-form-elements/AppDateTimePicker.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'
 import koLocale from '@fullcalendar/core/locales/ko'
+import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -319,6 +320,17 @@ const selectedReservation = ref(null)
 const reservationToEdit = ref(null)
 const cancelReason = ref('')
 const selectedDate = ref(new Date())
+
+// Flatpickr용 날짜 문자열
+const selectedDateStr = computed(() => {
+  const d = selectedDate.value
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
+
+function onDatePickerChange(dateStr) {
+  selectedDate.value = new Date(dateStr)
+  jumpToDate(dateStr)
+}
 
 // 상태 필터
 const availableStatuses = [
@@ -540,6 +552,25 @@ onMounted(async () => {
   &.v-navigation-drawer:not(.v-navigation-drawer--temporary) {
     border-end-start-radius: 0.375rem;
     border-start-start-radius: 0.375rem;
+  }
+}
+
+.calendar-date-picker {
+  display: none;
+
+  + .flatpickr-input {
+    + .flatpickr-calendar.inline {
+      border: none;
+      box-shadow: none;
+
+      .flatpickr-months {
+        border-block-end: none;
+      }
+    }
+  }
+
+  & ~ .flatpickr-calendar .flatpickr-weekdays {
+    margin-block: 0 4px;
   }
 }
 </style>

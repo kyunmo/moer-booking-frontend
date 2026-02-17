@@ -5,6 +5,14 @@
       <VCardTitle class="d-flex align-center pe-2">
         <VIcon icon="ri-notification-3-line" size="24" class="me-3" />
         <span>알림 발송 이력</span>
+        <VSpacer />
+        <VBtn
+          variant="text"
+          icon="ri-refresh-line"
+          size="small"
+          :loading="loading"
+          @click="loadLogs"
+        />
       </VCardTitle>
     </VCard>
 
@@ -60,9 +68,18 @@
             class="mb-4 text-disabled"
           />
           <p class="text-h6 mb-2">발송 이력이 없습니다</p>
-          <p class="text-disabled">
-            예약 생성/변경/취소 시 알림이 자동 발송되며 이곳에 기록됩니다
+          <p class="text-body-2 text-disabled mb-4">
+            예약 생성/확정/취소/완료 시 고객에게 카카오톡/SMS 알림이 자동 발송되며 이곳에 기록됩니다
           </p>
+          <VBtn
+            variant="tonal"
+            color="primary"
+            size="small"
+            prepend-icon="ri-refresh-line"
+            @click="loadLogs"
+          >
+            새로고침
+          </VBtn>
         </VCardText>
       </VCard>
 

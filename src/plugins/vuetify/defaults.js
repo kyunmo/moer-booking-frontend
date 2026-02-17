@@ -145,4 +145,9 @@ export default {
   VNavigationDrawer: {
     touchless: true,
   },
+  VDatePicker: {
+    color: 'primary',
+    weekdays: [0, 1, 2, 3, 4, 5, 6],
+    firstDayOfWeek: 0,
+  },
 }

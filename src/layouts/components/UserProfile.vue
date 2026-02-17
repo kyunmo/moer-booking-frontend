@@ -4,11 +4,13 @@ import { useAuthStore } from '@/stores/auth'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ProfileDialog from '@/layouts/components/ProfileDialog.vue'
+import { useTour } from '@/composables/useTour'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 const isProfileDialogOpen = ref(false)
+const { startDashboardTour, resetAllTours } = useTour()
 
 // 사용자 정보
 const userName = computed(() => authStore.userName || '사용자')
@@ -46,6 +48,12 @@ const userProfileList = [
   { type: 'divider' },
   {
     type: 'navItem',
+    icon: 'ri-compass-discover-line',
+    title: '가이드 투어',
+    action: 'tour',
+  },
+  {
+    type: 'navItem',
     icon: 'ri-question-line',
     title: '고객지원',
     to: '/support',
@@ -55,6 +63,13 @@ const userProfileList = [
 function handleMenuClick(item) {
   if (item.action === 'profile') {
     isProfileDialogOpen.value = true
+  } else if (item.action === 'tour') {
+    router.push({ name: 'shop-admin-dashboard' }).then(() => {
+      setTimeout(() => {
+        resetAllTours()
+        startDashboardTour()
+      }, 500)
+    })
   }
 }
 

@@ -3,160 +3,237 @@ meta:
   layout: public
   public: true
   title: 고객 지원 - YEMO
-  description: YEMO 고객 지원 센터. 이메일, 카카오톡, 전화로 빠르고 친절하게 도와드립니다.
+  description: YEMO 고객 지원 센터. 이메일, 카카오톡으로 빠르고 친절하게 도와드립니다.
   keywords: 고객 지원, 문의, 상담, 헬프 데스크
 </route>
 
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const contactChannels = [
+  {
+    icon: 'ri-mail-line',
+    color: 'primary',
+    title: '이메일 문의',
+    description: '궁금하신 사항을 이메일로 보내주세요.\n평균 4시간 이내 답변드립니다.',
+    action: '이메일 보내기',
+    href: 'mailto:support@yemo.io',
+    info: 'support@yemo.io',
+  },
+  {
+    icon: 'ri-kakao-talk-line',
+    color: 'warning',
+    title: '카카오톡 문의',
+    description: '카카오톡 채널을 추가하고\n실시간으로 상담받으세요.',
+    action: '채널 추가하기',
+    href: '#',
+    info: '@yemo',
+  },
+  {
+    icon: 'ri-question-answer-line',
+    color: 'success',
+    title: '자주 묻는 질문',
+    description: 'FAQ에서 빠른 답변을 찾아보세요.\n대부분의 궁금증을 해결할 수 있습니다.',
+    action: 'FAQ 바로가기',
+    to: '/faq',
+    info: '25개 이상의 FAQ',
+  },
+]
+
+const supportInfo = [
+  { icon: 'ri-time-line', title: '운영 시간', items: ['평일: 09:00 - 18:00', '주말 및 공휴일: 휴무'] },
+  { icon: 'ri-mail-check-line', title: '이메일 접수', items: ['24시간 접수 가능', '영업일 기준 1일 이내 답변'] },
+  { icon: 'ri-shield-check-line', title: '프로 플랜 전용', items: ['전화 상담: 1588-XXXX', '화상 교육: 30분 무료'] },
+]
+
+function goToFaq() {
+  router.push('/faq')
+}
+
+function startFreeTrial() {
+  router.push('/register')
+}
+</script>
+
 <template>
-  <div>
-    <VCard>
-      <VCardTitle class="text-h4 pa-6">
-        고객지원
-      </VCardTitle>
-      <VDivider />
-      <VCardText class="pa-6">
-        <VRow>
-          <!-- 문의하기 -->
-          <VCol cols="12" md="6">
-            <VCard variant="tonal" color="primary">
-              <VCardText class="text-center pa-6">
-                <VIcon
-                  icon="ri-mail-line"
-                  size="48"
-                  color="primary"
-                  class="mb-4"
-                />
-                <h5 class="text-h5 mb-2">
-                  이메일 문의
-                </h5>
-                <p class="text-body-2 mb-4">
-                  궁금하신 사항을 이메일로 보내주세요
-                </p>
-                <VBtn
-                  color="primary"
-                  variant="elevated"
-                  href="mailto:kkm@YEMO.io"
-                >
-                  문의하기
-                </VBtn>
-              </VCardText>
-            </VCard>
-          </VCol>
+  <div class="support-page">
+    <!-- Hero Section -->
+    <section class="support-hero-section">
+      <VContainer>
+        <div class="text-center py-12">
+          <VChip color="primary" variant="tonal" class="mb-4" prepend-icon="ri-customer-service-line">
+            고객 지원
+          </VChip>
+          <h1 class="text-h3 text-md-h2 font-weight-bold mb-4">
+            어떻게 도와드릴까요?
+          </h1>
+          <p class="text-body-1 text-medium-emphasis">
+            궁금한 점이 있으시면 언제든 연락주세요.<br>
+            전문 상담원이 친절하게 도와드리겠습니다.
+          </p>
+        </div>
+      </VContainer>
+    </section>
 
-          <!-- 자주 묻는 질문 -->
-          <VCol cols="12" md="6">
-            <VCard variant="tonal" color="success">
-              <VCardText class="text-center pa-6">
-                <VIcon
-                  icon="ri-question-line"
-                  size="48"
-                  color="success"
-                  class="mb-4"
-                />
-                <h5 class="text-h5 mb-2">
-                  자주 묻는 질문
+    <!-- Contact Channels -->
+    <section class="contact-section">
+      <VContainer>
+        <VRow justify="center">
+          <VCol
+            v-for="channel in contactChannels"
+            :key="channel.title"
+            cols="12"
+            sm="6"
+            md="4"
+          >
+            <VCard class="contact-card h-100 text-center" hover>
+              <VCardText class="pa-8">
+                <VAvatar :color="channel.color" variant="tonal" size="72" class="mb-4">
+                  <VIcon :icon="channel.icon" size="36" />
+                </VAvatar>
+                <h5 class="text-h6 font-weight-bold mb-2">
+                  {{ channel.title }}
                 </h5>
-                <p class="text-body-2 mb-4">
-                  FAQ를 통해 빠른 답변을 받아보세요
-                </p>
-                <VBtn
-                  color="success"
-                  variant="elevated"
-                  to="/faq"
+                <p
+                  class="text-body-2 text-medium-emphasis mb-2"
+                  style="white-space: pre-line;"
                 >
-                  FAQ 보기
-                </VBtn>
-              </VCardText>
-            </VCard>
-          </VCol>
-
-          <!-- 운영 시간 안내 -->
-          <VCol cols="12">
-            <VCard>
-              <VCardText class="pa-6">
-                <h5 class="text-h5 mb-4">
-                  <VIcon icon="ri-time-line" class="me-2" />
-                  고객지원 운영 시간
-                </h5>
-                <div class="text-body-1">
-                  <p class="mb-2">
-                    <strong>평일:</strong> 09:00 - 18:00
-                  </p>
-                  <p class="mb-2">
-                    <strong>주말 및 공휴일:</strong> 휴무
-                  </p>
-                  <p class="text-body-2 text-medium-emphasis mb-0">
-                    * 이메일 문의는 24시간 접수 가능하며, 영업일 기준 1-2일 내 답변드립니다.
-                  </p>
+                  {{ channel.description }}
+                </p>
+                <VChip size="small" variant="tonal" :color="channel.color" class="mb-4">
+                  {{ channel.info }}
+                </VChip>
+                <div>
+                  <VBtn
+                    v-if="channel.to"
+                    :color="channel.color"
+                    variant="elevated"
+                    :to="channel.to"
+                  >
+                    {{ channel.action }}
+                  </VBtn>
+                  <VBtn
+                    v-else
+                    :color="channel.color"
+                    variant="elevated"
+                    :href="channel.href"
+                  >
+                    {{ channel.action }}
+                  </VBtn>
                 </div>
               </VCardText>
             </VCard>
           </VCol>
+        </VRow>
+      </VContainer>
+    </section>
 
-          <!-- 주요 문의 사항 -->
-          <VCol cols="12">
-            <VCard>
-              <VCardTitle class="pa-6">
-                <VIcon icon="ri-questionnaire-line" class="me-2" />
-                주요 문의 사항
-              </VCardTitle>
-              <VDivider />
+    <!-- Support Info -->
+    <section class="info-section">
+      <VContainer>
+        <div class="text-center mb-8">
+          <h2 class="text-h5 font-weight-bold">
+            지원 안내
+          </h2>
+        </div>
+        <VRow justify="center">
+          <VCol
+            v-for="info in supportInfo"
+            :key="info.title"
+            cols="12"
+            md="4"
+          >
+            <VCard variant="outlined" class="h-100">
               <VCardText class="pa-6">
-                <VExpansionPanels>
-                  <VExpansionPanel>
-                    <VExpansionPanelTitle>
-                      <VIcon icon="ri-gift-line" class="me-2" />
-                      30일 무료 체험은 어떻게 시작하나요?
-                    </VExpansionPanelTitle>
-                    <VExpansionPanelText>
-                      회원가입 시 자동으로 30일 무료 체험이 시작됩니다. 별도의 신청이나 결제 정보 입력 없이 모든 기능을 사용하실 수 있습니다.
-                    </VExpansionPanelText>
-                  </VExpansionPanel>
-
-                  <VExpansionPanel>
-                    <VExpansionPanelTitle>
-                      <VIcon icon="ri-bank-card-line" class="me-2" />
-                      결제는 어떻게 진행되나요?
-                    </VExpansionPanelTitle>
-                    <VExpansionPanelText>
-                      30일 무료 체험 기간 종료 후 프리미엄 요금제로 전환하실 수 있습니다. 자세한 요금제는 준비 중입니다.
-                    </VExpansionPanelText>
-                  </VExpansionPanel>
-
-                  <VExpansionPanel>
-                    <VExpansionPanelTitle>
-                      <VIcon icon="ri-lock-line" class="me-2" />
-                      개인정보는 안전하게 보관되나요?
-                    </VExpansionPanelTitle>
-                    <VExpansionPanelText>
-                      고객님의 개인정보는 암호화되어 안전하게 보관됩니다. 자세한 내용은 개인정보처리방침을 참고해주세요.
-                    </VExpansionPanelText>
-                  </VExpansionPanel>
-
-                  <VExpansionPanel>
-                    <VExpansionPanelTitle>
-                      <VIcon icon="ri-smartphone-line" class="me-2" />
-                      모바일에서도 사용할 수 있나요?
-                    </VExpansionPanelTitle>
-                    <VExpansionPanelText>
-                      네, 반응형 웹 디자인으로 제작되어 PC, 태블릿, 스마트폰 등 모든 기기에서 사용 가능합니다.
-                    </VExpansionPanelText>
-                  </VExpansionPanel>
-                </VExpansionPanels>
+                <div class="d-flex align-center mb-4">
+                  <VIcon :icon="info.icon" size="24" color="primary" class="me-3" />
+                  <h6 class="text-subtitle-1 font-weight-bold">
+                    {{ info.title }}
+                  </h6>
+                </div>
+                <div
+                  v-for="item in info.items"
+                  :key="item"
+                  class="text-body-2 text-medium-emphasis mb-2"
+                >
+                  {{ item }}
+                </div>
               </VCardText>
             </VCard>
           </VCol>
         </VRow>
-      </VCardText>
-    </VCard>
+      </VContainer>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <VContainer>
+        <VRow align="center" justify="center">
+          <VCol cols="12" md="8" class="text-center">
+            <h2 class="text-h4 font-weight-bold mb-4">
+              아직 궁금한 점이 있으신가요?
+            </h2>
+            <p class="text-body-1 text-medium-emphasis mb-6">
+              직접 체험해보시면 더 쉽게 이해하실 수 있습니다
+            </p>
+            <div class="d-flex flex-wrap justify-center gap-4">
+              <VBtn
+                size="large"
+                variant="outlined"
+                prepend-icon="ri-question-answer-line"
+                @click="goToFaq"
+              >
+                FAQ 보기
+              </VBtn>
+              <VBtn
+                size="large"
+                color="primary"
+                prepend-icon="ri-rocket-line"
+                @click="startFreeTrial"
+              >
+                무료 체험 시작하기
+              </VBtn>
+            </div>
+          </VCol>
+        </VRow>
+      </VContainer>
+    </section>
   </div>
 </template>
 
-<script setup>
-// 페이지 메타 설정
-definePage({
-  meta: {
-    title: '고객지원',
-  },
-})
-</script>
+<style lang="scss" scoped>
+.support-page {
+  inline-size: 100%;
+}
+
+.support-hero-section {
+  padding-block: 2rem;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+.contact-section {
+  padding-block: 4rem;
+  background-color: rgb(var(--v-theme-surface));
+}
+
+.contact-card {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
+.info-section {
+  padding-block: 4rem;
+  background-color: rgb(var(--v-theme-background));
+}
+
+.cta-section {
+  padding-block: 4rem;
+  background-color: rgb(var(--v-theme-surface));
+}
+</style>

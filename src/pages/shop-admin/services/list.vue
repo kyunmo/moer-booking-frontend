@@ -10,6 +10,7 @@
 
         <!-- 카테고리 필터 -->
         <VSelect
+          id="service-category-filter"
           v-model="selectedCategory"
           :items="categoryFilterOptions"
           placeholder="전체 카테고리"
@@ -32,6 +33,7 @@
 
         <!-- 카테고리 관리 -->
         <VBtn
+          id="service-category-btn"
           variant="outlined"
           prepend-icon="ri-folder-settings-line"
           class="me-3"
@@ -42,6 +44,7 @@
 
         <!-- 새 서비스 등록 -->
         <VBtn
+          id="service-create-btn"
           color="primary"
           prepend-icon="ri-add-line"
           @click="openCreateDialog"
@@ -52,7 +55,7 @@
     </VCard>
 
     <!-- 통계 카드 -->
-    <VRow class="mb-4">
+    <VRow id="service-stats" class="mb-4">
       <VCol cols="12" sm="6" md="3">
         <VCard variant="tonal" color="primary">
           <VCardText class="d-flex align-center">
@@ -108,7 +111,7 @@
     </div>
 
     <!-- 서비스 카드 그리드 -->
-    <div v-else-if="filteredServices.length > 0">
+    <div v-else-if="filteredServices.length > 0" id="service-grid">
       <VRow>
         <VCol
           v-for="service in filteredServices"

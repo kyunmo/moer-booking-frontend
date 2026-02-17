@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 매장 기본 정보 -->
-    <VCard class="mb-6">
+    <VCard id="settings-basic-info" class="mb-6">
       <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-store-2-line" size="24" class="me-3" />
         <span>매장 기본 정보</span>
@@ -89,7 +89,7 @@
             </VCol>
 
             <!-- 목표 설정 -->
-            <VCol cols="12">
+            <VCol id="settings-goals" cols="12">
               <VDivider class="my-4" />
               <h6 class="text-h6 mb-3 mt-4">
                 <VIcon icon="ri-target-line" class="me-2" />
@@ -167,8 +167,41 @@
       </VCardActions>
     </VCard>
 
+    <!-- 가이드 투어 설정 -->
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center">
+        <VIcon icon="ri-compass-discover-line" size="24" class="me-3" />
+        <span>가이드 투어</span>
+      </VCardTitle>
+
+      <VDivider />
+
+      <VCardText>
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+          <div>
+            <p class="text-body-1 mb-1">
+              완료한 투어를 초기화하면 다시 가이드를 볼 수 있습니다.
+            </p>
+            <p class="text-body-2 text-disabled">
+              완료된 투어: {{ completedTourCount }} / {{ totalTourCount }}개
+            </p>
+          </div>
+
+          <VBtn
+            variant="outlined"
+            color="warning"
+            prepend-icon="ri-refresh-line"
+            :disabled="completedTourCount === 0"
+            @click="handleResetAllTours"
+          >
+            모든 투어 초기화
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+
     <!-- 예약 페이지 주소 설정 -->
-    <VCard>
+    <VCard id="settings-booking-url">
       <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-link" size="24" class="me-3" />
         <span>예약 페이지 주소</span>
@@ -288,6 +321,7 @@
 <script setup>
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { useTour } from '@/composables/useTour'
 import { BUSINESS_TYPES, BUSINESS_TYPE_OPTIONS } from '@/constants/businessTypes'
 import publicBookingApi from '@/api/public-booking'
 import apiClient from '@/api/axios'
@@ -297,6 +331,21 @@ import { computed, onMounted, ref } from 'vue'
 const settingsStore = useBusinessSettingsStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useSnackbar()
+const { resetAllTours, getCompletedTourCount, TOUR_IDS } = useTour()
+
+// 투어 관련
+const completedTourCount = ref(0)
+const totalTourCount = TOUR_IDS.length
+
+function refreshTourCount() {
+  completedTourCount.value = getCompletedTourCount()
+}
+
+function handleResetAllTours() {
+  resetAllTours()
+  refreshTourCount()
+  success('모든 가이드 투어가 초기화되었습니다. 각 페이지에서 다시 시작할 수 있습니다.')
+}
 
 const formRef = ref(null)
 
@@ -476,6 +525,7 @@ function copyBookingUrl() {
 
 // 컴포넌트 마운트 시
 onMounted(async () => {
+  refreshTourCount()
   try {
     await settingsStore.fetchBusinessInfo()
     loadBusinessInfo()

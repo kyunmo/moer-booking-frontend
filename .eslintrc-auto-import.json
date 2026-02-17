@@ -362,6 +362,7 @@
     "whenever": true,
     "useSnackbar": true,
     "useBusinessIcon": true,
-    "getImageUrl": true
+    "getImageUrl": true,
+    "useTour": true
   }
 }
