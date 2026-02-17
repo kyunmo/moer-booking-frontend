@@ -128,6 +128,15 @@ export default [
     },
   },
   {
+    title: '쿠폰 관리',
+    to: { name: 'shop-admin-coupon' },
+    icon: { icon: 'ri-coupon-line' },
+    get disabled() {
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
+    },
+  },
+  {
     title: '매장 정보',
     icon: { icon: 'ri-store-2-line' },
     get disabled() {
@@ -174,11 +183,6 @@ export default [
         title: '결제 내역',
         to: { name: 'shop-admin-payment-history' },
         icon: { icon: 'ri-file-list-line' },
-      },
-      {
-        title: '쿠폰 관리',
-        to: { name: 'shop-admin-coupon' },
-        icon: { icon: 'ri-coupon-line' },
       },
     ],
   },
