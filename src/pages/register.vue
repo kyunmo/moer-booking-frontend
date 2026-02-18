@@ -14,6 +14,7 @@ import { useRouter } from 'vue-router'
 import authV1RegisterMaskDark from '@images/pages/auth-v1-register-mask-dark.png'
 import authV1RegisterMaskLight from '@images/pages/auth-v1-register-mask-light.png'
 import PricingCard from '@/components/pricing/PricingCard.vue'
+import LegalDialog from '@/components/legal/LegalDialog.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -22,6 +23,8 @@ const formRef = ref(null)
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
 const errorMessage = ref('')
+const legalDialog = ref(false)
+const legalType = ref('terms')
 
 const form = ref({
   businessName: '',
@@ -252,17 +255,17 @@ async function handleRegister() {
                   style="opacity: 1;"
                 >
                   <span class="me-1 text-high-emphasis">
-                    <RouterLink
-                      to="/terms"
+                    <a
+                      href="javascript:void(0)"
                       class="text-primary"
-                      target="_blank"
-                    >이용약관</RouterLink>
+                      @click="legalType = 'terms'; legalDialog = true"
+                    >이용약관</a>
                     및
-                    <RouterLink
-                      to="/privacy"
+                    <a
+                      href="javascript:void(0)"
                       class="text-primary"
-                      target="_blank"
-                    >개인정보처리방침</RouterLink>에 동의합니다
+                      @click="legalType = 'privacy'; legalDialog = true"
+                    >개인정보처리방침</a>에 동의합니다
                   </span>
                 </VLabel>
               </div>
@@ -310,6 +313,12 @@ async function handleRegister() {
         </VForm>
       </VCardText>
     </VCard>
+
+    <!-- 약관/개인정보 모달 -->
+    <LegalDialog
+      v-model="legalDialog"
+      :type="legalType"
+    />
 
     <!-- 배경 이미지 -->
     <VImg

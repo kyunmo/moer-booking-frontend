@@ -90,9 +90,9 @@ async function handleCustomerLogin(accessToken, refreshToken, isNewUser) {
 }
 
 /**
- * 관리자 OAuth2 로그인 처리 (기존 로직)
+ * 관리자 OAuth2 로그인 처리
  */
-async function handleAdminLogin(accessToken, refreshToken) {
+async function handleAdminLogin(accessToken, refreshToken, isNewUser) {
   // 토큰을 localStorage에 저장
   localStorage.setItem('accessToken', accessToken)
   localStorage.setItem('refreshToken', refreshToken)
@@ -104,8 +104,13 @@ async function handleAdminLogin(accessToken, refreshToken) {
   // 사용자 정보 가져오기
   await authStore.fetchCurrentUser()
 
-  // 대시보드로 이동
-  router.push('/shop-admin/dashboard')
+  // 신규 사용자면 프로필 완성 페이지로, 기존 사용자면 대시보드로
+  if (isNewUser === 'true') {
+    router.push('/shop-admin/setup')
+  }
+  else {
+    router.push('/shop-admin/dashboard')
+  }
 }
 
 onMounted(async () => {
@@ -143,7 +148,7 @@ onMounted(async () => {
       await handleCustomerLogin(accessToken, refreshToken, isNewUser)
     }
     else {
-      await handleAdminLogin(accessToken, refreshToken)
+      await handleAdminLogin(accessToken, refreshToken, isNewUser)
     }
   }
   catch (err) {

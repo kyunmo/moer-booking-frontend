@@ -66,6 +66,7 @@ declare module 'vue-router/auto-routes' {
     'shop-admin-services-components-service-dialog': RouteRecordInfo<'shop-admin-services-components-service-dialog', '/shop-admin/services/components/ServiceDialog', Record<never, never>, Record<never, never>>,
     'shop-admin-services-components-service-form-dialog': RouteRecordInfo<'shop-admin-services-components-service-form-dialog', '/shop-admin/services/components/ServiceFormDialog', Record<never, never>, Record<never, never>>,
     'shop-admin-services-list': RouteRecordInfo<'shop-admin-services-list', '/shop-admin/services/list', Record<never, never>, Record<never, never>>,
+    'shop-admin-setup': RouteRecordInfo<'shop-admin-setup', '/shop-admin/setup', Record<never, never>, Record<never, never>>,
     'shop-admin-staffs-components-position-manage-dialog': RouteRecordInfo<'shop-admin-staffs-components-position-manage-dialog', '/shop-admin/staffs/components/PositionManageDialog', Record<never, never>, Record<never, never>>,
     'shop-admin-staffs-components-staff-detail-dialog': RouteRecordInfo<'shop-admin-staffs-components-staff-detail-dialog', '/shop-admin/staffs/components/StaffDetailDialog', Record<never, never>, Record<never, never>>,
     'shop-admin-staffs-components-staff-dialog': RouteRecordInfo<'shop-admin-staffs-components-staff-dialog', '/shop-admin/staffs/components/StaffDialog', Record<never, never>, Record<never, never>>,
