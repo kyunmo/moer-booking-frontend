@@ -48,13 +48,9 @@ async function handleSubmit() {
 
   try {
     await authApi.forgotPassword(form.value.email)
-    console.log('비밀번호 찾기 성공')
     success.value = true
   }
   catch (error) {
-    console.error('비밀번호 찾기 실패:', error)
-
-    // 에러 메시지 처리
     errorMessage.value = error?.message || '비밀번호 찾기에 실패했습니다. 다시 시도해주세요.'
   }
   finally {

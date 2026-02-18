@@ -62,8 +62,6 @@ export const useCustomerAuthStore = defineStore('customerAuth', {
         return data
       }
       catch (error) {
-        console.error('고객 프로필 조회 실패:', error)
-
         // 인증 실패 시 로그아웃
         if (error.status === 401) {
           this.logout()
@@ -91,7 +89,6 @@ export const useCustomerAuthStore = defineStore('customerAuth', {
         }
       }
       catch (error) {
-        console.error('고객 프로필 수정 실패:', error)
         throw error
       }
       finally {

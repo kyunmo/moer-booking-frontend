@@ -2,6 +2,7 @@
 meta:
   layout: public
   public: true
+  requiresCustomerAuth: true
   title: 내 예약 - YEMO
 </route>
 
@@ -16,13 +17,7 @@ const router = useRouter()
 const customerAuthStore = useCustomerAuthStore()
 const { success: showSuccess, error: showError } = useSnackbar()
 
-// --- Auth Guard ---
 onMounted(() => {
-  if (!customerAuthStore.isAuthenticated) {
-    router.replace('/booking/login?redirect=/booking/my-reservations')
-
-    return
-  }
   fetchReservations()
 })
 

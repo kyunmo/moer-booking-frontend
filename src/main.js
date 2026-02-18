@@ -14,5 +14,3 @@ registerPlugins(app)
 
 // Mount vue app
 app.mount('#app')
-
-console.log('App mounted successfully!') // ← 이 줄 추가

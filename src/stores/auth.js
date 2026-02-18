@@ -91,8 +91,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { data } = await authApi.login(credentials)
 
-        console.log('로그인 성공, 응답 데이터:', data.accessToken, data.refreshToken, data.user)
-        
         // 토큰 저장
         this.accessToken = data.accessToken
         this.refreshToken = data.refreshToken
@@ -112,7 +110,6 @@ export const useAuthStore = defineStore('auth', {
         return data
       }
       catch (error) {
-        console.error('로그인 실패:', error)
         throw error
       }
       finally {
@@ -132,7 +129,6 @@ export const useAuthStore = defineStore('auth', {
         }
         catch (error) {
           // 로그아웃 API 실패해도 로컬 상태는 정리
-          console.warn('로그아웃 API 호출 실패:', error)
         }
 
         // 상태 초기화
@@ -150,7 +146,7 @@ export const useAuthStore = defineStore('auth', {
         router.push('/login')
       }
       catch (error) {
-        console.error('로그아웃 실패:', error)
+        // 로그아웃 실패 무시
       }
       finally {
         this.loading = false
@@ -173,8 +169,6 @@ export const useAuthStore = defineStore('auth', {
           selectedPlan: formData.selectedPlan || 'BASIC',  // 선택한 플랜 (기본값: BASIC)
         })
         
-        console.log('회원가입 성공:', data)
-
         // 토큰 저장
         this.accessToken = data.accessToken
         this.refreshToken = data.refreshToken
@@ -189,7 +183,6 @@ export const useAuthStore = defineStore('auth', {
         return data
       }
       catch (error) {
-        console.error('회원가입 실패:', error)
         throw error
       }
       finally {
@@ -210,8 +203,6 @@ export const useAuthStore = defineStore('auth', {
         return data
       }
       catch (error) {
-        console.error('사용자 정보 조회 실패:', error)
-        
         // 토큰이 만료되었을 수 있음
         if (error.response?.status === 401) {
           this.logout()
@@ -242,7 +233,6 @@ export const useAuthStore = defineStore('auth', {
         return data.accessToken
       }
       catch (error) {
-        console.error('토큰 갱신 실패:', error)
         this.logout()
         throw error
       }
@@ -263,7 +253,6 @@ export const useAuthStore = defineStore('auth', {
               try {
                 this.selectedBusinessForSuperAdmin = JSON.parse(savedBusiness)
               } catch (e) {
-                console.warn('저장된 매장 정보 복원 실패:', e)
                 localStorage.removeItem('selectedBusinessForSuperAdmin')
               }
             }
@@ -281,7 +270,6 @@ export const useAuthStore = defineStore('auth', {
      */
     selectBusinessForSuperAdmin(business) {
       if (this.user?.role !== 'SUPER_ADMIN') {
-        console.warn('슈퍼관리자만 매장을 선택할 수 있습니다.')
         return
       }
 

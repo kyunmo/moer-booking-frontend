@@ -144,7 +144,6 @@ async function handleFileChange(event) {
     success('프로필 사진이 변경되었습니다.')
   }
   catch (err) {
-    console.error('프로필 이미지 업로드 실패:', err)
     showError(err.message || '프로필 사진 업로드에 실패했습니다.')
   }
   finally {
@@ -165,7 +164,6 @@ async function handleSubmit() {
     success('프로필 정보가 저장되었습니다.')
   }
   catch (err) {
-    console.error('프로필 수정 실패:', err)
     showError(err.message || '프로필 수정에 실패했습니다.')
   }
   finally {

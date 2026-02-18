@@ -59,8 +59,6 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
       const businessId = authStore.businessId
 
       if (!businessId) {
-        console.error('businessId가 없습니다')
-
         return
       }
 
@@ -79,7 +77,7 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
         return data
       }
       catch (error) {
-        console.error('카테고리 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -108,7 +106,7 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
         return data
       }
       catch (error) {
-        console.error('카테고리 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -142,7 +140,7 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
         return data
       }
       catch (error) {
-        console.error('카테고리 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -170,7 +168,7 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
         this.lastFetchedAt = Date.now()
       }
       catch (error) {
-        console.error('카테고리 삭제 실패:', error)
+
         throw error
       }
       finally {
@@ -199,7 +197,7 @@ export const useServiceCategoryStore = defineStore('serviceCategory', {
         return data
       }
       catch (error) {
-        console.error('카테고리 정렬 변경 실패:', error)
+
         throw error
       }
       finally {

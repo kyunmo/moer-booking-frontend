@@ -142,7 +142,7 @@ export const useSubscriptionStore = defineStore('subscription', {
         return data
       }
       catch (error) {
-        console.error('구독 정보 조회 실패:', error)
+
         this.error = error.message || '구독 정보를 불러오는데 실패했습니다.'
         throw error
       }
@@ -163,7 +163,7 @@ export const useSubscriptionStore = defineStore('subscription', {
         return data
       }
       catch (error) {
-        console.error('플랜 변경 실패:', error)
+
         this.error = error.message || '플랜 변경에 실패했습니다.'
         throw error
       }
@@ -184,7 +184,7 @@ export const useSubscriptionStore = defineStore('subscription', {
         await this.fetchSubscriptionInfo()
       }
       catch (error) {
-        console.error('구독 취소 실패:', error)
+
         this.error = error.message || '구독 취소에 실패했습니다.'
         throw error
       }

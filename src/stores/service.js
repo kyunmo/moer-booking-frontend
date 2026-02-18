@@ -56,7 +56,7 @@ export const useServiceStore = defineStore('service', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -66,7 +66,7 @@ export const useServiceStore = defineStore('service', {
         this.services = data
       }
       catch (error) {
-        console.error('서비스 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -82,7 +82,7 @@ export const useServiceStore = defineStore('service', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -93,7 +93,7 @@ export const useServiceStore = defineStore('service', {
         return data
       }
       catch (error) {
-        console.error('서비스 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -119,7 +119,7 @@ export const useServiceStore = defineStore('service', {
         return data
       }
       catch (error) {
-        console.error('서비스 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -151,7 +151,7 @@ export const useServiceStore = defineStore('service', {
         return data
       }
       catch (error) {
-        console.error('서비스 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -183,7 +183,7 @@ export const useServiceStore = defineStore('service', {
         return data
       }
       catch (error) {
-        console.error('서비스 상태 변경 실패:', error)
+
         throw error
       }
       finally {
@@ -210,7 +210,7 @@ export const useServiceStore = defineStore('service', {
         this.services = this.services.filter(s => s.id !== serviceId)
       }
       catch (error) {
-        console.error('서비스 삭제 실패:', error)
+
         throw error
       }
       finally {

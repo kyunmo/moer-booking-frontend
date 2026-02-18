@@ -89,7 +89,7 @@ export const usePaymentStore = defineStore('payment', {
         return data
       }
       catch (error) {
-        console.error('결제 생성 실패:', error)
+
         this.error = error.message || '결제 처리에 실패했습니다.'
         throw error
       }
@@ -116,7 +116,7 @@ export const usePaymentStore = defineStore('payment', {
         return data
       }
       catch (error) {
-        console.error('환불 처리 실패:', error)
+
         this.error = error.message || '환불 처리에 실패했습니다.'
         throw error
       }
@@ -137,7 +137,7 @@ export const usePaymentStore = defineStore('payment', {
         return data
       }
       catch (error) {
-        console.error('결제 조회 실패:', error)
+
         this.error = error.message || '결제 정보를 불러오는데 실패했습니다.'
         throw error
       }
@@ -168,7 +168,7 @@ export const usePaymentStore = defineStore('payment', {
         return data
       }
       catch (error) {
-        console.error('결제 목록 조회 실패:', error)
+
         this.error = error.message || '결제 내역을 불러오는데 실패했습니다.'
         throw error
       }
@@ -191,7 +191,7 @@ export const usePaymentStore = defineStore('payment', {
       catch (error) {
         // 404는 에러로 처리하지 않음 (결제 내역이 없을 수 있음)
         if (error.status !== 404) {
-          console.error('최근 결제 조회 실패:', error)
+
           this.error = error.message || '최근 결제 정보를 불러오는데 실패했습니다.'
         }
         this.latestPayment = null

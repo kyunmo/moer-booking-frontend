@@ -160,36 +160,35 @@ apiClient.interceptors.response.use(
       else if (status === 403) {
         // TR001: 체험판 만료
         if (errorCode === 'TR001') {
-          console.error('체험판이 만료되었습니다.')
           // 업그레이드 페이지로 리다이렉트하거나 모달 표시
         }
         // TR002: 체험판 기능 제한
         else if (errorCode === 'TR002') {
-          console.error('체험판에서는 사용할 수 없는 기능입니다.')
+          // 체험판 기능 제한
         }
         // TR003: 프리미엄 업그레이드 필요
         else if (errorCode === 'TR003') {
-          console.error('프리미엄 업그레이드가 필요합니다.')
+          // 프리미엄 업그레이드 필요
         }
         // C006: 접근 권한 없음
         else {
-          console.error('접근 권한이 없습니다.')
+          // 접근 권한 없음
         }
       }
       // 404 에러
       else if (status === 404) {
-        console.error('요청한 리소스를 찾을 수 없습니다.')
+        // 404: 리소스를 찾을 수 없음
       }
       // 409 에러 (충돌)
       else if (status === 409) {
         // U002: 이메일 중복
         if (errorCode === 'U002') {
-          console.error('이미 사용 중인 이메일입니다.')
+          // 이메일 중복
         }
       }
       // 500 에러
       else if (status >= 500) {
-        console.error('서버 오류가 발생했습니다.')
+        // 500+: 서버 오류
       }
 
       // 에러 메시지 반환 (에러 코드 포함)
@@ -201,7 +200,6 @@ apiClient.interceptors.response.use(
       })
     }
     else if (error.request) {
-      console.error('서버에 연결할 수 없습니다.')
       return Promise.reject({
         message: '서버에 연결할 수 없습니다.',
       })

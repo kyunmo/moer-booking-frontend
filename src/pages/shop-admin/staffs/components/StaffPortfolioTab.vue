@@ -285,7 +285,6 @@ async function loadPortfolios() {
     portfolios.value = response.data || []
   }
   catch (error) {
-    console.error('포트폴리오 조회 실패:', error)
     showError('포트폴리오를 불러오는데 실패했습니다.')
     portfolios.value = []
   }
@@ -346,7 +345,6 @@ async function submitPortfolio() {
     closeAddDialog()
   }
   catch (error) {
-    console.error('포트폴리오 추가 실패:', error)
     showError('포트폴리오 추가에 실패했습니다.')
   }
   finally {
@@ -378,7 +376,6 @@ async function deletePortfolio() {
     portfolioToDelete.value = null
   }
   catch (error) {
-    console.error('포트폴리오 삭제 실패:', error)
     showError('포트폴리오 삭제에 실패했습니다.')
   }
   finally {

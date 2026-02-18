@@ -354,7 +354,6 @@ async function handleImageSelected(event) {
     showSuccess('프로필 이미지가 업로드되었습니다.')
   }
   catch (error) {
-    console.error('프로필 이미지 업로드 실패:', error)
     showError('이미지 업로드에 실패했습니다.')
   }
   finally {
@@ -401,7 +400,6 @@ async function handleSubmit() {
     handleClose()
   }
   catch (error) {
-    console.error('스태프 저장 실패:', error)
     errorMessage.value = error.message || '저장에 실패했습니다.'
   }
   finally {

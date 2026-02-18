@@ -134,8 +134,6 @@ async function handleWithdraw() {
     router.push('/login')
   }
   catch (err) {
-    console.error('회원 탈퇴 실패:', err)
-
     // AC004: 진행 중인 예약이 있는 경우
     if (err.code === 'AC004') {
       showError('진행 중인 예약이 있어 탈퇴할 수 없습니다. 예약을 먼저 처리해주세요.')

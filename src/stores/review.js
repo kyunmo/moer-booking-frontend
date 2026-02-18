@@ -23,7 +23,6 @@ export const useReviewStore = defineStore('review', {
       const businessId = authStore.businessId
 
       if (!businessId) {
-        console.error('businessId가 없습니다')
         return
       }
 
@@ -37,7 +36,7 @@ export const useReviewStore = defineStore('review', {
         return data
       }
       catch (error) {
-        console.error('리뷰 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -65,7 +64,7 @@ export const useReviewStore = defineStore('review', {
         }
       }
       catch (error) {
-        console.error('리뷰 답변 실패:', error)
+
         throw error
       }
     },
@@ -87,7 +86,7 @@ export const useReviewStore = defineStore('review', {
         }
       }
       catch (error) {
-        console.error('리뷰 삭제 실패:', error)
+
         throw error
       }
     },

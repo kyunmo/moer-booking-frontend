@@ -56,7 +56,7 @@ export const useReservationStore = defineStore('reservation', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -66,7 +66,7 @@ export const useReservationStore = defineStore('reservation', {
         this.reservations = data
       }
       catch (error) {
-        console.error('예약 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -82,7 +82,7 @@ export const useReservationStore = defineStore('reservation', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -92,7 +92,7 @@ export const useReservationStore = defineStore('reservation', {
         this.reservations = data
       }
       catch (error) {
-        console.error('예약 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -108,13 +108,13 @@ export const useReservationStore = defineStore('reservation', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
       // startDate, endDate 검증
       if (!startDate || !endDate) {
-        console.error('startDate와 endDate는 필수입니다')
+
         return
       }
 
@@ -128,7 +128,7 @@ export const useReservationStore = defineStore('reservation', {
         this.reservations = data
       }
       catch (error) {
-        console.error('예약 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -144,7 +144,7 @@ export const useReservationStore = defineStore('reservation', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -155,7 +155,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -181,7 +181,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -213,7 +213,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -245,7 +245,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 확정 실패:', error)
+
         throw error
       }
       finally {
@@ -268,9 +268,6 @@ export const useReservationStore = defineStore('reservation', {
       try {
         const { data } = await reservationApi.completeReservation(businessId, reservationId)
 
-        // 🔍 디버그: 완료 응답 확인
-        console.log('✅ 예약 완료 응답:', data)
-
         // 목록에서 업데이트
         const index = this.reservations.findIndex(r => r.id === reservationId)
         if (index !== -1) {
@@ -280,7 +277,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 완료 실패:', error)
+
         throw error
       }
       finally {
@@ -300,9 +297,9 @@ export const useReservationStore = defineStore('reservation', {
         throw new Error('businessId가 없습니다')
       }
 
-      // ⚠️ COMPLETED 상태는 completeReservation 사용 권장
+      // COMPLETED 상태는 completeReservation 사용 권장
       if (status === 'COMPLETED') {
-        console.warn('⚠️ COMPLETED 상태는 completeReservation()을 사용하세요!')
+        return this.completeReservation(reservationId)
       }
 
       this.loading = true
@@ -318,7 +315,7 @@ export const useReservationStore = defineStore('reservation', {
         return data
       }
       catch (error) {
-        console.error('예약 상태 변경 실패:', error)
+
         throw error
       }
       finally {
@@ -345,7 +342,7 @@ export const useReservationStore = defineStore('reservation', {
         this.reservations = this.reservations.filter(r => r.id !== reservationId)
       }
       catch (error) {
-        console.error('예약 삭제 실패:', error)
+
         throw error
       }
       finally {

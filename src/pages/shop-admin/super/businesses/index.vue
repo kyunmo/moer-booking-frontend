@@ -360,7 +360,7 @@ async function loadBusinesses() {
     })
   }
   catch (err) {
-    console.error('매장 목록 조회 실패:', err)
+
     error.value = err.message
   }
   finally {
@@ -409,7 +409,6 @@ async function handleBulkStatusChange(status) {
     loadBusinesses()
   }
   catch (err) {
-    console.error('상태 변경 실패:', err)
     showError(err.message)
   }
 }
@@ -433,7 +432,6 @@ async function confirmDelete() {
     loadBusinesses()
   }
   catch (err) {
-    console.error('매장 삭제 실패:', err)
     showError(err.message)
   }
 }

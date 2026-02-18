@@ -466,7 +466,6 @@ async function validateAndApplyCoupon() {
     showSnackbar(`쿠폰이 적용되었습니다! ${formatCurrency(couponStore.discountAmount)} 할인`, 'success')
   }
   catch (error) {
-    console.error('쿠폰 검증 실패:', error)
     showSnackbar(error.response?.data?.message || '유효하지 않은 쿠폰입니다.', 'error')
     appliedCoupon.value = null
   }
@@ -531,7 +530,6 @@ async function handlePayment() {
     }
   }
   catch (error) {
-    console.error('결제 처리 실패:', error)
     paymentFailed.value = true
     failReason.value = error.message || '결제 처리 중 오류가 발생했습니다.'
     showSnackbar(error.message || '결제 처리에 실패했습니다.', 'error')

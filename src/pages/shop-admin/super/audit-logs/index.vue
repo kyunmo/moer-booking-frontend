@@ -363,27 +363,14 @@ async function loadLogs() {
   error.value = null
 
   try {
-    console.log('감사로그 조회 요청:', {
-      page: currentPage.value,
-      size: 20,
-      ...filters.value,
-    })
-
     const result = await superadminStore.fetchAuditLogs({
       page: currentPage.value,
       size: 20,
       ...filters.value,
     })
 
-    console.log('감사로그 조회 성공:', {
-      로그수: logs.value.length,
-      전체수: pagination.value.totalElements,
-      페이지정보: pagination.value,
-      첫번째로그: logs.value[0],
-    })
   }
   catch (err) {
-    console.error('감사 로그 조회 실패:', err)
     error.value = err.message || '감사 로그를 불러오는데 실패했습니다.'
   }
   finally {

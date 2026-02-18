@@ -2,6 +2,7 @@
 meta:
   layout: public
   public: true
+  requiresCustomerAuth: true
   title: 내 프로필 - YEMO
 </route>
 
@@ -15,21 +16,13 @@ const router = useRouter()
 const customerAuthStore = useCustomerAuthStore()
 const { success: showSuccess, error: showError } = useSnackbar()
 
-// Auth check
 onMounted(async () => {
-  if (!customerAuthStore.isAuthenticated) {
-    router.replace('/booking/login?redirect=/booking/profile')
-
-    return
-  }
-
   if (!customerAuthStore.customer) {
     try {
       await customerAuthStore.fetchProfile()
     }
     catch {
       showError('프로필 정보를 불러올 수 없습니다')
-      router.replace('/booking/login?redirect=/booking/profile')
     }
   }
 })

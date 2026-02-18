@@ -539,7 +539,6 @@ async function deleteStaff() {
     selectedStaff.value = null
   }
   catch (error) {
-    console.error('스태프 삭제 실패:', error)
     showError(error.message || '스태프 삭제에 실패했습니다.')
   }
 }

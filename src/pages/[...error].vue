@@ -20,8 +20,8 @@ definePage({
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="404"
-      title="Page Not Found ⚠️"
-      description="We couldn't find the page you are looking for."
+      title="페이지를 찾을 수 없습니다"
+      description="요청하신 페이지가 존재하지 않거나 이동되었습니다."
       class="mb-10"
     />
 
@@ -38,7 +38,7 @@ definePage({
         to="/"
         class="mt-10"
       >
-        Back to Home
+        홈으로 돌아가기
       </VBtn>
 
       <VImg

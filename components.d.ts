@@ -29,7 +29,6 @@ declare module 'vue' {
     CardStatisticsWithIcon: typeof import('./src/@core/components/cards/CardStatisticsWithIcon.vue')['default']
     CardStatisticsWithImages: typeof import('./src/@core/components/cards/CardStatisticsWithImages.vue')['default']
     ConfirmDeleteDialog: typeof import('./src/components/dialogs/ConfirmDeleteDialog.vue')['default']
-    ConfirmDialog: typeof import('./src/components/dialogs/ConfirmDialog.vue')['default']
     CouponFormDialog: typeof import('./src/components/coupon/CouponFormDialog.vue')['default']
     CreateAppDialog: typeof import('./src/components/dialogs/CreateAppDialog.vue')['default']
     CtaBannerSection: typeof import('./src/components/public/landing/CtaBannerSection.vue')['default']

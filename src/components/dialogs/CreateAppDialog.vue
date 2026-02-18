@@ -1,4 +1,5 @@
 <script setup>
+import { useSnackbar } from '@/composables/useSnackbar'
 import illustrationJohn from '@images/pages/illustration-john.png'
 import angularIcon from '@images/icons/brands/angular.png'
 import laravelIcon from '@images/icons/brands/laravel.png'
@@ -129,6 +130,8 @@ const databases = [
   },
 ]
 
+const { success: showSuccess } = useSnackbar()
+
 const createAppData = ref({
   category: 'crm-application',
   framework: 'vue-framework',
@@ -151,9 +154,7 @@ watch(() => props, () => {
 })
 
 const onSubmit = () => {
-
-  // eslint-disable-next-line no-alert
-  alert('submitted...!!')
+  showSuccess('앱이 생성되었습니다')
   emit('updatedData', createAppData.value)
 }
 </script>

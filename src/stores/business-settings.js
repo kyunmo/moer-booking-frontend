@@ -43,7 +43,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -53,7 +53,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         this.business = data
       }
       catch (error) {
-        console.error('매장 정보 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -79,7 +79,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         return data
       }
       catch (error) {
-        console.error('매장 정보 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -105,7 +105,60 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         return data
       }
       catch (error) {
-        console.error('매장 설정 수정 실패:', error)
+
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 매장 프로필 이미지 업로드
+     */
+    async uploadBusinessImage(file) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        const { data } = await businessSettingsApi.uploadBusinessImage(businessId, file)
+        if (this.business) {
+          this.business.profileImageUrl = data.profileImageUrl
+        }
+        return data
+      }
+      catch (error) {
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 매장 프로필 이미지 삭제
+     */
+    async deleteBusinessImage() {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        await businessSettingsApi.deleteBusinessImage(businessId)
+        if (this.business) {
+          this.business.profileImageUrl = null
+        }
+      }
+      catch (error) {
         throw error
       }
       finally {
@@ -144,7 +197,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         return this.business
       }
       catch (error) {
-        console.error('영업시간 저장 실패:', error)
+
         throw error
       }
       finally {
@@ -160,7 +213,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -170,7 +223,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         this.holidays = data
       }
       catch (error) {
-        console.error('휴무일 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -196,7 +249,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         return data
       }
       catch (error) {
-        console.error('휴무일 추가 실패:', error)
+
         throw error
       }
       finally {
@@ -221,7 +274,7 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
         this.holidays = this.holidays.filter(h => h.id !== holidayId)
       }
       catch (error) {
-        console.error('휴무일 삭제 실패:', error)
+
         throw error
       }
       finally {

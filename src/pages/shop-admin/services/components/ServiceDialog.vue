@@ -286,7 +286,6 @@ async function handleSubmit() {
     emit('saved')
   }
   catch (error) {
-    console.error('서비스 저장 실패:', error)
     showError(error.message || '서비스 저장에 실패했습니다.')
   }
   finally {

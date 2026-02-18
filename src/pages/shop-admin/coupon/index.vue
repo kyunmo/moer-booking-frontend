@@ -509,14 +509,14 @@ async function deleteCoupon() {
     selectedCoupon.value = null
   }
   catch (error) {
-    console.error('쿠폰 삭제 실패:', error)
     showSnackbar(error.message || '쿠폰 삭제에 실패했습니다.', 'error')
   }
 }
 
 // 쿠폰 저장 후
-async function handleCouponSaved() {
+async function handleCouponSaved(message) {
   isFormDialogOpen.value = false
+  showSnackbar(message || '쿠폰이 저장되었습니다.', 'success')
   await couponStore.fetchCoupons()
 }
 
@@ -526,7 +526,7 @@ onMounted(async () => {
     await couponStore.fetchCoupons()
   }
   catch (error) {
-    console.error('쿠폰 목록 조회 실패:', error)
+    // 쿠폰 목록 조회 실패
   }
 })
 </script>

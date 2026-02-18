@@ -405,7 +405,6 @@ async function handleSubmit() {
     await loadHolidays()
   }
   catch (error) {
-    console.error('휴무일 추가 실패:', error)
     errorMessage.value = error.response?.data?.message || '휴무일 추가에 실패했습니다.'
   }
   finally {
@@ -431,7 +430,6 @@ async function deleteHoliday() {
     selectedHoliday.value = null
   }
   catch (error) {
-    console.error('휴무일 삭제 실패:', error)
     showError(error.message || '휴무일 삭제에 실패했습니다.')
   }
   finally {
@@ -445,7 +443,7 @@ async function loadHolidays() {
     await settingsStore.fetchHolidays(selectedYear.value)
   }
   catch (error) {
-    console.error('휴무일 조회 실패:', error)
+    // 휴무일 조회 실패
   }
 }
 

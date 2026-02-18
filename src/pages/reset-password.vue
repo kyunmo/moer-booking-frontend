@@ -62,14 +62,16 @@ async function handleSubmit() {
 
   try {
     await authApi.resetPassword(token.value, form.value.newPassword)
-    console.log('비밀번호 재설정 성공')
     success.value = true
   }
   catch (error) {
-    console.error('비밀번호 재설정 실패:', error)
+    const errorMessages = {
+      PR001: '유효하지 않은 재설정 링크입니다. 비밀번호 찾기를 다시 시도해주세요.',
+      PR002: '재설정 링크가 만료되었습니다(30분). 비밀번호 찾기를 다시 시도해주세요.',
+      PR003: '이미 사용된 재설정 링크입니다. 비밀번호 찾기를 다시 시도해주세요.',
+    }
 
-    // 에러 메시지 처리
-    errorMessage.value = error?.message || '비밀번호 재설정에 실패했습니다. 다시 시도해주세요.'
+    errorMessage.value = errorMessages[error?.code] || error?.message || '비밀번호 재설정에 실패했습니다. 다시 시도해주세요.'
   }
   finally {
     loading.value = false

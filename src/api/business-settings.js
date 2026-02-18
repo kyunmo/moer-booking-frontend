@@ -16,6 +16,20 @@ export default {
     return apiClient.patch(`/businesses/${businessId}/settings`, settingsData)
   },
 
+  // 매장 프로필 이미지 업로드
+  uploadBusinessImage(businessId, file) {
+    const formData = new FormData()
+    formData.append('image', file)
+    return apiClient.post(`/businesses/${businessId}/profile-image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  // 매장 프로필 이미지 삭제
+  deleteBusinessImage(businessId) {
+    return apiClient.delete(`/businesses/${businessId}/profile-image`)
+  },
+
   // 매장 상태 변경
   updateBusinessStatus(businessId, status) {
     return apiClient.patch(`/businesses/${businessId}/status`, { status })

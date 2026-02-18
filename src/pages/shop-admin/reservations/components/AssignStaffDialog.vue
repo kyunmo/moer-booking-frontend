@@ -167,7 +167,6 @@ async function handleSubmit() {
     emit('update:modelValue', false)
   }
   catch (error) {
-    console.error('직원 배정 실패:', error)
     errorMessage.value = error.response?.data?.message || '직원 배정에 실패했습니다.'
   }
   finally {

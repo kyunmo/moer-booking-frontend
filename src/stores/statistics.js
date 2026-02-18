@@ -44,7 +44,7 @@ export const useStatisticsStore = defineStore('statistics', {
         this.revenueData = response.data || response
       }
       catch (error) {
-        console.error('매출 통계 조회 실패:', error)
+
         this.revenueError = error.message || '매출 통계를 불러오는데 실패했습니다'
       }
       finally {
@@ -64,7 +64,7 @@ export const useStatisticsStore = defineStore('statistics', {
         this.reservationData = response.data || response
       }
       catch (error) {
-        console.error('예약 통계 조회 실패:', error)
+
         this.reservationError = error.message || '예약 통계를 불러오는데 실패했습니다'
       }
       finally {
@@ -84,7 +84,7 @@ export const useStatisticsStore = defineStore('statistics', {
         this.customerData = response.data || response
       }
       catch (error) {
-        console.error('고객 통계 조회 실패:', error)
+
         this.customerError = error.message || '고객 통계를 불러오는데 실패했습니다'
       }
       finally {
@@ -104,7 +104,7 @@ export const useStatisticsStore = defineStore('statistics', {
         this.staffData = response.data || response
       }
       catch (error) {
-        console.error('직원 성과 조회 실패:', error)
+
         this.staffError = error.message || '직원 성과를 불러오는데 실패했습니다'
       }
       finally {
@@ -124,7 +124,7 @@ export const useStatisticsStore = defineStore('statistics', {
         this.serviceData = response.data || response
       }
       catch (error) {
-        console.error('서비스 통계 조회 실패:', error)
+
         this.serviceError = error.message || '서비스 통계를 불러오는데 실패했습니다'
       }
       finally {

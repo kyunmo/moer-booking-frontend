@@ -242,7 +242,6 @@ async function fetchReservations() {
     }
   }
   catch (error) {
-    console.error('예약 이력 조회 실패:', error)
     showError('예약 이력을 불러오는데 실패했습니다.')
     reservations.value = []
     totalCount.value = 0

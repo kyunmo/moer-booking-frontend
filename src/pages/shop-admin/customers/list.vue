@@ -419,7 +419,6 @@ async function deleteCustomer() {
     selectedCustomer.value = null
   }
   catch (error) {
-    console.error('고객 삭제 실패:', error)
     showError(error.message || '고객 삭제에 실패했습니다.')
   }
 }

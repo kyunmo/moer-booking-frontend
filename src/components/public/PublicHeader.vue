@@ -93,7 +93,6 @@ async function handleLogout() {
     await authStore.logout()
   }
   catch (error) {
-    console.error('로그아웃 실패:', error)
     router.push('/')
   }
 }

@@ -97,7 +97,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('매장 검색 실패:', error)
+
         throw error
       }
       finally {
@@ -115,7 +115,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('매장 상세 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -136,7 +136,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('예약 가능 날짜 조회 실패:', error)
+
         throw error
       }
     },
@@ -148,7 +148,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('예약 가능 시간 조회 실패:', error)
+
         throw error
       }
     },
@@ -192,7 +192,7 @@ export const useBookingStore = defineStore('booking', {
         }
       }
       catch (error) {
-        console.error('예약 생성 실패:', error)
+
         throw error
       }
     },
@@ -206,7 +206,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('예약 조회 실패:', error)
+
         throw error
       }
     },
@@ -220,7 +220,7 @@ export const useBookingStore = defineStore('booking', {
         }
       }
       catch (error) {
-        console.error('예약 취소 실패:', error)
+
         throw error
       }
     },
@@ -236,7 +236,7 @@ export const useBookingStore = defineStore('booking', {
         return data
       }
       catch (error) {
-        console.error('리뷰 조회 실패:', error)
+
         throw error
       }
     },

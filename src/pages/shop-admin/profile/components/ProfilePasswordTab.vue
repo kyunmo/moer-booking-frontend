@@ -113,7 +113,6 @@ async function handleSubmit() {
     }, 2000)
   }
   catch (err) {
-    console.error('비밀번호 변경 실패:', err)
     showError(err.message || '비밀번호 변경에 실패했습니다.')
   }
   finally {

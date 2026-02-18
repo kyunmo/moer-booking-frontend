@@ -4,6 +4,9 @@ import {
   useFileDialog,
   useObjectUrl,
 } from '@vueuse/core'
+import { useSnackbar } from '@/composables/useSnackbar'
+
+const { warning: showWarning } = useSnackbar()
 
 const dropZoneRef = ref()
 const fileData = ref([])
@@ -11,10 +14,8 @@ const { open, onChange } = useFileDialog({ accept: 'image/*' })
 function onDrop(DroppedFiles) {
   DroppedFiles?.forEach(file => {
     if (file.type.slice(0, 6) !== 'image/') {
+      showWarning('이미지 파일만 업로드할 수 있습니다')
 
-      // eslint-disable-next-line no-alert
-      alert('Only image files are allowed')
-      
       return
     }
     fileData.value.push({

@@ -610,7 +610,6 @@ async function handleSubmit() {
     handleClose()
   }
   catch (error) {
-    console.error('예약 저장 실패:', error)
     errorMessage.value = error.details || '저장에 실패했습니다.'
   }
   finally {

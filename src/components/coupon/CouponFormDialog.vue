@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useCouponStore } from '@/stores/coupon'
+import { useSnackbar } from '@/composables/useSnackbar'
 
 const props = defineProps({
   modelValue: {
@@ -13,9 +14,10 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'success'])
+const emit = defineEmits(['update:modelValue', 'saved'])
 
 const couponStore = useCouponStore()
+const { error: showError } = useSnackbar()
 
 // 폼 데이터
 const formData = ref({
@@ -165,17 +167,16 @@ async function saveCoupon() {
     if (isEditMode.value) {
       // 수정
       await couponStore.updateCoupon(props.coupon.id, requestData)
-      emit('success', '쿠폰이 수정되었습니다.')
+      emit('saved', '쿠폰이 수정되었습니다.')
     } else {
       // 생성
       await couponStore.createCoupon(requestData)
-      emit('success', '쿠폰이 생성되었습니다.')
+      emit('saved', '쿠폰이 생성되었습니다.')
     }
 
     closeDialog()
   } catch (error) {
-    console.error('쿠폰 저장 실패:', error)
-    emit('success', error.response?.data?.message || '쿠폰 저장에 실패했습니다.')
+    showError(error.message || '쿠폰 저장에 실패했습니다.')
   } finally {
     loading.value = false
   }
@@ -230,14 +231,13 @@ function formatCurrency(value) {
                 variant="outlined"
                 density="comfortable"
                 required
+                hint="영문 대문자, 숫자, _, - 만 사용 가능 (4-20자)"
+                persistent-hint
               >
                 <template #prepend-inner>
                   <VIcon icon="ri-coupon-line" />
                 </template>
               </VTextField>
-              <div class="text-caption text-medium-emphasis mt-n2 mb-2">
-                영문 대문자, 숫자, _, - 만 사용 가능 (4-20자)
-              </div>
             </VCol>
 
             <!-- 쿠폰 이름 -->

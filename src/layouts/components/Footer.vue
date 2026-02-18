@@ -28,6 +28,12 @@
         개인정보처리방침
       </RouterLink>
       <RouterLink
+        to="/refund-policy"
+        class="text-primary text-decoration-none"
+      >
+        환불정책
+      </RouterLink>
+      <RouterLink
         to="/support"
         class="text-primary text-decoration-none"
       >

@@ -346,7 +346,6 @@ async function toggleServiceActive(service) {
     await serviceStore.toggleServiceActive(service.id)
   }
   catch (error) {
-    console.error('서비스 상태 변경 실패:', error)
     showError(error.message || '서비스 상태 변경에 실패했습니다.')
   }
   finally {
@@ -396,7 +395,6 @@ async function deleteService() {
     selectedService.value = null
   }
   catch (error) {
-    console.error('서비스 삭제 실패:', error)
     showError(error.message || '서비스 삭제에 실패했습니다.')
   }
 }

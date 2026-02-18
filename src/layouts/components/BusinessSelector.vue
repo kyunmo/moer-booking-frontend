@@ -24,7 +24,7 @@ onMounted(async () => {
     const justRefreshed = sessionStorage.getItem('businessSelectorRefreshed')
     if (justRefreshed) {
       sessionStorage.removeItem('businessSelectorRefreshed')
-      console.log('새로고침 직후: 자동 새로고침 방지')
+      // 새로고침 직후: 자동 새로고침 방지
     }
 
     // 매장 목록 로드 (페이지 번호는 1부터 시작)
@@ -36,7 +36,6 @@ onMounted(async () => {
     }
   } catch (err) {
     error('매장 목록을 불러오는데 실패했습니다.')
-    console.error('매장 목록 로드 실패:', err)
   }
 })
 

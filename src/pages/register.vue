@@ -75,7 +75,6 @@ async function handleRegister() {
     router.push('/shop-admin/dashboard')
   }
   catch (error) {
-    console.error('회원가입 실패:', error)
     errorMessage.value = error?.message || '회원가입에 실패했습니다. 다시 시도해주세요.'
   }
 }

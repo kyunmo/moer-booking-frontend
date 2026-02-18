@@ -5,7 +5,7 @@ meta:
 </route>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
@@ -129,8 +129,8 @@ async function fetchReviews() {
       sortBy: reviewSortBy.value,
     })
   }
-  catch (error) {
-    console.error('리뷰 조회 실패:', error)
+  catch {
+    // 리뷰 조회 실패 시 별도 처리 불필요 (빈 목록 유지)
   }
   finally {
     reviewLoading.value = false
@@ -147,7 +147,7 @@ async function copyToClipboard(text, label) {
     showSuccess(`${label} 복사되었습니다`)
   }
   catch {
-    console.error('클립보드 복사 실패')
+    showError('클립보드 복사에 실패했습니다')
   }
 }
 
@@ -189,6 +189,42 @@ watch([reviewRatingFilter, reviewSortBy], () => {
 
 watch(reviewPage, () => {
   fetchReviews()
+})
+
+// --- SEO Meta Tags ---
+const originalTitle = document.title
+const metaTags = []
+
+function setMetaTag(property, content) {
+  let tag = document.querySelector(`meta[property="${property}"]`)
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute('property', property)
+    document.head.appendChild(tag)
+    metaTags.push(tag)
+  }
+  tag.setAttribute('content', content)
+}
+
+watchEffect(() => {
+  if (business.value) {
+    const name = business.value.name
+    const desc = business.value.description || `${name} 온라인 예약`
+
+    document.title = `${name} - 예약 | YEMO`
+    setMetaTag('og:title', `${name} - 온라인 예약`)
+    setMetaTag('og:description', desc)
+    setMetaTag('og:type', 'website')
+    setMetaTag('og:url', window.location.href)
+    if (business.value.profileImageUrl) {
+      setMetaTag('og:image', business.value.profileImageUrl)
+    }
+  }
+})
+
+onUnmounted(() => {
+  document.title = originalTitle
+  metaTags.forEach(tag => tag.remove())
 })
 
 // --- Lifecycle ---

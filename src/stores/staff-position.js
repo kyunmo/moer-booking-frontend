@@ -58,8 +58,6 @@ export const useStaffPositionStore = defineStore('staffPosition', {
       const businessId = authStore.businessId
 
       if (!businessId) {
-        console.error('businessId가 없습니다')
-
         return
       }
 
@@ -77,7 +75,7 @@ export const useStaffPositionStore = defineStore('staffPosition', {
         return data
       }
       catch (error) {
-        console.error('직급 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -106,7 +104,7 @@ export const useStaffPositionStore = defineStore('staffPosition', {
         return data
       }
       catch (error) {
-        console.error('직급 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -139,7 +137,7 @@ export const useStaffPositionStore = defineStore('staffPosition', {
         return data
       }
       catch (error) {
-        console.error('직급 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -166,7 +164,7 @@ export const useStaffPositionStore = defineStore('staffPosition', {
         this.lastFetchedAt = Date.now()
       }
       catch (error) {
-        console.error('직급 삭제 실패:', error)
+
         throw error
       }
       finally {
@@ -195,7 +193,7 @@ export const useStaffPositionStore = defineStore('staffPosition', {
         return data
       }
       catch (error) {
-        console.error('직급 정렬 변경 실패:', error)
+
         throw error
       }
       finally {

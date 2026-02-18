@@ -179,7 +179,6 @@ async function loadSchedules() {
     }
   }
   catch (error) {
-    console.error('스케줄 조회 실패:', error)
     showError('스케줄을 불러오는데 실패했습니다.')
     schedules.value = getDefaultSchedules()
   }
@@ -206,7 +205,6 @@ async function saveSchedules() {
     showSuccess('근무 스케줄이 저장되었습니다.')
   }
   catch (error) {
-    console.error('스케줄 저장 실패:', error)
     showError('스케줄 저장에 실패했습니다.')
   }
   finally {

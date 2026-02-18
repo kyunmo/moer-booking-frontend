@@ -35,6 +35,7 @@ declare module 'vue-router/auto-routes' {
     'oauth2-redirect': RouteRecordInfo<'oauth2-redirect', '/oauth2-redirect', Record<never, never>, Record<never, never>>,
     'pricing': RouteRecordInfo<'pricing', '/pricing', Record<never, never>, Record<never, never>>,
     'privacy': RouteRecordInfo<'privacy', '/privacy', Record<never, never>, Record<never, never>>,
+    'refund-policy': RouteRecordInfo<'refund-policy', '/refund-policy', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'shop-admin-business-settings': RouteRecordInfo<'shop-admin-business-settings', '/shop-admin/business-settings', Record<never, never>, Record<never, never>>,

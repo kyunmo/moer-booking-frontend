@@ -75,11 +75,12 @@ export const useCouponStore = defineStore('coupon', {
       this.error = null
       try {
         const { data } = await couponApi.createCoupon(couponData)
+        this.coupons.push(data)
         this.currentCoupon = data
         return data
       }
       catch (error) {
-        console.error('쿠폰 생성 실패:', error)
+
         this.error = error.message || '쿠폰 생성에 실패했습니다.'
         throw error
       }
@@ -112,7 +113,7 @@ export const useCouponStore = defineStore('coupon', {
         return data
       }
       catch (error) {
-        console.error('쿠폰 검증 실패:', error)
+
         this.error = error.message || '쿠폰 검증에 실패했습니다.'
         this.validatedCoupon = null
         this.discountAmount = 0
@@ -135,7 +136,7 @@ export const useCouponStore = defineStore('coupon', {
         return data
       }
       catch (error) {
-        console.error('쿠폰 조회 실패:', error)
+
         this.error = error.message || '쿠폰 정보를 불러오는데 실패했습니다.'
         throw error
       }
@@ -166,7 +167,7 @@ export const useCouponStore = defineStore('coupon', {
         return data
       }
       catch (error) {
-        console.error('쿠폰 목록 조회 실패:', error)
+
         this.error = error.message || '쿠폰 목록을 불러오는데 실패했습니다.'
         throw error
       }
@@ -194,7 +195,7 @@ export const useCouponStore = defineStore('coupon', {
         return data
       }
       catch (error) {
-        console.error('쿠폰 수정 실패:', error)
+
         this.error = error.message || '쿠폰 수정에 실패했습니다.'
         throw error
       }
@@ -216,7 +217,7 @@ export const useCouponStore = defineStore('coupon', {
         this.coupons = this.coupons.filter(c => c.id !== couponId)
       }
       catch (error) {
-        console.error('쿠폰 삭제 실패:', error)
+
         this.error = error.message || '쿠폰 삭제에 실패했습니다.'
         throw error
       }

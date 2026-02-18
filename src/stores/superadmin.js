@@ -89,7 +89,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('시스템 통계 조회 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -110,7 +110,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('매출 랭킹 조회 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -131,7 +131,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('업종별 통계 조회 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -164,7 +164,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('매장 목록 조회 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -189,7 +189,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return true
       }
       catch (error) {
-        console.error('매장 삭제 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -215,7 +215,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return true
       }
       catch (error) {
-        console.error('매장 상태 변경 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -248,7 +248,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('사용자 목록 조회 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -274,7 +274,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('사용자 역할 변경 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -300,7 +300,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return true
       }
       catch (error) {
-        console.error('사용자 정지 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -326,7 +326,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return true
       }
       catch (error) {
-        console.error('사용자 활성화 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -351,7 +351,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return true
       }
       catch (error) {
-        console.error('사용자 삭제 실패:', error)
+
         this.error = error.message
         throw error
       }
@@ -387,7 +387,7 @@ export const useSuperAdminStore = defineStore('superadmin', {
         return data
       }
       catch (error) {
-        console.error('감사 로그 조회 실패:', error)
+
         this.error = error.message
         throw error
       }

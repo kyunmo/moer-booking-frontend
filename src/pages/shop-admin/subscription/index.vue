@@ -472,7 +472,6 @@ async function handlePlanChange(newPlan) {
     isPlanChangeDialogOpen.value = false
   }
   catch (error) {
-    console.error('플랜 변경 실패:', error)
     showSnackbar(error.message || '플랜 변경에 실패했습니다.', 'error')
   }
 }
@@ -490,7 +489,6 @@ async function handleCancelSubscription() {
     isCancelDialogOpen.value = false
   }
   catch (error) {
-    console.error('구독 취소 실패:', error)
     showSnackbar(error.message || '구독 취소에 실패했습니다.', 'error')
   }
 }
@@ -501,7 +499,7 @@ onMounted(async () => {
     await subscriptionStore.fetchSubscriptionInfo()
   }
   catch (error) {
-    console.error('구독 정보 조회 실패:', error)
+    // 구독 정보 조회 실패
   }
 })
 </script>

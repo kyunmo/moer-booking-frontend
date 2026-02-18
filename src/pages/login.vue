@@ -60,15 +60,14 @@ async function handleLogin() {
     router.push('/shop-admin/dashboard')
   }
   catch (error) {
-    console.error('로그인 실패:', error)
     errorMessage.value = error?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'
   }
 }
 
 // 테스트 계정으로 빠른 로그인
 function quickLogin() {
-  form.value.email = 'owner@salon.com'
-  form.value.password = 'password123'
+  form.value.email = import.meta.env.VITE_TEST_EMAIL || 'owner@salon.com'
+  form.value.password = import.meta.env.VITE_TEST_PASSWORD || 'password123'
   handleLogin()
 }
 

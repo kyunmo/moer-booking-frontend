@@ -369,7 +369,6 @@ async function handleSubmit() {
     emit('saved')
   }
   catch (error) {
-    console.error('스태프 저장 실패:', error)
     showError(error.message || '스태프 저장에 실패했습니다.')
   }
   finally {

@@ -131,7 +131,7 @@ const providers = [
 ]
 
 function getAccount(providerId) {
-  return socialAccounts.value.find(a => a.provider === providerId)
+  return socialAccounts.value.find(a => a.provider.toLowerCase() === providerId.toLowerCase())
 }
 
 function formatDate(date) {
@@ -146,7 +146,6 @@ async function fetchSocialAccounts() {
     socialAccounts.value = data
   }
   catch (err) {
-    console.error('SNS 계정 조회 실패:', err)
     showError(err.message || 'SNS 계정 조회에 실패했습니다.')
   }
   finally {
@@ -155,8 +154,9 @@ async function fetchSocialAccounts() {
 }
 
 function connectProvider(providerId) {
-  const redirectUri = `${window.location.origin}/oauth2-redirect`
-  window.location.href = `/api/oauth2/authorize/${providerId}?redirect_uri=${redirectUri}`
+  const OAUTH_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace('/api', '')
+
+  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/${providerId}?loginType=admin`
 }
 
 function confirmDisconnect(provider) {
@@ -169,14 +169,12 @@ async function handleDisconnect() {
 
   disconnecting.value = selectedProvider.value.id
   try {
-    await authApi.disconnectSocialAccount(selectedProvider.value.id)
+    await authApi.disconnectSocialAccount(selectedProvider.value.id.toUpperCase())
     success(`${selectedProvider.value.label} 계정 연결이 해제되었습니다.`)
     disconnectDialog.value = false
     await fetchSocialAccounts()
   }
   catch (err) {
-    console.error('SNS 연결 해제 실패:', err)
-
     // AC006: 마지막 로그인 수단 해제 불가
     if (err.code === 'AC006') {
       showError('마지막 로그인 수단은 해제할 수 없습니다. 비밀번호를 먼저 설정해주세요.')

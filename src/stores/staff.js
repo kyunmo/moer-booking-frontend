@@ -51,7 +51,7 @@ export const useStaffStore = defineStore('staff', {
       const businessId = authStore.businessId
 
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -61,7 +61,7 @@ export const useStaffStore = defineStore('staff', {
         this.staffs = data
       }
       catch (error) {
-        console.error('스태프 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -77,7 +77,7 @@ export const useStaffStore = defineStore('staff', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -88,7 +88,7 @@ export const useStaffStore = defineStore('staff', {
         return data
       }
       catch (error) {
-        console.error('스태프 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -114,7 +114,7 @@ export const useStaffStore = defineStore('staff', {
         return data
       }
       catch (error) {
-        console.error('스태프 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -146,7 +146,7 @@ export const useStaffStore = defineStore('staff', {
         return data
       }
       catch (error) {
-        console.error('스태프 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -178,7 +178,7 @@ export const useStaffStore = defineStore('staff', {
         return data
       }
       catch (error) {
-        console.error('스태프 상태 변경 실패:', error)
+
         throw error
       }
       finally {
@@ -205,7 +205,7 @@ export const useStaffStore = defineStore('staff', {
         this.staffs = this.staffs.filter(s => s.id !== staffId)
       }
       catch (error) {
-        console.error('스태프 삭제 실패:', error)
+
         throw error
       }
       finally {

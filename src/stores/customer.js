@@ -48,7 +48,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -58,7 +58,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = data
       }
       catch (error) {
-        console.error('고객 목록 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -74,7 +74,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -84,7 +84,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = data
       }
       catch (error) {
-        console.error('고객 검색 실패:', error)
+
         throw error
       }
       finally {
@@ -100,7 +100,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -110,7 +110,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = data
       }
       catch (error) {
-        console.error('VIP 고객 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -126,7 +126,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -136,7 +136,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = data
       }
       catch (error) {
-        console.error('신규 고객 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -152,7 +152,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -162,7 +162,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = data
       }
       catch (error) {
-        console.error('단골 고객 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -178,7 +178,7 @@ export const useCustomerStore = defineStore('customer', {
       const businessId = authStore.businessId
       
       if (!businessId) {
-        console.error('businessId가 없습니다')
+
         return
       }
 
@@ -189,7 +189,7 @@ export const useCustomerStore = defineStore('customer', {
         return data
       }
       catch (error) {
-        console.error('고객 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -215,7 +215,7 @@ export const useCustomerStore = defineStore('customer', {
         return data
       }
       catch (error) {
-        console.error('고객 생성 실패:', error)
+
         throw error
       }
       finally {
@@ -247,7 +247,7 @@ export const useCustomerStore = defineStore('customer', {
         return data
       }
       catch (error) {
-        console.error('고객 수정 실패:', error)
+
         throw error
       }
       finally {
@@ -274,7 +274,7 @@ export const useCustomerStore = defineStore('customer', {
         this.customers = this.customers.filter(c => c.id !== customerId)
       }
       catch (error) {
-        console.error('고객 삭제 실패:', error)
+
         throw error
       }
       finally {

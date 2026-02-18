@@ -18,7 +18,6 @@ export const useDashboardStore = defineStore('dashboard', {
       const businessId = authStore.businessId
 
       if (!businessId) {
-        console.error('businessId가 없습니다')
         this.error = 'businessId가 없습니다'
         return
       }
@@ -37,7 +36,7 @@ export const useDashboardStore = defineStore('dashboard', {
         this.dashboardData = apiData
       }
       catch (error) {
-        console.error('대시보드 조회 실패:', error)
+
         this.error = error.message || '대시보드 데이터를 불러오는데 실패했습니다'
         this.dashboardData = null
       }
@@ -61,7 +60,7 @@ export const useDashboardStore = defineStore('dashboard', {
         this.periodStats = response.data || response
       }
       catch (error) {
-        console.error('기간별 통계 조회 실패:', error)
+
         throw error
       }
     },
@@ -79,7 +78,7 @@ export const useDashboardStore = defineStore('dashboard', {
         this.goals = response.data || response
       }
       catch (error) {
-        console.error('목표 달성률 조회 실패:', error)
+
         throw error
       }
     },

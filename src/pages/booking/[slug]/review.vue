@@ -2,6 +2,7 @@
 meta:
   layout: public
   public: true
+  requiresCustomerAuth: true
   title: 리뷰 작성 - YEMO
 </route>
 
@@ -56,22 +57,14 @@ const errorMessages = {
   CP004: '본인의 예약에 대해서만 리뷰를 작성할 수 있습니다',
 }
 
-// Check auth and fetch business detail
 onMounted(async () => {
-  // 고객 로그인 미상태 -> 로그인 페이지로 이동
-  if (!customerAuthStore.isAuthenticated) {
-    router.push(`/booking/login?redirect=/booking/${slug.value}/review`)
-
-    return
-  }
-
   // 프로필이 없으면 조회
   if (!customerAuthStore.customer) {
     try {
       await customerAuthStore.fetchProfile()
     }
-    catch (error) {
-      console.error('프로필 조회 실패:', error)
+    catch {
+      // 프로필 조회 실패 시 무시
     }
   }
 
@@ -85,8 +78,8 @@ onMounted(async () => {
     try {
       await bookingStore.fetchBusinessDetail(slug.value)
     }
-    catch (error) {
-      console.error('매장 정보 조회 실패:', error)
+    catch {
+      // 매장 정보 조회 실패 시 무시
     }
   }
 })

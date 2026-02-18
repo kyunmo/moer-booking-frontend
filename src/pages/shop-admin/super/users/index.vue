@@ -356,7 +356,7 @@ async function loadUsers() {
     })
   }
   catch (err) {
-    console.error('사용자 목록 조회 실패:', err)
+
     error.value = err.message
   }
   finally {
@@ -393,7 +393,7 @@ async function confirmRoleChange() {
     loadUsers()
   }
   catch (err) {
-    console.error('역할 변경 실패:', err)
+
     showError(err.message)
   }
 }
@@ -410,7 +410,7 @@ async function handleSuspend(user) {
     loadUsers()
   }
   catch (err) {
-    console.error('사용자 정지 실패:', err)
+
     showError(err.message)
   }
 }
@@ -422,7 +422,7 @@ async function handleActivate(user) {
     loadUsers()
   }
   catch (err) {
-    console.error('사용자 활성화 실패:', err)
+
     showError(err.message)
   }
 }
@@ -450,7 +450,7 @@ async function confirmDelete() {
     loadUsers()
   }
   catch (err) {
-    console.error('사용자 삭제 실패:', err)
+
     showError(err.message)
   }
 }

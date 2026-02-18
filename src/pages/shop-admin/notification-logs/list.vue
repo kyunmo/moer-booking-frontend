@@ -234,7 +234,6 @@ async function loadLogs() {
   }
   catch (error) {
     showError('알림 발송 이력 조회에 실패했습니다')
-    console.error('알림 발송 이력 조회 실패:', error)
   }
   finally {
     loading.value = false

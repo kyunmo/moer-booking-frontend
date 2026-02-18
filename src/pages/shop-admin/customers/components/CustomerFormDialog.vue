@@ -287,7 +287,6 @@ async function handleSubmit() {
     handleClose()
   }
   catch (error) {
-    console.error('고객 저장 실패:', error)
     errorMessage.value = error.response?.data?.message || '저장에 실패했습니다.'
   }
   finally {

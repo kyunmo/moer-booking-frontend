@@ -364,7 +364,7 @@ async function loadDashboard() {
     loadStatsByType()
   }
   catch (err) {
-    console.error('대시보드 로딩 실패:', err)
+
     error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다.'
   }
   finally {
@@ -377,7 +377,7 @@ async function loadSystemStats() {
     await superadminStore.fetchSystemStats()
   }
   catch (err) {
-    console.error('시스템 통계 로딩 실패:', err)
+
     throw err
   }
 }
@@ -395,7 +395,7 @@ async function loadBusinessRanking() {
     await superadminStore.fetchBusinessRanking(startDate, endDate, 10)
   }
   catch (err) {
-    console.error('매출 랭킹 로딩 실패:', err)
+
     rankingError.value = err.message || '매출 랭킹을 불러올 수 없습니다.'
   }
   finally {
@@ -411,7 +411,7 @@ async function loadStatsByType() {
     await superadminStore.fetchStatsByType()
   }
   catch (err) {
-    console.error('업종별 통계 로딩 실패:', err)
+
     statsError.value = err.message || '업종별 통계를 불러올 수 없습니다.'
   }
   finally {

@@ -22,7 +22,7 @@ export const useNotificationStore = defineStore('notification', {
         return data
       }
       catch (error) {
-        console.error('알림 조회 실패:', error)
+
         throw error
       }
       finally {
@@ -41,7 +41,7 @@ export const useNotificationStore = defineStore('notification', {
         }
       }
       catch (error) {
-        console.error('알림 읽음 처리 실패:', error)
+
         throw error
       }
     },
@@ -54,7 +54,7 @@ export const useNotificationStore = defineStore('notification', {
         this.unreadCount = 0
       }
       catch (error) {
-        console.error('전체 알림 읽음 처리 실패:', error)
+
         throw error
       }
     },

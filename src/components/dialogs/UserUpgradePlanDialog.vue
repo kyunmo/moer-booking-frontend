@@ -34,6 +34,11 @@ const plansList = [
 ]
 
 const isConfirmDialogVisible = ref(false)
+
+function handleCancelSubscription() {
+  isConfirmDialogVisible.value = false
+  emit('update:isDialogVisible', false)
+}
 </script>
 
 <template>
@@ -97,13 +102,12 @@ const isConfirmDialogVisible = ref(false)
         </div>
 
         <!-- 👉 Confirm Dialog -->
-        <ConfirmDialog
-          v-model:is-dialog-visible="isConfirmDialogVisible"
-          cancel-title="Cancelled"
-          confirm-title="Unsubscribed!"
-          confirm-msg="Your subscription cancelled successfully."
-          confirmation-question="Are you sure to cancel your subscription?"
-          cancel-msg="Unsubscription Cancelled!!"
+        <ConfirmDeleteDialog
+          v-model="isConfirmDialogVisible"
+          title="구독 취소"
+          message="구독을 취소하시겠습니까? 남은 기간이 끝난 후 서비스가 중단됩니다."
+          confirm-text="구독 취소"
+          @confirm="handleCancelSubscription"
         />
       </VCardText>
     </VCard>

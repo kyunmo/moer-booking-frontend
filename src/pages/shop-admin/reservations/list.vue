@@ -546,7 +546,6 @@ async function cancelReservation() {
     await reservationStore.fetchReservations()
   }
   catch (error) {
-    console.error('예약 취소 실패:', error)
     showError(error.message || '예약 취소에 실패했습니다.')
   }
 }
@@ -554,9 +553,7 @@ async function cancelReservation() {
 // 상태 변경 (✅ 올바른 API 호출)
 async function handleStatusChange(reservationId, newStatus) {
   try {
-    console.log(`🔍 상태 변경 시도: ${newStatus}`)
-
-    // ✅ COMPLETED만 전용 API 사용, 나머지는 기존 방식
+    // COMPLETED만 전용 API 사용, 나머지는 기존 방식
     if (newStatus === 'COMPLETED') {
       // ✅ 완료 전용 API 호출 (고객 통계 자동 업데이트)
       await reservationStore.completeReservation(reservationId)
@@ -568,13 +565,8 @@ async function handleStatusChange(reservationId, newStatus) {
 
     isDetailDialogVisible.value = false
     await reservationStore.fetchReservations()
-
-    // ✅ 성공 메시지
-    console.log(`✅ 예약 상태가 ${newStatus}(으)로 변경되었습니다`)
   }
   catch (error) {
-    console.error('❌ 상태 변경 실패:', error)
-    console.error('에러 상세:', error.response?.data)
     showError(error.message || '상태 변경에 실패했습니다.')
   }
 }

@@ -126,7 +126,6 @@ onMounted(async () => {
   if (errorParam) {
     error.value = true
     errorMessage.value = message || 'SNS 로그인에 실패했습니다.'
-    console.error('OAuth2 로그인 실패:', errorParam, message)
 
     return
   }
@@ -135,7 +134,6 @@ onMounted(async () => {
   if (!accessToken || !refreshToken) {
     error.value = true
     errorMessage.value = '로그인 정보를 받지 못했습니다.'
-    console.error('토큰이 없습니다:', { accessToken, refreshToken })
 
     return
   }
@@ -151,7 +149,6 @@ onMounted(async () => {
   catch (err) {
     error.value = true
     errorMessage.value = '사용자 정보를 가져오는 데 실패했습니다.'
-    console.error('사용자 정보 가져오기 실패:', err)
   }
 })
 </script>

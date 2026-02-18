@@ -22,7 +22,7 @@ export const useOnboardingStore = defineStore('onboarding', {
         this.status = response.data || response
       }
       catch (error) {
-        console.error('온보딩 상태 조회 실패:', error)
+
         this.status = null
       }
       finally {
@@ -43,7 +43,7 @@ export const useOnboardingStore = defineStore('onboarding', {
         }
       }
       catch (error) {
-        console.error('온보딩 건너뛰기 실패:', error)
+
         throw error
       }
     },

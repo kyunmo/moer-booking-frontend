@@ -370,7 +370,6 @@ async function handleSubmit() {
     success('영업시간이 저장되었습니다.')
   }
   catch (err) {
-    console.error('영업시간 저장 실패:', err)
     showError(err.message || '영업시간 저장에 실패했습니다.')
   }
 }
@@ -383,7 +382,6 @@ onMounted(async () => {
     loadBusinessHours()
   }
   catch (err) {
-    console.error('영업시간 조회 실패:', err)
     showError('영업시간 정보를 불러오는데 실패했습니다.')
   }
 })

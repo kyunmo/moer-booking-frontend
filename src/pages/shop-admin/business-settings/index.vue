@@ -1,5 +1,90 @@
 <template>
   <div>
+    <!-- 매장 프로필 이미지 -->
+    <VCard id="settings-profile-image" class="mb-6">
+      <VCardTitle class="d-flex align-center">
+        <VIcon icon="ri-image-line" size="24" class="me-3" />
+        <span>매장 프로필 이미지</span>
+      </VCardTitle>
+
+      <VDivider />
+
+      <VCardText>
+        <VAlert
+          color="info"
+          variant="tonal"
+          class="mb-4"
+        >
+          <VIcon icon="ri-information-line" class="me-2" />
+          예약 페이지에 표시될 매장 대표 이미지입니다.
+        </VAlert>
+
+        <div class="d-flex align-center gap-6 flex-wrap">
+          <!-- 현재 이미지 미리보기 -->
+          <VAvatar size="120" rounded="lg" color="primary" variant="tonal">
+            <VImg v-if="profileImagePreview || profileImageUrl" :src="profileImagePreview || profileImageUrl" cover />
+            <VIcon v-else icon="ri-store-2-line" size="48" />
+          </VAvatar>
+
+          <div>
+            <div class="d-flex gap-2 mb-2">
+              <VBtn
+                variant="outlined"
+                color="primary"
+                prepend-icon="ri-upload-2-line"
+                @click="imageInputRef.click()"
+              >
+                이미지 선택
+              </VBtn>
+              <VBtn
+                v-if="profileImageUrl"
+                variant="text"
+                color="error"
+                prepend-icon="ri-delete-bin-line"
+                @click="handleImageDelete"
+              >
+                삭제
+              </VBtn>
+            </div>
+            <p class="text-caption text-medium-emphasis mb-0">
+              JPG, PNG 형식, 최대 5MB 권장
+            </p>
+            <input
+              ref="imageInputRef"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              @change="handleImageSelect"
+            >
+          </div>
+        </div>
+      </VCardText>
+
+      <template v-if="selectedImageFile">
+        <VDivider />
+
+        <VCardActions>
+          <VSpacer />
+
+          <VBtn
+            color="secondary"
+            variant="outlined"
+            @click="cancelImageSelection"
+          >
+            취소
+          </VBtn>
+
+          <VBtn
+            color="primary"
+            :loading="imageUploading"
+            @click="handleImageUpload"
+          >
+            이미지 업로드
+          </VBtn>
+        </VCardActions>
+      </template>
+    </VCard>
+
     <!-- 매장 기본 정보 -->
     <VCard id="settings-basic-info" class="mb-6">
       <VCardTitle class="d-flex align-center">
@@ -320,6 +405,7 @@
 
 <script setup>
 import { useBusinessSettingsStore } from '@/stores/business-settings'
+import { useServiceCategoryStore } from '@/stores/service-category'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useTour } from '@/composables/useTour'
 import { BUSINESS_TYPES, BUSINESS_TYPE_OPTIONS } from '@/constants/businessTypes'
@@ -329,9 +415,89 @@ import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 
 const settingsStore = useBusinessSettingsStore()
+const serviceCategoryStore = useServiceCategoryStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useSnackbar()
 const { resetAllTours, getCompletedTourCount, TOUR_IDS } = useTour()
+
+// ===== 프로필 이미지 =====
+const imageInputRef = ref(null)
+const profileImageUrl = ref('')
+const profileImagePreview = ref(null)
+const selectedImageFile = ref(null)
+const imageUploading = ref(false)
+
+function handleImageSelect(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // 파일 크기 체크 (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showError('이미지 파일 크기는 5MB 이하로 선택해주세요.')
+    event.target.value = ''
+    return
+  }
+
+  // 파일 타입 체크
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    showError('JPG, PNG, WebP 형식의 이미지만 업로드할 수 있습니다.')
+    event.target.value = ''
+    return
+  }
+
+  selectedImageFile.value = file
+  profileImagePreview.value = URL.createObjectURL(file)
+}
+
+function cancelImageSelection() {
+  selectedImageFile.value = null
+  if (profileImagePreview.value) {
+    URL.revokeObjectURL(profileImagePreview.value)
+    profileImagePreview.value = null
+  }
+  if (imageInputRef.value) {
+    imageInputRef.value.value = ''
+  }
+}
+
+async function handleImageUpload() {
+  if (!selectedImageFile.value) return
+
+  imageUploading.value = true
+  try {
+    const result = await settingsStore.uploadBusinessImage(selectedImageFile.value)
+    profileImageUrl.value = result.profileImageUrl
+    cancelImageSelection()
+    success('매장 이미지가 업로드되었습니다.')
+  }
+  catch (err) {
+    const errorMessages = {
+      FI002: '파일 크기가 5MB를 초과합니다.',
+      FI003: '지원하지 않는 파일 형식입니다. JPG, PNG, WebP만 가능합니다.',
+      B001: '매장 정보를 찾을 수 없습니다.',
+      B002: '매장 접근 권한이 없습니다.',
+    }
+    showError(errorMessages[err.code] || err.message || '이미지 업로드에 실패했습니다.')
+  }
+  finally {
+    imageUploading.value = false
+  }
+}
+
+async function handleImageDelete() {
+  try {
+    await settingsStore.deleteBusinessImage()
+    profileImageUrl.value = ''
+    success('매장 이미지가 삭제되었습니다.')
+  }
+  catch (err) {
+    const errorMessages = {
+      B001: '매장 정보를 찾을 수 없습니다.',
+      B002: '매장 접근 권한이 없습니다.',
+    }
+    showError(errorMessages[err.code] || err.message || '이미지 삭제에 실패했습니다.')
+  }
+}
 
 // 투어 관련
 const completedTourCount = ref(0)
@@ -396,10 +562,13 @@ function loadBusinessInfo() {
     phone: business.phone || '',
     address: business.address || '',
     description: business.description || '',
-    dailyRevenueGoal: business.dailyRevenueGoal || null,
-    monthlyRevenueGoal: business.monthlyRevenueGoal || null,
-    monthlyNewCustomerGoal: business.monthlyNewCustomerGoal || null,
+    dailyRevenueGoal: business.dailyRevenueGoal ?? null,
+    monthlyRevenueGoal: business.monthlyRevenueGoal ?? null,
+    monthlyNewCustomerGoal: business.monthlyNewCustomerGoal ?? null,
   }
+
+  // 프로필 이미지 로드
+  profileImageUrl.value = business.profileImageUrl || ''
 
   // 슬러그 로드
   currentSlug.value = business.slug || ''
@@ -411,20 +580,36 @@ async function handleSubmit() {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
+  // 업종 변경 감지용
+  const previousBusinessType = settingsStore.business?.businessType
+
   try {
     const updateData = { ...form.value }
 
+    // 목표 필드는 null이어도 전송 (백엔드에서 초기화할 수 있도록)
+    const goalFields = ['dailyRevenueGoal', 'monthlyRevenueGoal', 'monthlyNewCustomerGoal']
+
     Object.keys(updateData).forEach(key => {
-      if (updateData[key] === null) {
+      if (updateData[key] === null && !goalFields.includes(key)) {
         delete updateData[key]
       }
     })
 
     await settingsStore.updateBusinessInfo(updateData)
     success('매장 정보가 저장되었습니다.')
+
+    // 업종이 변경된 경우 관련 데이터 새로고침
+    if (form.value.businessType !== previousBusinessType) {
+      // auth 스토어의 business 정보 갱신
+      if (authStore.business) {
+        authStore.business.businessType = form.value.businessType
+      }
+
+      // 서비스 카테고리 캐시 무효화 및 새로고침
+      serviceCategoryStore.invalidateCache()
+    }
   }
   catch (err) {
-    console.error('저장 실패:', err)
     showError(err.message || '저장에 실패했습니다.')
   }
 }
@@ -531,7 +716,7 @@ onMounted(async () => {
     loadBusinessInfo()
   }
   catch (error) {
-    console.error('매장 정보 조회 실패:', error)
+    // 매장 정보 조회 실패
   }
 })
 </script>

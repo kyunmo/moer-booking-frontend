@@ -530,7 +530,6 @@ async function handleRefund() {
     await paymentStore.fetchPayments()
   }
   catch (error) {
-    console.error('환불 처리 실패:', error)
     showSnackbar(error.message || '환불 처리에 실패했습니다.', 'error')
   }
 }
@@ -541,7 +540,7 @@ onMounted(async () => {
     await paymentStore.fetchPayments()
   }
   catch (error) {
-    console.error('결제 내역 조회 실패:', error)
+    // 결제 내역 조회 실패
   }
 })
 </script>
