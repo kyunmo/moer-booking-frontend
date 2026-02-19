@@ -1,4 +1,5 @@
 import authApi from '@/api/auth'
+import { toBackendPlan } from '@/utils/planAdapter'
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router'
 
@@ -166,7 +167,7 @@ export const useAuthStore = defineStore('auth', {
           phone: formData.phone,
           businessName: formData.businessName,
           businessType: formData.businessType || 'SALON',  // 기본값
-          selectedPlan: formData.selectedPlan || 'BASIC',  // 선택한 플랜 (기본값: BASIC)
+          selectedPlan: toBackendPlan(formData.selectedPlan || 'PAID'),  // PAID → BASIC 변환
         })
         
         // 토큰 저장

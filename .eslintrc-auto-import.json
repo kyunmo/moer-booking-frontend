@@ -365,6 +365,9 @@
     "getImageUrl": true,
     "useTour": true,
     "toBackendPlan": true,
-    "toFrontendPlan": true
+    "toFrontendPlan": true,
+    "useTrialGuard": true,
+    "toBackendBillingCycle": true,
+    "toFrontendBillingCycle": true
   }
 }

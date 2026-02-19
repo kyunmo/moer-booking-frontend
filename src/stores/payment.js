@@ -1,4 +1,5 @@
 import paymentApi from '@/api/payment'
+import { toBackendBillingCycle, toBackendPlan } from '@/utils/planAdapter'
 import { defineStore } from 'pinia'
 
 export const usePaymentStore = defineStore('payment', {
@@ -69,13 +70,18 @@ export const usePaymentStore = defineStore('payment', {
   actions: {
     /**
      * 결제 생성 및 처리
+     * @param {string} plan - 프론트엔드 플랜명 (FREE | PAID)
+     * @param {string} paymentMethod - 결제 수단
+     * @param {string|null} couponCode - 쿠폰 코드
+     * @param {string} billingCycle - 결제 주기 (monthly | yearly)
      */
-    async createPayment(plan, paymentMethod, couponCode = null) {
+    async createPayment(plan, paymentMethod, couponCode = null, billingCycle = 'monthly') {
       this.loading = true
       this.error = null
       try {
         const requestData = {
-          plan,
+          plan: toBackendPlan(plan),
+          billingCycle: toBackendBillingCycle(billingCycle),
           paymentMethod,
         }
 

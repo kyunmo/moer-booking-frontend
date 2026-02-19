@@ -1,3 +1,4 @@
+import { useTrialGuard } from '@/composables/useTrialGuard'
 import axios from 'axios'
 
 // Axios 인스턴스 생성
@@ -156,19 +157,30 @@ apiClient.interceptors.response.use(
           window.location.href = '/login'
         }
       }
+      // 402 에러 (결제 필요)
+      else if (status === 402) {
+        // TR003: 업그레이드 필요
+        if (errorCode === 'TR003') {
+          const { showFeatureLockedDialog } = useTrialGuard()
+          showFeatureLockedDialog(errorCode, errorMessage)
+        }
+      }
       // 403 에러 (권한 부족)
       else if (status === 403) {
         // TR001: 체험판 만료
         if (errorCode === 'TR001') {
-          // 업그레이드 페이지로 리다이렉트하거나 모달 표시
+          const { showTrialExpiredDialog } = useTrialGuard()
+          showTrialExpiredDialog()
         }
         // TR002: 체험판 기능 제한
         else if (errorCode === 'TR002') {
-          // 체험판 기능 제한
+          const { showFeatureLockedDialog } = useTrialGuard()
+          showFeatureLockedDialog(errorCode, errorMessage)
         }
-        // TR003: 프리미엄 업그레이드 필요
-        else if (errorCode === 'TR003') {
-          // 프리미엄 업그레이드 필요
+        // SL001/SL002/SL004: 사용량 제한 초과
+        else if (errorCode === 'SL001' || errorCode === 'SL002' || errorCode === 'SL004') {
+          const { showFeatureLockedDialog } = useTrialGuard()
+          showFeatureLockedDialog(errorCode, errorMessage)
         }
         // C006: 접근 권한 없음
         else {

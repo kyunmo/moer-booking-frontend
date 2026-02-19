@@ -141,7 +141,9 @@ declare global {
   const templateRef: typeof import('@vueuse/core')['templateRef']
   const throttledRef: typeof import('@vueuse/core')['throttledRef']
   const throttledWatch: typeof import('@vueuse/core')['throttledWatch']
+  const toBackendBillingCycle: typeof import('./src/utils/planAdapter.js')['toBackendBillingCycle']
   const toBackendPlan: typeof import('./src/utils/planAdapter.js')['toBackendPlan']
+  const toFrontendBillingCycle: typeof import('./src/utils/planAdapter.js')['toFrontendBillingCycle']
   const toFrontendPlan: typeof import('./src/utils/planAdapter.js')['toFrontendPlan']
   const toRaw: typeof import('vue')['toRaw']
   const toReactive: typeof import('@vueuse/core')['toReactive']
@@ -327,6 +329,7 @@ declare global {
   const useToggle: typeof import('@vueuse/core')['useToggle']
   const useTour: typeof import('./src/composables/useTour.js')['useTour']
   const useTransition: typeof import('@vueuse/core')['useTransition']
+  const useTrialGuard: typeof import('./src/composables/useTrialGuard.js')['useTrialGuard']
   const useTrunc: typeof import('@vueuse/math')['useTrunc']
   const useUrlSearchParams: typeof import('@vueuse/core')['useUrlSearchParams']
   const useUserMedia: typeof import('@vueuse/core')['useUserMedia']
@@ -506,7 +509,9 @@ declare module 'vue' {
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
     readonly throttledRef: UnwrapRef<typeof import('@vueuse/core')['throttledRef']>
     readonly throttledWatch: UnwrapRef<typeof import('@vueuse/core')['throttledWatch']>
+    readonly toBackendBillingCycle: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toBackendBillingCycle']>
     readonly toBackendPlan: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toBackendPlan']>
+    readonly toFrontendBillingCycle: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toFrontendBillingCycle']>
     readonly toFrontendPlan: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toFrontendPlan']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toReactive: UnwrapRef<typeof import('@vueuse/core')['toReactive']>
@@ -692,6 +697,7 @@ declare module 'vue' {
     readonly useToggle: UnwrapRef<typeof import('@vueuse/core')['useToggle']>
     readonly useTour: UnwrapRef<typeof import('./src/composables/useTour.js')['useTour']>
     readonly useTransition: UnwrapRef<typeof import('@vueuse/core')['useTransition']>
+    readonly useTrialGuard: UnwrapRef<typeof import('./src/composables/useTrialGuard.js')['useTrialGuard']>
     readonly useTrunc: UnwrapRef<typeof import('@vueuse/math')['useTrunc']>
     readonly useUrlSearchParams: UnwrapRef<typeof import('@vueuse/core')['useUrlSearchParams']>
     readonly useUserMedia: UnwrapRef<typeof import('@vueuse/core')['useUserMedia']>

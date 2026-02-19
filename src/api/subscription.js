@@ -18,10 +18,16 @@ const subscriptionApi = {
   /**
    * 플랜 변경
    * POST /api/subscription/change-plan
-   * @param {string} newPlan - FREE, BASIC, PRO, ENTERPRISE
+   * @param {string} newPlan - FREE, BASIC
+   * @param {string} billingCycle - MONTHLY, YEARLY (선택)
    */
-  changePlan(newPlan) {
-    return apiClient.post('/subscription/change-plan', { newPlan })
+  changePlan(newPlan, billingCycle) {
+    const payload = { newPlan }
+    if (billingCycle) {
+      payload.billingCycle = billingCycle
+    }
+
+    return apiClient.post('/subscription/change-plan', payload)
   },
 
   /**

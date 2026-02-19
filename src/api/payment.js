@@ -7,7 +7,7 @@ const paymentApi = {
   /**
    * 결제 생성 및 처리
    * POST /api/payments
-   * @param {Object} data - { plan: 'BASIC', paymentMethod: 'CARD' }
+   * @param {Object} data - { plan: 'BASIC', billingCycle: 'MONTHLY', paymentMethod: 'CARD', couponCode? }
    */
   createPayment(data) {
     return apiClient.post('/payments', data)

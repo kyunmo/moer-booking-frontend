@@ -7,7 +7,10 @@ import {
   useConfigStore,
 } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
+import FeatureLockedDialog from '@/components/trial/FeatureLockedDialog.vue'
+import TrialExpiredDialog from '@/components/trial/TrialExpiredDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { useTrialGuard } from '@/composables/useTrialGuard'
 
 const { global } = useTheme()
 
@@ -17,6 +20,7 @@ initConfigStore()
 
 const configStore = useConfigStore()
 const { snackbar } = useSnackbar()
+const { trialExpiredDialog, featureLockedDialog, featureLockedInfo } = useTrialGuard()
 </script>
 
 <template>
@@ -36,6 +40,10 @@ const { snackbar } = useSnackbar()
       >
         {{ snackbar.message }}
       </VSnackbar>
+
+      <!-- Global Trial Dialogs -->
+      <TrialExpiredDialog v-model="trialExpiredDialog" />
+      <FeatureLockedDialog v-model="featureLockedDialog" :info="featureLockedInfo" />
     </VApp>
   </VLocaleProvider>
 </template>

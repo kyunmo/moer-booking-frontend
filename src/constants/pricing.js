@@ -1,3 +1,9 @@
+export const TRIAL = {
+  DURATION_DAYS: 30,
+  WARNING_THRESHOLD_DAYS: 7,
+  RESERVATION_WARNING_COUNT: 20,
+}
+
 export const BILLING_CYCLES = {
   MONTHLY: 'monthly',
   YEARLY: 'yearly',

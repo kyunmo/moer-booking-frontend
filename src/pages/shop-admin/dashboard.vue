@@ -50,6 +50,10 @@
         </VCol>
       </VRow>
 
+      <!-- Trial / 사용량 배너 -->
+      <TrialBanner />
+      <ReservationUsageBanner />
+
       <!-- 알림 영역 -->
       <UnassignedReservationAlert class="mb-4" />
 
@@ -398,11 +402,14 @@
 <script setup>
 import OnboardingWizard from '@/components/OnboardingWizard.vue'
 import StatisticsCard from '@/components/StatisticsCard.vue'
+import ReservationUsageBanner from '@/components/trial/ReservationUsageBanner.vue'
+import TrialBanner from '@/components/trial/TrialBanner.vue'
 import UnassignedReservationAlert from '@/components/UnassignedReservationAlert.vue'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useOnboardingStore } from '@/stores/onboarding'
+import { useSubscriptionStore } from '@/stores/subscription'
 import { useTour } from '@/composables/useTour'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
@@ -414,6 +421,7 @@ const theme = useTheme()
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
+const subscriptionStore = useSubscriptionStore()
 
 const chartKey = ref(0)
 const chartReady = ref(false)
@@ -615,6 +623,9 @@ onMounted(async () => {
 
     return
   }
+
+  // 구독 정보 + 대시보드 병렬 로드
+  subscriptionStore.fetchSubscriptionInfo().catch(() => {})
 
   // 대시보드 로드
   await loadDashboard()

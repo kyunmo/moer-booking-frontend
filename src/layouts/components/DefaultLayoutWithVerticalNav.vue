@@ -12,6 +12,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 import NavBarI18n from '@core/components/I18n.vue'
 import BusinessSelector from '@/layouts/components/BusinessSelector.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
+import TrialNavBadge from '@/components/trial/TrialNavBadge.vue'
 import { useTour } from '@/composables/useTour'
 
 // @layouts plugin
@@ -90,6 +91,7 @@ watch([
           </VTooltip>
           <VIcon icon="ri-compass-discover-line" />
         </IconBtn>
+        <TrialNavBadge class="me-1" />
         <NavBarNotifications class="me-1" />
         <UserProfile />
       </div>
