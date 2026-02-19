@@ -34,7 +34,8 @@ const form = ref({
   password: '',
   passwordConfirm: '',
   businessType: 'BEAUTY_SHOP',
-  selectedPlan: 'BASIC', // 기본값: BASIC 플랜
+  selectedPlan: 'PAID', // 기본값: PAID 플랜
+  billingCycle: 'yearly', // 기본값: 연간 결제
   agreeTerms: false,
 })
 
@@ -72,6 +73,7 @@ async function handleRegister() {
       password: form.value.password,
       businessType: form.value.businessType,
       selectedPlan: form.value.selectedPlan, // 선택한 플랜 전송
+      billingCycle: form.value.billingCycle, // 결제 주기 전송
     })
 
     // 회원가입 성공 시 대시보드로 이동
@@ -140,16 +142,24 @@ async function handleRegister() {
         <VRow>
           <VCol
             cols="12"
-            md="4"
-            v-for="plan in ['FREE', 'BASIC', 'PRO']"
+            md="6"
+            v-for="plan in ['FREE', 'PAID']"
             :key="plan"
           >
             <PricingCard
               :plan="plan"
               :selected="form.selectedPlan === plan"
+              :billing-cycle="form.billingCycle"
               compact
               @select="form.selectedPlan = $event"
             />
+          </VCol>
+
+          <VCol v-if="form.selectedPlan === 'PAID'" cols="12">
+            <VBtnToggle v-model="form.billingCycle" mandatory color="primary" class="mt-2">
+              <VBtn value="monthly">월 결제 (20,000원/월)</VBtn>
+              <VBtn value="yearly">연간 결제 (200,000원/년) - 2개월 무료!</VBtn>
+            </VBtnToggle>
           </VCol>
         </VRow>
 
@@ -162,7 +172,7 @@ async function handleRegister() {
         >
           <div class="text-body-2">
             <VIcon icon="ri-information-line" class="me-2" />
-            <strong>{{ form.selectedPlan === 'BASIC' ? '베이직' : '프로' }} 플랜</strong>을 30일간 무료로 체험하실 수 있습니다. 체험 기간 종료 후 자동 과금되지 않습니다.
+            <strong>유료 플랜</strong>을 30일간 무료로 체험하실 수 있습니다. 체험 기간 종료 후 자동 과금되지 않습니다.
           </div>
         </VAlert>
       </VCardText>

@@ -75,7 +75,7 @@ const featureCategories = [
       {
         title: '재방문 알림',
         icon: 'ri-repeat-line',
-        badge: 'PRO',
+        badge: '유료',
         description: '시술별 맞춤 주기로 자동 발송. 펌 3개월, 염색 2개월 후 재방문 추천',
         highlights: ['시술별 주기', '재방문율 30% 증가', '단골 확보'],
       },
@@ -142,7 +142,7 @@ const featureCategories = [
       {
         title: '디자이너별 성과',
         icon: 'ri-team-line',
-        badge: 'PRO',
+        badge: '유료',
         description: '디자이너별 예약 건수, 매출, 재방문율 확인. 인센티브 계산 자동',
         highlights: ['성과 분석', '인센티브', '투명한 평가'],
       },

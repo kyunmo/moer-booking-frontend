@@ -1,8 +1,12 @@
 <script setup>
 import PricingCard from '@/components/pricing/PricingCard.vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+const isYearly = ref(true)
+const billingCycle = computed(() => (isYearly.value ? 'yearly' : 'monthly'))
 
 function handlePlanSelect(plan) {
   router.push({ path: '/register', query: { plan } })
@@ -28,12 +32,23 @@ function handlePlanSelect(plan) {
         </VChip>
       </div>
 
-      <!-- 3 Pricing Cards -->
+      <!-- Billing Cycle Toggle -->
+      <div class="d-flex align-center justify-center gap-4 mb-8">
+        <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'monthly' }">월 결제</span>
+        <VSwitch v-model="isYearly" hide-details inset color="primary" />
+        <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'yearly' }">
+          연간 결제
+          <VChip color="success" size="x-small" class="ms-1">2개월 무료</VChip>
+        </span>
+      </div>
+
+      <!-- Pricing Cards -->
       <VRow justify="center">
-        <VCol v-for="plan in ['FREE', 'BASIC', 'PRO']" :key="plan" cols="12" sm="6" md="4">
+        <VCol v-for="plan in ['FREE', 'PAID']" :key="plan" cols="12" sm="6" md="5" lg="4">
           <PricingCard
             :plan="plan"
-            :selected="plan === 'BASIC'"
+            :selected="plan === 'PAID'"
+            :billing-cycle="billingCycle"
             @select="handlePlanSelect"
           />
         </VCol>

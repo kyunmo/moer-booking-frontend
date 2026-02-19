@@ -363,6 +363,8 @@
     "useSnackbar": true,
     "useBusinessIcon": true,
     "getImageUrl": true,
-    "useTour": true
+    "useTour": true,
+    "toBackendPlan": true,
+    "toFrontendPlan": true
   }
 }

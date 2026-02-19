@@ -3,106 +3,112 @@ meta:
   layout: public
   public: true
   title: 요금제 - YEMO
-  description: 업종과 규모에 맞는 합리적인 요금제. 30일 무료 체험으로 먼저 경험해보세요. 월 29,000원부터 시작.
-  keywords: 예약 시스템 가격, 요금제, 무료 체험, 베이직 플랜, 프로 플랜
+  description: 무료로 시작하고 필요할 때 업그레이드. 월 20,000원(VAT 별도)으로 모든 기능을 사용하세요.
+  keywords: 예약 시스템 가격, 요금제, 무료 체험, 월 결제, 연간 결제
 </route>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PricingCard from '@/components/pricing/PricingCard.vue'
+import { PLANS, BILLING_CYCLES, formatCurrency, getMonthlyEquivalent, getYearlySavings } from '@/constants/pricing'
 
 const router = useRouter()
-const selectedPlan = ref('BASIC')
+const selectedPlan = ref('PAID')
+const billingCycle = ref('yearly')
 
-// 플랜별 상세 정보 (백엔드 스펙 기준)
-const plansDetail = {
-  FREE: {
-    name: '무료',
-    price: 0,
-    priceText: '0원',
-    features: [
-      { text: '월 예약 30건', included: true },
-      { text: '직원 1명', included: true },
-      { text: '시술 메뉴 10개', included: true },
-      { text: '예약 캘린더', included: true },
-      { text: '수동 예약 등록', included: true },
-      { text: '휴무일 설정', included: true },
-      { text: '고객 기본 정보', included: true },
-      { text: '방문 이력 (최근 10건)', included: true },
-      { text: '카카오톡 알림', included: false },
-      { text: '고객 태그', included: false },
-      { text: '고급 통계', included: false },
-    ],
-    limits: [
-      '월 30건 초과 시 업그레이드 필요',
-      '하단 광고 표시',
-    ],
-  },
-  BASIC: {
-    name: '베이직',
-    price: 29000,
-    priceText: '29,000원',
-    badge: '가장 인기',
-    features: [
-      { text: '월 예약 100건', included: true },
-      { text: '직원 3명', included: true },
-      { text: '시술 메뉴 무제한', included: true },
-      { text: '예약 캘린더 (일/주/월 뷰)', included: true },
-      { text: '예약 승인/거절', included: true },
-      { text: '고객 자동 등록', included: true },
-      { text: '방문 이력 무제한', included: true },
-      { text: '고객 태그 관리 (VIP, 단골)', included: true },
-      { text: '카카오톡 자동 알림', included: true },
-      { text: '오늘/주간/월간 매출', included: true },
-      { text: '광고 제거', included: true },
-      { text: '재방문 알림', included: false },
-      { text: '디자이너별 성과', included: false },
-    ],
-  },
-  PRO: {
-    name: '프로',
-    price: 79000,
-    priceText: '79,000원',
-    features: [
-      { text: '월 예약 500건', included: true },
-      { text: '직원 10명', included: true },
-      { text: '베이직 플랜 모든 기능', included: true },
-      { text: '재방문 자동 알림', included: true },
-      { text: '디자이너별 성과 분석', included: true },
-      { text: '시간대별 예약 분석', included: true },
-      { text: '고급 통계 대시보드', included: true },
-      { text: 'CSV/Excel 데이터 추출', included: true },
-      { text: '우선 기술 지원', included: true },
-    ],
-  },
-}
+const isYearly = computed({
+  get: () => billingCycle.value === 'yearly',
+  set: (val) => { billingCycle.value = val ? 'yearly' : 'monthly' },
+})
+
+// 플랜별 상세 정보 (2티어: 무료 + 유료)
+const plansDetail = computed(() => {
+  const paidMonthlyEquivalent = getMonthlyEquivalent('PAID', billingCycle.value)
+  const paidPrice = billingCycle.value === 'yearly'
+    ? PLANS.PAID.yearlyPrice
+    : PLANS.PAID.monthlyPrice
+
+  return {
+    FREE: {
+      name: '무료',
+      price: 0,
+      priceText: '0원',
+      features: [
+        { text: '월 예약 30건', included: true },
+        { text: '직원 1명', included: true },
+        { text: '시술 메뉴 관리', included: true },
+        { text: '예약 캘린더', included: true },
+        { text: '수동 예약 등록', included: true },
+        { text: '휴무일 설정', included: true },
+        { text: '고객 기본 정보', included: true },
+        { text: '방문 이력 (최근 10건)', included: true },
+        { text: '카카오톡 자동 알림', included: false },
+        { text: '고객 태그 관리', included: false },
+        { text: '통계 및 리포트', included: false },
+      ],
+      limits: [
+        '월 30건 초과 시 업그레이드 필요',
+      ],
+    },
+    PAID: {
+      name: '유료',
+      price: paidPrice,
+      priceText: formatCurrency(paidMonthlyEquivalent),
+      priceSubText: billingCycle.value === 'yearly'
+        ? `연 ${formatCurrency(PLANS.PAID.yearlyPrice)} (VAT 별도)`
+        : '(VAT 별도)',
+      badge: '추천',
+      features: [
+        { text: '월 예약 무제한', included: true },
+        { text: '직원 5명', included: true },
+        { text: '시술 메뉴 무제한', included: true },
+        { text: '예약 캘린더 (일/주/월 뷰)', included: true },
+        { text: '예약 승인/거절', included: true },
+        { text: '고객 자동 등록', included: true },
+        { text: '방문 이력 무제한', included: true },
+        { text: '고객 태그 관리 (VIP, 단골)', included: true },
+        { text: '카카오톡 자동 알림', included: true },
+        { text: '통계 및 리포트', included: true },
+        { text: '디자이너별 성과 분석', included: true },
+      ],
+    },
+  }
+})
 
 // FAQ 데이터
 const faqs = [
   {
-    question: 'VAT는 별도인가요?',
-    answer: '네, VAT 10%가 별도 부과됩니다.\n\n베이직 29,000원 + VAT 2,900원 = 31,900원\n프로 79,000원 + VAT 5,900원 = 86,900원\n\n사업자 고객은 세금계산서 발행 가능합니다.',
+    question: '가격에 VAT가 포함되어 있나요?',
+    answer: '유료 플랜 20,000원/월은 VAT 별도 금액입니다.\n\nVAT(10%)를 포함하면 월 22,000원이며, 사업자 고객은 세금계산서 발행이 가능합니다.',
   },
   {
-    question: '30일 무료 체험은 어떤 플랜인가요?',
-    answer: '베이직 또는 프로 플랜을 선택하여 체험 가능합니다.\n\n• 30일 동안 선택한 플랜의 모든 기능 사용\n• 신용카드 등록 불필요\n• 체험 종료 후 자동 과금 없음\n• 원하시면 유료 플랜으로 전환\n\n무료 플랜은 체험 없이 바로 사용 가능합니다.',
+    question: '30일 무료 체험은 어떻게 이용하나요?',
+    answer: '유료 플랜을 30일간 무료로 체험할 수 있습니다.\n\n• 30일 동안 유료 플랜의 모든 기능 사용\n• 신용카드 등록 불필요\n• 체험 종료 후 자동 과금 없음\n• 체험 종료 후 무료 플랜으로 자동 전환\n\n무료 플랜은 체험 없이 바로 사용 가능합니다.',
   },
   {
-    question: '예약 건수를 초과하면 어떻게 되나요?',
-    answer: '자동으로 차단되지 않습니다.\n\n무료 플랜 (월 30건): 30건 초과 시 알림 후 업그레이드 권장\n베이직 플랜 (월 100건): 100건 초과 시 알림 후 프로 플랜 권장\n프로 플랜: 500건까지 가능\n\n초과해도 예약은 계속 접수되며, 다음 달부터 적절한 플랜으로 업그레이드를 권장드립니다.',
+    question: '무료 플랜에서 예약 30건을 초과하면 어떻게 되나요?',
+    answer: '월 30건 초과 시 새로운 예약 등록이 제한됩니다.\n\n기존 예약은 그대로 유지되며, 유료 플랜으로 업그레이드하면 즉시 무제한으로 사용 가능합니다.\n\n다음 달 1일에 예약 카운트가 초기화됩니다.',
   },
   {
     question: '직원 수를 초과하면?',
-    answer: '업그레이드가 필요합니다.\n\n무료: 1명 → 베이직: 3명 → 프로: 10명\n\n베이직 플랜에서 4명째 직원 추가 시도 시 "프로 플랜으로 업그레이드하세요" 안내가 표시됩니다.',
+    answer: '업그레이드가 필요합니다.\n\n무료: 1명 → 유료: 5명\n\n무료 플랜에서 2명째 직원 추가 시 "유료 플랜으로 업그레이드하세요" 안내가 표시됩니다.',
   },
   {
     question: '환불 정책은 어떻게 되나요?',
-    answer: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 100% 환불 (이용 기간 상관없이)\n\n유료 전환 후: 사용 일수 차감 후 일할 계산 환불\n예: 월 29,000원, 10일 사용 → 19,000원 환불\n\n환불 신청 후 5영업일 이내 처리됩니다.',
+    answer: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후: 사용 일수 차감 후 일할 계산 환불\n예: 월 20,000원 + VAT, 10일 사용 → 약 14,667원 + VAT 환불\n\n환불 신청 후 5영업일 이내 처리됩니다.',
   },
   {
     question: '플랜을 변경하면 데이터는 어떻게 되나요?',
-    answer: '모든 데이터는 그대로 유지됩니다.\n\n업그레이드 (무료 → 베이직 → 프로):\n모든 데이터 유지 + 추가 기능 사용 가능\n\n다운그레이드 (프로 → 베이직 → 무료):\n모든 데이터 유지되지만 제한 사항 적용\n예: 베이직→무료 시 고객 이력은 유지되지만 최근 10건만 표시',
+    answer: '모든 데이터는 그대로 유지됩니다.\n\n업그레이드 (무료 → 유료):\n모든 데이터 유지 + 추가 기능 즉시 활성화\n\n다운그레이드 (유료 → 무료):\n모든 데이터 유지, 단 직원 수/예약 건수 제한 적용\n예: 유료→무료 시 고객 이력은 유지되지만 최근 10건만 표시',
+  },
+  {
+    question: '연간 결제 시 할인이 있나요?',
+    answer: '네! 연간 결제 시 2개월 무료 혜택이 적용됩니다.\n\n월 결제: 20,000원 × 12개월 = 240,000원/년 (VAT 별도)\n연간 결제: 200,000원/년 (VAT 별도)\n\n절약 금액: 40,000원 (VAT 별도)\n\n연간 결제를 선택하면 월 환산 약 16,667원에 모든 기능을 사용하실 수 있습니다.',
+  },
+  {
+    question: '월 결제에서 연간 결제로 변경 가능한가요?',
+    answer: '네, 구독 관리에서 언제든 변경 가능합니다.\n\n변경 방법:\n1. 대시보드 > 구독 관리\n2. "결제 주기 변경" 선택\n3. 연간 결제 선택\n4. 차액 결제 후 즉시 적용\n\n이미 결제한 월 구독료는 일할 계산하여 차감됩니다.',
   },
 ]
 
@@ -125,7 +131,7 @@ function startWithPlan(plan) {
       <VContainer>
         <div class="text-center">
           <h1 class="text-h2 text-md-h1 font-weight-bold mb-4">
-            간단하고 투명한 요금제
+            심플한 요금제
           </h1>
           <p class="text-h6 text-medium-emphasis mb-2">
             숨겨진 비용 없음 | 언제든 해지 가능 | 플랜 변경 자유
@@ -140,15 +146,28 @@ function startWithPlan(plan) {
     <!-- 요금제 카드 -->
     <section class="pricing-cards-section py-12">
       <VContainer>
-        <VRow>
+        <!-- 월/연간 결제 토글 -->
+        <div class="d-flex align-center justify-center gap-4 mb-8">
+          <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'monthly' }">월 결제</span>
+          <VSwitch v-model="isYearly" hide-details inset color="primary" />
+          <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'yearly' }">
+            연간 결제
+            <VChip color="success" size="x-small" class="ms-1">2개월 무료</VChip>
+          </span>
+        </div>
+
+        <VRow justify="center">
           <VCol
-            v-for="plan in ['FREE', 'BASIC', 'PRO']"
+            v-for="plan in ['FREE', 'PAID']"
             :key="plan"
             cols="12"
-            md="4"
+            sm="6"
+            md="5"
+            lg="4"
           >
             <PricingCard
               :plan="plan"
+              :billing-cycle="billingCycle"
               :selected="selectedPlan === plan"
               @select="selectPlan"
             />
@@ -165,7 +184,7 @@ function startWithPlan(plan) {
             상세 기능 비교
           </h2>
           <p class="text-body-1 text-medium-emphasis">
-            플랜별 제공되는 기능을 자세히 비교해보세요
+            무료 플랜과 유료 플랜의 기능을 비교해보세요
           </p>
         </div>
 
@@ -173,8 +192,7 @@ function startWithPlan(plan) {
         <div class="d-md-none mb-6">
           <VTabs v-model="selectedPlan" grow>
             <VTab value="FREE">무료</VTab>
-            <VTab value="BASIC">베이직</VTab>
-            <VTab value="PRO">프로</VTab>
+            <VTab value="PAID">유료</VTab>
           </VTabs>
 
           <VCard class="mt-4">
@@ -182,7 +200,7 @@ function startWithPlan(plan) {
               {{ plansDetail[selectedPlan].name }}
               <VChip
                 v-if="plansDetail[selectedPlan].badge"
-                color="success"
+                color="primary"
                 size="small"
                 class="ms-2"
               >
@@ -195,7 +213,7 @@ function startWithPlan(plan) {
                   {{ plansDetail[selectedPlan].priceText }}
                 </div>
                 <div class="text-caption text-medium-emphasis">
-                  /월 (VAT 별도)
+                  /월 {{ plansDetail[selectedPlan].priceSubText || '' }}
                 </div>
               </div>
 
@@ -254,34 +272,28 @@ function startWithPlan(plan) {
         <VTable class="d-none d-md-block comparison-table">
           <thead>
             <tr>
-              <th class="text-left" style="width: 40%">기능</th>
-              <th class="text-center" style="width: 20%">
+              <th class="text-left" style="width: 50%">기능</th>
+              <th class="text-center" style="width: 25%">
                 <div class="py-4">
                   <div class="text-h6 font-weight-bold">무료</div>
                   <div class="text-h5 font-weight-bold text-info mt-2">0원</div>
                   <div class="text-caption">/월</div>
                 </div>
               </th>
-              <th class="text-center" style="width: 20%">
+              <th class="text-center" style="width: 25%">
                 <div class="py-4">
-                  <VChip color="success" size="small" class="mb-2">가장 인기</VChip>
-                  <div class="text-h6 font-weight-bold">베이직</div>
-                  <div class="text-h5 font-weight-bold text-success mt-2">29,000원</div>
-                  <div class="text-caption">/월</div>
-                </div>
-              </th>
-              <th class="text-center" style="width: 20%">
-                <div class="py-4">
-                  <div class="text-h6 font-weight-bold">프로</div>
-                  <div class="text-h5 font-weight-bold text-primary mt-2">79,000원</div>
-                  <div class="text-caption">/월</div>
+                  <VChip color="primary" size="small" class="mb-2">추천</VChip>
+                  <div class="text-h6 font-weight-bold">유료</div>
+                  <div class="text-h5 font-weight-bold text-primary mt-2">
+                    {{ plansDetail.PAID.priceText }}
+                  </div>
+                  <div class="text-caption">/월 {{ plansDetail.PAID.priceSubText || '' }}</div>
                 </div>
               </th>
             </tr>
           </thead>
           <tbody>
-            <!-- 기능별 행 생성 -->
-            <tr v-for="(feature, index) in plansDetail.BASIC.features" :key="index">
+            <tr v-for="(feature, index) in plansDetail.PAID.features" :key="index">
               <td class="text-body-2 font-weight-medium">{{ feature.text }}</td>
               <td class="text-center">
                 <VIcon
@@ -294,16 +306,7 @@ function startWithPlan(plan) {
               </td>
               <td class="text-center">
                 <VIcon
-                  v-if="plansDetail.BASIC.features[index]?.included"
-                  icon="ri-check-line"
-                  color="success"
-                  size="24"
-                />
-                <VIcon v-else icon="ri-close-line" color="error" size="24" />
-              </td>
-              <td class="text-center">
-                <VIcon
-                  v-if="plansDetail.PRO.features[index]?.included"
+                  v-if="plansDetail.PAID.features[index]?.included"
                   icon="ri-check-line"
                   color="success"
                   size="24"
@@ -321,12 +324,7 @@ function startWithPlan(plan) {
                 </VBtn>
               </td>
               <td class="text-center py-4">
-                <VBtn color="success" @click="startWithPlan('BASIC')">
-                  30일 무료 체험
-                </VBtn>
-              </td>
-              <td class="text-center py-4">
-                <VBtn color="primary" @click="startWithPlan('PRO')">
+                <VBtn color="primary" @click="startWithPlan('PAID')">
                   30일 무료 체험
                 </VBtn>
               </td>
@@ -390,13 +388,13 @@ function startWithPlan(plan) {
               지금 시작하세요
             </h2>
             <p class="text-h6 mb-8 text-white opacity-90">
-              완벽한 요금제를 찾으셨나요?
+              커피 2~3잔 값으로 예약 관리 자동화
             </p>
             <VBtn
               size="x-large"
               color="white"
               prepend-icon="ri-rocket-line"
-              @click="startWithPlan('BASIC')"
+              @click="startWithPlan('PAID')"
             >
               30일 무료 체험 시작하기
             </VBtn>

@@ -141,6 +141,8 @@ declare global {
   const templateRef: typeof import('@vueuse/core')['templateRef']
   const throttledRef: typeof import('@vueuse/core')['throttledRef']
   const throttledWatch: typeof import('@vueuse/core')['throttledWatch']
+  const toBackendPlan: typeof import('./src/utils/planAdapter.js')['toBackendPlan']
+  const toFrontendPlan: typeof import('./src/utils/planAdapter.js')['toFrontendPlan']
   const toRaw: typeof import('vue')['toRaw']
   const toReactive: typeof import('@vueuse/core')['toReactive']
   const toRef: typeof import('vue')['toRef']
@@ -504,6 +506,8 @@ declare module 'vue' {
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
     readonly throttledRef: UnwrapRef<typeof import('@vueuse/core')['throttledRef']>
     readonly throttledWatch: UnwrapRef<typeof import('@vueuse/core')['throttledWatch']>
+    readonly toBackendPlan: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toBackendPlan']>
+    readonly toFrontendPlan: UnwrapRef<typeof import('./src/utils/planAdapter.js')['toFrontendPlan']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toReactive: UnwrapRef<typeof import('@vueuse/core')['toReactive']>
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>

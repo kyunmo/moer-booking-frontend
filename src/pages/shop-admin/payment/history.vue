@@ -418,9 +418,8 @@ const filteredPayments = computed(() => {
 function getPlanName(plan) {
   const names = {
     FREE: '무료',
-    BASIC: '베이직',
-    PRO: '프로',
-    ENTERPRISE: '엔터프라이즈',
+    BASIC: '유료',
+    PAID: '유료',
   }
   return names[plan] || plan
 }

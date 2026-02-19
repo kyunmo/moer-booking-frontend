@@ -89,7 +89,10 @@
                         {{ plan.name }}
                       </h4>
                       <p class="text-h4 font-weight-bold text-primary">
-                        {{ plan.priceText }}
+                        {{ formatCurrency(plan.monthlyPrice) }}~/월
+                      </p>
+                      <p class="text-caption text-medium-emphasis">
+                        VAT 별도
                       </p>
                     </div>
                     <VDivider class="my-4" />
@@ -115,6 +118,29 @@
                 </VCard>
               </VCol>
             </VRow>
+
+            <!-- 결제 주기 선택 -->
+            <VRadioGroup v-if="selectedPlan" v-model="billingCycle" class="mt-4">
+              <VRadio value="monthly">
+                <template #label>
+                  <div>
+                    <span class="font-weight-bold">월 결제</span>
+                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.monthlyPrice || 0) }}/월 (VAT 별도)</span>
+                  </div>
+                </template>
+              </VRadio>
+              <VRadio value="yearly">
+                <template #label>
+                  <div>
+                    <span class="font-weight-bold">연간 결제</span>
+                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.yearlyPrice || 0) }}/년 (VAT 별도)</span>
+                    <VChip color="success" size="x-small" class="ms-2">
+                      2개월 무료
+                    </VChip>
+                  </div>
+                </template>
+              </VRadio>
+            </VRadioGroup>
           </VCardText>
         </VCard>
 
@@ -172,11 +198,14 @@
               </p>
               <p class="text-h6 font-weight-bold">
                 {{ selectedPlanInfo?.name || '플랜을 선택하세요' }}
+                <span v-if="selectedPlan" class="text-body-2 font-weight-regular text-medium-emphasis">
+                  ({{ billingCycle === 'yearly' ? '연간' : '월' }} 결제)
+                </span>
               </p>
             </div>
 
             <!-- 쿠폰 적용 -->
-            <div v-if="selectedPlan && selectedPlan !== 'ENTERPRISE'" class="mb-4">
+            <div v-if="selectedPlan" class="mb-4">
               <p class="text-body-2 text-medium-emphasis mb-2">
                 쿠폰 코드
               </p>
@@ -219,7 +248,7 @@
 
             <!-- 결제 금액 상세 -->
             <div class="mb-4">
-              <!-- 원래 금액 -->
+              <!-- 상품 금액 -->
               <div class="d-flex justify-space-between align-center mb-2">
                 <p class="text-body-2 text-medium-emphasis mb-0">
                   상품 금액
@@ -229,13 +258,33 @@
                 </p>
               </div>
 
-              <!-- 할인 금액 -->
+              <!-- VAT -->
+              <div class="d-flex justify-space-between align-center mb-2">
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  VAT (10%)
+                </p>
+                <p class="text-body-1 mb-0">
+                  {{ selectedPlanInfo ? formatCurrency(vatAmount) : '0원' }}
+                </p>
+              </div>
+
+              <!-- 쿠폰 할인 -->
               <div v-if="appliedCoupon" class="d-flex justify-space-between align-center mb-2">
                 <p class="text-body-2 text-medium-emphasis mb-0">
                   쿠폰 할인
                 </p>
                 <p class="text-body-1 mb-0 text-error">
                   -{{ formatCurrency(discountAmount) }}
+                </p>
+              </div>
+
+              <!-- 연간 절약 -->
+              <div v-if="savedAmount > 0" class="d-flex justify-space-between align-center mb-2">
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  연간 절약
+                </p>
+                <p class="text-body-1 mb-0 text-success">
+                  -{{ formatCurrency(savedAmount) }}
                 </p>
               </div>
 
@@ -247,7 +296,7 @@
                   최종 결제 금액
                 </p>
                 <p class="text-h5 font-weight-bold text-primary mb-0">
-                  {{ selectedPlanInfo ? formatCurrency(finalAmount) : '0원' }}
+                  {{ selectedPlanInfo ? formatCurrency(totalAmount) : '0원' }}
                 </p>
               </div>
             </div>
@@ -272,9 +321,10 @@
               class="mb-4"
             >
               <div class="text-body-2">
-                • 결제 후 즉시 서비스가 활성화됩니다<br>
-                • 다음 결제일에 자동으로 갱신됩니다<br>
-                • 언제든지 플랜을 변경할 수 있습니다
+                &bull; 결제 후 즉시 서비스가 활성화됩니다<br>
+                &bull; 다음 결제일에 자동으로 갱신됩니다<br>
+                &bull; 언제든지 플랜을 변경할 수 있습니다<br>
+                &bull; 표시 금액은 VAT 포함 금액입니다
               </div>
             </VAlert>
 
@@ -314,6 +364,7 @@ const { showSnackbar } = useSnackbar()
 
 const selectedPlan = ref(null)
 const selectedPaymentMethod = ref('CARD')
+const billingCycle = ref('monthly')
 const loading = ref(false)
 const paymentSuccess = ref(false)
 const paymentFailed = ref(false)
@@ -324,46 +375,21 @@ const couponCode = ref('')
 const couponLoading = ref(false)
 const appliedCoupon = ref(null)
 
-// 플랜 정보 (FREE 제외)
+// 플랜 정보 (FREE 제외, 2티어: 유료만)
 const availablePlans = [
   {
-    value: 'BASIC',
-    name: '베이직',
-    price: 29000,
-    priceText: '29,000원',
-    badge: '인기',
-    badgeColor: 'success',
-    features: [
-      '월 예약 100건',
-      '직원 3명',
-      '카카오톡 알림',
-      '통계 및 분석',
-    ],
-  },
-  {
-    value: 'PRO',
-    name: '프로',
-    price: 79000,
-    priceText: '79,000원',
+    value: 'PAID',
+    name: '유료',
+    monthlyPrice: 20000,
+    yearlyPrice: 200000,
     badge: '추천',
     badgeColor: 'primary',
     features: [
-      '월 예약 500건',
-      '직원 10명',
-      '고급 통계',
-      '프리미엄 지원',
-    ],
-  },
-  {
-    value: 'ENTERPRISE',
-    name: '엔터프라이즈',
-    price: 0,
-    priceText: '문의',
-    features: [
-      '무제한 예약',
-      '무제한 직원',
-      '맞춤형 기능',
-      '전담 지원',
+      '월 예약 무제한',
+      '스태프 5명',
+      '카카오톡 알림',
+      '통계 및 리포트',
+      '전체 기능',
     ],
   },
 ]
@@ -404,7 +430,11 @@ const selectedPlanInfo = computed(() => {
 // 다음 결제 예정일
 const nextBillingDate = computed(() => {
   const date = new Date()
-  date.setMonth(date.getMonth() + 1)
+  if (billingCycle.value === 'yearly') {
+    date.setMonth(date.getMonth() + 12)
+  } else {
+    date.setMonth(date.getMonth() + 1)
+  }
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
@@ -412,9 +442,26 @@ const nextBillingDate = computed(() => {
   })
 })
 
-// 원래 금액
+// 상품 금액 (VAT 별도)
 const originalAmount = computed(() => {
-  return selectedPlanInfo.value?.price || 0
+  if (!selectedPlanInfo.value) return 0
+  return billingCycle.value === 'yearly'
+    ? selectedPlanInfo.value.yearlyPrice
+    : selectedPlanInfo.value.monthlyPrice
+})
+
+// VAT 금액
+const vatAmount = computed(() => Math.round(originalAmount.value * 0.1))
+
+// VAT 포함 금액 (할인 전)
+const totalBeforeDiscount = computed(() => originalAmount.value + vatAmount.value)
+
+// 연간 결제 시 절약 금액
+const savedAmount = computed(() => {
+  if (billingCycle.value === 'yearly' && selectedPlanInfo.value) {
+    return selectedPlanInfo.value.monthlyPrice * 12 - selectedPlanInfo.value.yearlyPrice
+  }
+  return 0
 })
 
 // 할인 금액
@@ -422,9 +469,9 @@ const discountAmount = computed(() => {
   return appliedCoupon.value ? couponStore.discountAmount : 0
 })
 
-// 최종 결제 금액
-const finalAmount = computed(() => {
-  return Math.max(0, originalAmount.value - discountAmount.value)
+// 최종 결제 금액 (VAT 포함, 쿠폰 할인 적용)
+const totalAmount = computed(() => {
+  return Math.max(0, totalBeforeDiscount.value - discountAmount.value)
 })
 
 // 통화 포맷팅
@@ -453,7 +500,7 @@ async function validateAndApplyCoupon() {
     return
   }
 
-  const orderAmount = selectedPlanInfo.value?.price
+  const orderAmount = originalAmount.value
   if (!orderAmount || orderAmount === 0) {
     showSnackbar('유효한 플랜을 선택해주세요.', 'warning')
     return
@@ -489,12 +536,6 @@ async function handlePayment() {
     return
   }
 
-  // ENTERPRISE 플랜은 문의 필요
-  if (selectedPlan.value === 'ENTERPRISE') {
-    showSnackbar('엔터프라이즈 플랜은 별도 문의가 필요합니다.', 'info')
-    return
-  }
-
   loading.value = true
   paymentSuccess.value = false
   paymentFailed.value = false
@@ -503,7 +544,8 @@ async function handlePayment() {
     const result = await paymentStore.createPayment(
       selectedPlan.value,
       selectedPaymentMethod.value,
-      appliedCoupon.value?.code || null, // 쿠폰 코드 전달
+      appliedCoupon.value?.code || null,
+      billingCycle.value,
     )
 
     // 결제 성공/실패 확인
@@ -546,6 +588,14 @@ onMounted(() => {
     const plan = route.query.plan.toUpperCase()
     if (availablePlans.some(p => p.value === plan)) {
       selectedPlan.value = plan
+    }
+  }
+
+  // URL에서 결제 주기 파라미터 확인
+  if (route.query.billing) {
+    const billing = route.query.billing.toLowerCase()
+    if (['monthly', 'yearly'].includes(billing)) {
+      billingCycle.value = billing
     }
   }
 })

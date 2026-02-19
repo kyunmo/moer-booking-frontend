@@ -137,11 +137,11 @@
             </VCardItem>
 
             <VCardText>
-              <!-- 직원 수 -->
+              <!-- 스태프 수 -->
               <div class="mb-6">
                 <div class="d-flex justify-space-between align-center mb-2">
                   <p class="text-body-2 text-medium-emphasis">
-                    직원 수
+                    스태프 수
                   </p>
                   <p class="text-body-1 font-weight-medium">
                     {{ staffLimitText }}
@@ -157,7 +157,7 @@
                   v-if="!canAddStaff"
                   class="text-caption text-error mt-1"
                 >
-                  직원 수 제한에 도달했습니다
+                  스태프 수 제한에 도달했습니다
                 </p>
               </div>
 
@@ -205,7 +205,7 @@
                   :key="plan.value"
                   cols="12"
                   sm="6"
-                  md="3"
+                  md="6"
                 >
                   <VCard
                     :variant="currentPlan === plan.value ? 'elevated' : 'outlined'"
@@ -359,7 +359,7 @@ const {
 const isPlanChangeDialogOpen = ref(false)
 const isCancelDialogOpen = ref(false)
 
-// 플랜 정보
+// 플랜 정보 (2티어: 무료 + 유료)
 const plans = [
   {
     value: 'FREE',
@@ -367,46 +367,22 @@ const plans = [
     priceText: '0원',
     features: [
       '월 예약 30건',
-      '직원 1명',
+      '스태프 1명',
       '기본 예약 관리',
       '고객 관리',
     ],
   },
   {
-    value: 'BASIC',
-    name: '베이직',
-    priceText: '29,000원',
-    badge: '인기',
-    badgeColor: 'success',
-    features: [
-      '월 예약 100건',
-      '직원 3명',
-      '카카오톡 알림',
-      '통계 및 분석',
-    ],
-  },
-  {
-    value: 'PRO',
-    name: '프로',
-    priceText: '79,000원',
+    value: 'PAID',
+    name: '유료',
+    priceText: '20,000원~/월',
     badge: '추천',
     badgeColor: 'primary',
     features: [
-      '월 예약 500건',
-      '직원 10명',
-      '고급 통계',
-      '프리미엄 지원',
-    ],
-  },
-  {
-    value: 'ENTERPRISE',
-    name: '엔터프라이즈',
-    priceText: '문의',
-    features: [
-      '무제한 예약',
-      '무제한 직원',
-      '맞춤형 기능',
-      '전담 지원',
+      '월 예약 무제한',
+      '스태프 5명',
+      '카카오톡 알림',
+      '통계 및 리포트',
     ],
   },
 ]

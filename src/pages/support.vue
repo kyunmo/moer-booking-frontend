@@ -45,7 +45,7 @@ const contactChannels = [
 const supportInfo = [
   { icon: 'ri-time-line', title: '운영 시간', items: ['평일: 09:00 - 18:00', '주말 및 공휴일: 휴무'] },
   { icon: 'ri-mail-check-line', title: '이메일 접수', items: ['24시간 접수 가능', '영업일 기준 1일 이내 답변'] },
-  { icon: 'ri-shield-check-line', title: '프로 플랜 전용', items: ['전화 상담: 1588-XXXX', '화상 교육: 30분 무료'] },
+  { icon: 'ri-shield-check-line', title: '유료 플랜 우선 지원', items: ['빠른 응답 (4시간 이내)', '1:1 온보딩 가이드'] },
 ]
 
 function goToFaq() {

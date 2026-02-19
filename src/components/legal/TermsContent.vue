@@ -147,7 +147,7 @@
             <tr>
               <th>구분</th>
               <th>무료 플랜</th>
-              <th>베이직 플랜</th>
+              <th>유료 플랜</th>
             </tr>
           </thead>
           <tbody>
@@ -156,7 +156,7 @@
                 월 요금
               </td>
               <td>0원</td>
-              <td>22,000원 (VAT 별도)<br><span class="text-caption text-medium-emphasis">연 결제 시 할인 적용 가능</span></td>
+              <td>20,000원/월 (VAT 별도)<br><span class="text-caption text-medium-emphasis">연간 결제: 200,000원/년 (2개월 무료)</span></td>
             </tr>
             <tr>
               <td class="font-weight-medium">
@@ -190,7 +190,7 @@
         </VTable>
       </li>
       <li>회사는 구독 플랜의 내용, 요금 등을 변경할 수 있으며, 변경 시 30일 전에 이용자에게 고지합니다.</li>
-      <li>매장 관리자는 최초 가입 시 30일간 베이직 플랜의 기능을 무료로 체험할 수 있습니다. 무료 체험 종료 후 자동으로 과금되지 않습니다.</li>
+      <li>매장 관리자는 최초 가입 시 30일간 유료 플랜의 기능을 무료로 체험할 수 있습니다. 무료 체험 종료 후 자동으로 과금되지 않습니다.</li>
     </ol>
 
     <h6 class="text-h6 mb-3 mt-6">

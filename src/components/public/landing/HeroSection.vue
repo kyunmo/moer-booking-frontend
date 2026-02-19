@@ -77,7 +77,7 @@ function viewPricing() {
                   color="primary"
                   prepend-icon="ri-money-dollar-circle-line"
                 >
-                  월 29,000원부터
+                  월 20,000원부터
                 </VChip>
               </div>
 

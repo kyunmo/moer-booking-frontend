@@ -30,7 +30,7 @@
             :key="plan.value"
             cols="12"
             sm="6"
-            md="3"
+            md="6"
           >
             <VCard
               :variant="selectedPlan === plan.value ? 'elevated' : 'outlined'"
@@ -176,12 +176,10 @@ const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const selectedPlan = ref(null)
 
-// 플랜 제한 정보
+// 플랜 제한 정보 (2티어: 무료 + 유료)
 const planLimits = {
   FREE: { maxStaff: 1, maxReservations: 30 },
-  BASIC: { maxStaff: 3, maxReservations: 100 },
-  PRO: { maxStaff: 10, maxReservations: 500 },
-  ENTERPRISE: { maxStaff: -1, maxReservations: -1 },
+  PAID: { maxStaff: 5, maxReservations: -1 },
 }
 
 // 플랜 정보
@@ -192,7 +190,7 @@ const plans = computed(() => [
     priceText: '0원',
     features: [
       '월 예약 30건',
-      '직원 1명',
+      '스태프 1명',
       '기본 예약 관리',
       '고객 관리',
     ],
@@ -200,43 +198,16 @@ const plans = computed(() => [
     downgradeWarning: getDowngradeWarning('FREE'),
   },
   {
-    value: 'BASIC',
-    name: '베이직',
-    priceText: '29,000원',
-    badge: '인기',
-    badgeColor: 'success',
-    features: [
-      '월 예약 100건',
-      '직원 3명',
-      '카카오톡 알림',
-      '통계 및 분석',
-    ],
-    disabled: isDowngradeBlocked('BASIC'),
-    downgradeWarning: getDowngradeWarning('BASIC'),
-  },
-  {
-    value: 'PRO',
-    name: '프로',
-    priceText: '79,000원',
+    value: 'PAID',
+    name: '유료',
+    priceText: '20,000원~/월',
     badge: '추천',
     badgeColor: 'primary',
     features: [
-      '월 예약 500건',
-      '직원 10명',
-      '고급 통계',
-      '프리미엄 지원',
-    ],
-    disabled: false,
-  },
-  {
-    value: 'ENTERPRISE',
-    name: '엔터프라이즈',
-    priceText: '문의',
-    features: [
-      '무제한 예약',
-      '무제한 직원',
-      '맞춤형 기능',
-      '전담 지원',
+      '월 예약 무제한',
+      '스태프 5명',
+      '카카오톡 알림',
+      '통계 및 리포트',
     ],
     disabled: false,
   },
@@ -246,7 +217,7 @@ const plans = computed(() => [
 const isUpgrade = computed(() => {
   if (!selectedPlan.value || !props.currentPlan) return false
 
-  const planOrder = ['FREE', 'BASIC', 'PRO', 'ENTERPRISE']
+  const planOrder = ['FREE', 'PAID']
   const currentIndex = planOrder.indexOf(props.currentPlan)
   const selectedIndex = planOrder.indexOf(selectedPlan.value)
 
@@ -260,7 +231,7 @@ function isDowngradeBlocked(planValue) {
   const limits = planLimits[planValue]
   if (!limits) return false
 
-  // 직원 수 초과
+  // 스태프 수 초과
   if (limits.maxStaff !== -1 && props.currentStaffCount > limits.maxStaff) {
     return true
   }
@@ -280,7 +251,7 @@ function getDowngradeWarning(planValue) {
   const limits = planLimits[planValue]
 
   if (limits.maxStaff !== -1 && props.currentStaffCount > limits.maxStaff) {
-    return `직원 수(${props.currentStaffCount}명)가 제한(${limits.maxStaff}명)을 초과합니다`
+    return `스태프 수(${props.currentStaffCount}명)가 제한(${limits.maxStaff}명)을 초과합니다`
   }
 
   return null

@@ -1,11 +1,17 @@
 <script setup>
 import { computed } from 'vue'
+import { PLANS, BILLING_CYCLES, getMonthlyEquivalent, formatCurrency } from '@/constants/pricing'
 
 const props = defineProps({
   plan: {
     type: String,
     required: true,
-    validator: value => ['FREE', 'BASIC', 'PRO', 'ENTERPRISE'].includes(value),
+    validator: value => ['FREE', 'PAID'].includes(value),
+  },
+  billingCycle: {
+    type: String,
+    default: 'monthly',
+    validator: value => ['monthly', 'yearly'].includes(value),
   },
   selected: {
     type: Boolean,
@@ -19,82 +25,57 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
-// 플랜 정보 (백엔드 스펙 기준)
+const isYearly = computed(() => props.billingCycle === BILLING_CYCLES.YEARLY)
+
+// 플랜 정보 (2티어: 무료 + 유료)
 const planInfo = computed(() => {
-  const plans = {
-    FREE: {
-      name: '무료',
-      price: 0,
-      priceText: '0원',
+  const planData = PLANS[props.plan]
+  if (!planData) return null
+
+  return {
+    name: planData.name,
+    description: planData.description,
+    color: planData.color,
+    icon: planData.icon,
+    badge: planData.key === 'PAID' ? '추천' : undefined,
+    features: planData.features,
+    limits: planData.limits,
+    yearlyBadge: planData.yearlyBadge,
+  }
+})
+
+// 가격 표시 computed
+const priceDisplay = computed(() => {
+  if (props.plan === 'FREE') {
+    return {
+      mainPrice: '0원',
       period: '/월',
-      description: '체험용으로 딱!',
-      color: 'info',
-      icon: 'ri-gift-line',
-      features: [
-        '월 예약 30건',
-        '직원 1명',
-        '기본 예약 관리',
-        '고객 관리',
-      ],
-      limits: [
-        '광고 표시',
-        '제한된 기능',
-      ],
-    },
-    BASIC: {
-      name: '베이직',
-      price: 29000,
-      priceText: '29,000원',
-      period: '/월',
-      description: '대부분 고객 선택',
-      color: 'success',
-      icon: 'ri-star-line',
-      badge: '인기',
-      features: [
-        '월 예약 100건',
-        '직원 3명',
-        '예약 캘린더',
-        '고객 태그 관리',
-        '카카오톡 알림',
-        '광고 제거',
-      ],
-    },
-    PRO: {
-      name: '프로',
-      price: 79000,
-      priceText: '79,000원',
-      period: '/월',
-      description: '중대형 매장 추천',
-      color: 'primary',
-      icon: 'ri-vip-crown-line',
-      features: [
-        '월 예약 500건',
-        '직원 10명',
-        '모든 베이직 기능',
-        '재방문 알림',
-        '디자이너별 성과',
-        '고급 통계',
-      ],
-    },
-    ENTERPRISE: {
-      name: '엔터프라이즈',
-      price: null,
-      priceText: '문의',
-      period: '',
-      description: '대규모 체인점',
-      color: 'secondary',
-      icon: 'ri-building-line',
-      features: [
-        '무제한 예약',
-        '무제한 직원',
-        '모든 프로 기능',
-        '전담 계정 매니저',
-        '커스텀 기능',
-      ],
-    },
+      subText: null,
+      originalPrice: null,
+      savingsBadge: null,
+    }
   }
 
-  return plans[props.plan]
+  const planData = PLANS[props.plan]
+  const monthlyEquivalent = getMonthlyEquivalent(props.plan, props.billingCycle)
+
+  if (isYearly.value) {
+    return {
+      mainPrice: formatCurrency(monthlyEquivalent),
+      period: '/월',
+      subText: `연 ${formatCurrency(planData.yearlyPrice)} (VAT 별도)`,
+      originalPrice: formatCurrency(planData.monthlyPrice),
+      savingsBadge: planData.yearlyBadge,
+    }
+  }
+
+  return {
+    mainPrice: formatCurrency(planData.monthlyPrice),
+    period: '/월',
+    subText: null,
+    originalPrice: null,
+    savingsBadge: null,
+  }
 })
 
 function handleSelect() {
@@ -144,16 +125,40 @@ function handleSelect() {
 
       <!-- 가격 -->
       <div class="text-center mb-4">
+        <!-- 연간 결제: 취소선 원래 가격 -->
+        <div v-if="priceDisplay.originalPrice" class="mb-1">
+          <span class="text-body-2 text-medium-emphasis text-decoration-line-through">
+            {{ priceDisplay.originalPrice }}
+          </span>
+          <VChip
+            v-if="priceDisplay.savingsBadge"
+            color="success"
+            size="x-small"
+            label
+            class="ms-2"
+          >
+            {{ priceDisplay.savingsBadge }}
+          </VChip>
+        </div>
+
+        <!-- 메인 가격 -->
         <div class="d-flex align-center justify-center">
           <span class="text-h3 font-weight-bold" :class="`text-${planInfo.color}`">
-            {{ planInfo.priceText }}
+            {{ priceDisplay.mainPrice }}
           </span>
-          <span v-if="planInfo.period" class="text-body-1 ms-1">
-            {{ planInfo.period }}
+          <span v-if="priceDisplay.period" class="text-body-1 ms-1">
+            {{ priceDisplay.period }}
           </span>
         </div>
+
+        <!-- VAT 별도 또는 연간 총액 -->
         <div v-if="plan !== 'FREE'" class="text-caption text-medium-emphasis mt-1">
-          VAT 별도
+          <template v-if="priceDisplay.subText">
+            {{ priceDisplay.subText }}
+          </template>
+          <template v-else>
+            VAT 별도
+          </template>
         </div>
       </div>
 
