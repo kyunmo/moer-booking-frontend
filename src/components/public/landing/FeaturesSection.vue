@@ -82,7 +82,7 @@ const features = [
   {
     icon: 'ri-kakao-talk-line',
     title: '카카오톡 자동 알림',
-    description: '예약 확정, 하루 전 리마인더 자동 발송. 노쇼율 70% 감소',
+    description: '예약 확정, 하루 전 리마인더 자동 발송. 노쇼율 대폭 감소 (베타 오픈 예정)',
   },
   {
     icon: 'ri-user-heart-line',

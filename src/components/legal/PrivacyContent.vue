@@ -276,7 +276,7 @@
       <li>처리정지 요구</li>
     </ol>
     <p class="mb-4">
-      권리 행사는 서비스 내 설정 페이지를 통해 직접 처리하거나, 이메일(<strong>support@yemo.kr</strong>)로 요청할 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.
+      권리 행사는 서비스 내 설정 페이지를 통해 직접 처리하거나, 이메일(<strong>kkm@moer.io</strong>)로 요청할 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.
     </p>
     <p class="mb-6">
       권리 행사는 정보주체의 법정대리인이나 위임을 받은 자 등 대리인을 통하여 하실 수도 있습니다. 이 경우 「개인정보 처리 방법에 관한 고시」 별지 제11호 서식에 따른 위임장을 제출하셔야 합니다.
@@ -380,7 +380,7 @@
             <strong>직위:</strong> 대표
           </div>
           <div>
-            <strong>이메일:</strong> privacy@yemo.kr
+            <strong>이메일:</strong> kkm@moer.io
           </div>
           <div>
             <strong>전화:</strong> [전화번호]
@@ -473,7 +473,7 @@
           <strong>주소:</strong> [사업장 주소]
         </div>
         <div>
-          <strong>이메일:</strong> support@yemo.kr
+          <strong>이메일:</strong> kkm@moer.io
         </div>
       </div>
     </div>

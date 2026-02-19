@@ -75,9 +75,9 @@ function viewPricing() {
                   size="large"
                   variant="tonal"
                   color="primary"
-                  prepend-icon="ri-money-dollar-circle-line"
+                  prepend-icon="ri-gift-line"
                 >
-                  월 20,000원부터
+                  무료로 시작 가능
                 </VChip>
               </div>
 

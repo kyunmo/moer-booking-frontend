@@ -19,8 +19,8 @@ const contactChannels = [
     title: '이메일 문의',
     description: '궁금하신 사항을 이메일로 보내주세요.\n평균 4시간 이내 답변드립니다.',
     action: '이메일 보내기',
-    href: 'mailto:support@yemo.io',
-    info: 'support@yemo.io',
+    href: 'mailto:kkm@moer.io',
+    info: 'kkm@moer.io',
   },
   {
     icon: 'ri-kakao-talk-line',

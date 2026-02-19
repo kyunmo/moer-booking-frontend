@@ -331,6 +331,10 @@ function startWithPlan(plan) {
             </tr>
           </tfoot>
         </VTable>
+
+        <p class="text-body-2 text-medium-emphasis text-center mt-4">
+          * 일부 기능은 베타 기간 중 순차 오픈됩니다
+        </p>
       </VContainer>
     </section>
 

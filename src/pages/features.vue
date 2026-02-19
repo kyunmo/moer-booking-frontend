@@ -52,32 +52,35 @@ const featureCategories = [
     icon: 'ri-message-3-line',
     color: 'success',
     title: '카카오톡 자동 알림',
-    subtitle: '고객과의 소통, 이제 자동으로',
+    subtitle: '고객과의 소통, 이제 자동으로 (베타 오픈 예정)',
     features: [
       {
         title: '예약 확정 알림',
         icon: 'ri-check-double-line',
+        badge: '준비중',
         description: '예약 승인 시 1초 안에 고객 카톡 도착. 날짜, 시간, 시술 정보 자동 발송',
         highlights: ['즉시 발송', '자동 작성', '친절한 문구'],
       },
       {
         title: '하루 전 리마인더',
         icon: 'ri-alarm-line',
-        description: '예약 하루 전 자동 발송으로 노쇼율 80% 감소. 발송 시간 설정 가능',
-        highlights: ['자동 발송', '노쇼 80% 감소', '시간 설정'],
+        badge: '준비중',
+        description: '예약 하루 전 자동 발송으로 노쇼율 대폭 감소. 발송 시간 설정 가능',
+        highlights: ['자동 발송', '노쇼 감소', '시간 설정'],
       },
       {
         title: '예약 취소 알림',
         icon: 'ri-close-circle-line',
+        badge: '준비중',
         description: '취소 시에도 친절하게 안내. 재예약 유도로 브랜드 이미지 향상',
         highlights: ['친절한 안내', '재예약 유도', '브랜드 UP'],
       },
       {
         title: '재방문 알림',
         icon: 'ri-repeat-line',
-        badge: '유료',
+        badge: '준비중',
         description: '시술별 맞춤 주기로 자동 발송. 펌 3개월, 염색 2개월 후 재방문 추천',
-        highlights: ['시술별 주기', '재방문율 30% 증가', '단골 확보'],
+        highlights: ['시술별 주기', '재방문율 UP', '단골 확보'],
       },
     ],
   },
@@ -185,20 +188,14 @@ const featureCategories = [
     id: 'mobile',
     icon: 'ri-smartphone-line',
     color: 'error',
-    title: '모바일 최적화',
+    title: '모바일 웹 관리',
     subtitle: '어디서든 관리 가능',
     features: [
-      {
-        title: '관리자 모바일 앱',
-        icon: 'ri-admin-line',
-        description: '스마트폰으로 예약 확인, 승인/거절, 통계 확인. 외출 중에도 OK',
-        highlights: ['모든 기능', '푸시 알림', '어디서든'],
-      },
       {
         title: '고객 예약 페이지',
         icon: 'ri-user-smile-line',
         description: '고객도 스마트폰으로 편리하게. 터치 최적화와 빠른 로딩',
-        highlights: ['터치 최적화', '직관적 UI', '3초 로딩'],
+        highlights: ['터치 최적화', '직관적 UI', '빠른 로딩'],
       },
       {
         title: '반응형 디자인',
@@ -207,10 +204,10 @@ const featureCategories = [
         highlights: ['모든 기기', '최적화', '완벽한 경험'],
       },
       {
-        title: '오프라인 지원',
-        icon: 'ri-wifi-off-line',
-        description: '인터넷 연결 없어도 기본 기능 사용. 연결되면 자동 동기화',
-        highlights: ['오프라인', '자동 동기화', '안정성'],
+        title: '고객 리뷰 시스템',
+        icon: 'ri-star-line',
+        description: '예약 완료 후 고객이 직접 리뷰 작성. 별점과 리뷰로 매장 신뢰도 향상',
+        highlights: ['별점 리뷰', '매장 홍보', '신뢰도 UP'],
       },
     ],
   },
@@ -288,8 +285,8 @@ function startFreeTrial() {
                     </h3>
                     <VChip
                       v-if="feature.badge"
-                      color="primary"
-                      size="small"
+                      :color="feature.badge === '준비중' ? 'warning' : 'primary'"
+                      size="x-small"
                       class="ms-2"
                     >
                       {{ feature.badge }}
@@ -336,11 +333,11 @@ function startFreeTrial() {
         <VRow>
           <VCol
             v-for="(item, index) in [
+              { icon: 'ri-kakao-talk-line', title: '카카오 알림톡 연동', description: '예약 확정/리마인더/취소 알림을 카카오톡으로 자동 발송' },
               { icon: 'ri-mail-line', title: '이메일 자동 발송', description: '예약 확정 이메일과 영수증 자동 발송' },
               { icon: 'ri-file-excel-line', title: '고급 리포트', description: '월별 매출 리포트와 고객 분석, CSV 다운로드' },
-              { icon: 'ri-coupon-3-line', title: '쿠폰/이벤트', description: '할인 쿠폰 발행과 이벤트 예약 관리' },
+              { icon: 'ri-calendar-event-line', title: '이벤트 관리', description: '시즌 이벤트 예약 관리' },
               { icon: 'ri-bank-card-line', title: '온라인 결제', description: '예약금 결제로 노쇼 방지' },
-              { icon: 'ri-global-line', title: '다국어 지원', description: '영어, 일본어, 중국어 지원' },
               { icon: 'ri-robot-line', title: 'AI 추천', description: '고객 맞춤 시술 자동 추천' },
             ]"
             :key="index"

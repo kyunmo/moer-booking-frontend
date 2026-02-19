@@ -393,7 +393,7 @@
         <strong>주소:</strong> [사업장 주소]
       </p>
       <p class="mb-1">
-        <strong>이메일:</strong> support@yemo.kr
+        <strong>이메일:</strong> kkm@moer.io
       </p>
       <p class="mb-0">
         <strong>고객센터:</strong> [전화번호]

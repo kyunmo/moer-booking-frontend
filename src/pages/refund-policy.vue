@@ -240,7 +240,7 @@ meta:
             환불 및 구독 관련 문의는 아래로 연락해 주세요.
           </p>
           <ul class="mb-6">
-            <li>이메일: support@yemo.kr</li>
+            <li>이메일: kkm@moer.io</li>
             <li>전화: [전화번호]</li>
             <li>운영 시간: 평일 10:00 ~ 18:00 (공휴일 제외)</li>
           </ul>
@@ -262,7 +262,7 @@ meta:
 
           <div class="text-body-2 text-medium-emphasis">
             <p class="mb-1">
-              [상호명] | 이메일: support@yemo.kr | 전화: [전화번호]
+              [상호명] | 이메일: kkm@moer.io | 전화: [전화번호]
             </p>
             <p>
               <RouterLink

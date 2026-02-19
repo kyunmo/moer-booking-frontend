@@ -94,12 +94,12 @@ function handleKakaoLogin() {
       <!-- 로고 -->
       <VCardItem class="justify-center pb-6">
         <VCardTitle>
-          <div class="app-logo">
+          <RouterLink to="/" class="app-logo text-decoration-none">
             <VNodeRenderer :nodes="themeConfig.app.logo" />
             <h1 class="app-logo-title">
               {{ themeConfig.app.title }}
             </h1>
-          </div>
+          </RouterLink>
         </VCardTitle>
       </VCardItem>
 
@@ -265,6 +265,14 @@ function handleKakaoLogin() {
                   카카오로 로그인
                 </VBtn>
               </div>
+            </VCol>
+
+            <!-- 홈으로 돌아가기 -->
+            <VCol cols="12" class="text-center">
+              <RouterLink to="/" class="text-body-2 text-medium-emphasis text-decoration-none">
+                <VIcon icon="ri-arrow-left-line" size="16" class="me-1" />
+                홈으로 돌아가기
+              </RouterLink>
             </VCol>
           </VRow>
         </VForm>

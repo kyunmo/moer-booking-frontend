@@ -17,8 +17,9 @@ const supportLinks = [
 
 // Company links
 const companyLinks = [
-  { title: '이용약관', to: '#' },
-  { title: '개인정보처리방침', to: '#' },
+  { title: '이용약관', to: '/terms' },
+  { title: '개인정보처리방침', to: '/privacy' },
+  { title: '환불정책', to: '/refund-policy' },
 ]
 
 // Social links
@@ -37,7 +38,7 @@ const socialLinks = [
     >
       <VContainer>
         <VRow>
-          <!-- Brand + Newsletter -->
+          <!-- Brand + Social -->
           <VCol
             cols="12"
             md="4"
@@ -55,19 +56,24 @@ const socialLinks = [
                 소상공인을 위한 올인원 예약 관리 솔루션
               </div>
 
-              <VForm class="subscribe-form d-flex align-center gap-4">
-                <VTextField
-                  label="뉴스레터 구독"
-                  placeholder="email@example.com"
-                  theme="dark"
-                  density="compact"
-                  class="footer-text"
-                  hide-details
-                />
-                <VBtn size="large">
-                  구독
+              <div class="d-flex gap-x-1">
+                <VBtn
+                  v-for="social in socialLinks"
+                  :key="social.label"
+                  icon
+                  size="small"
+                  variant="text"
+                  :href="social.href"
+                  target="_blank"
+                  :aria-label="social.label"
+                >
+                  <VIcon
+                    :icon="social.icon"
+                    size="18"
+                    color="white"
+                  />
                 </VBtn>
-              </VForm>
+              </div>
             </div>
           </VCol>
 
@@ -156,7 +162,7 @@ const socialLinks = [
                   대표 구균모
                 </div>
                 <div class="text-body-2 footer-text">
-                  support@yemo.io
+                  kkm@moer.io
                 </div>
               </div>
             </div>
@@ -168,31 +174,13 @@ const socialLinks = [
     <!-- Footer Bottom -->
     <div class="footer-bottom">
       <VContainer>
-        <div class="d-flex justify-space-between align-center flex-wrap gap-y-4 py-4">
+        <div class="d-flex justify-center align-center py-4">
           <span
             class="text-body-2"
             style="color: rgba(255, 255, 255, 0.6);"
           >
             &copy; {{ new Date().getFullYear() }} YEMO. All rights reserved.
           </span>
-          <div class="d-flex gap-x-1">
-            <VBtn
-              v-for="social in socialLinks"
-              :key="social.label"
-              icon
-              size="x-small"
-              variant="text"
-              :href="social.href"
-              target="_blank"
-              :aria-label="social.label"
-            >
-              <VIcon
-                :icon="social.icon"
-                size="16"
-                color="white"
-              />
-            </VBtn>
-          </div>
         </div>
       </VContainer>
     </div>
