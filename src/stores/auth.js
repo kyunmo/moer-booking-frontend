@@ -1,7 +1,7 @@
 import authApi from '@/api/auth'
+import { router } from '@/router'
 import { toBackendPlan } from '@/utils/planAdapter'
 import { defineStore } from 'pinia'
-import { useRouter } from 'vue-router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -143,7 +143,6 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('refreshToken')
 
         // 로그인 페이지로 이동
-        const router = useRouter()
         router.push('/login')
       }
       catch (error) {

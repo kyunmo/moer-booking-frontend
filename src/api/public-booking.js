@@ -45,6 +45,16 @@ export default {
     return apiClient.post(`/public/reservations/${reservationNumber}/cancel`, data)
   },
 
+  // 예약 조회 (이름 + 전화번호)
+  getReservationByNamePhone(name, phone) {
+    return apiClient.get('/public/reservations/lookup', { params: { name, phone } })
+  },
+
+  // 매장 휴무일 조회 (Public)
+  getBusinessHolidays(slug, year) {
+    return apiClient.get(`/public/businesses/${slug}/holidays`, { params: { year } })
+  },
+
   // ===== 포트폴리오 =====
 
   // 스태프 포트폴리오 조회 (Public)

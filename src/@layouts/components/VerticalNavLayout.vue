@@ -88,7 +88,10 @@ const verticalNavAttrs = computed(() => {
           />
         </div>
       </header>
-      <main class="layout-page-content">
+      <main
+        id="main-content"
+        class="layout-page-content"
+      >
         <div class="page-content-container">
           <slot />
         </div>

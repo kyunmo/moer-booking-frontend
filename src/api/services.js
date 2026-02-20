@@ -35,4 +35,12 @@ export default {
   deleteService(businessId, serviceId) {
     return apiClient.delete(`/businesses/${businessId}/services/${serviceId}`)
   },
+
+  // 서비스 이름 중복 확인
+  checkServiceName(businessId, name, excludeId = null) {
+    const params = { name }
+    if (excludeId) params.excludeId = excludeId
+
+    return apiClient.get(`/businesses/${businessId}/services/check-name`, { params })
+  },
 }

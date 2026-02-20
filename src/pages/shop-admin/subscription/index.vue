@@ -375,7 +375,7 @@ const plans = [
   {
     value: 'PAID',
     name: '유료',
-    priceText: '20,000원~/월',
+    priceText: '22,000원/월 (VAT 포함)',
     badge: '추천',
     badgeColor: 'primary',
     features: [

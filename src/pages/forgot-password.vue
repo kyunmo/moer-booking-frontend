@@ -2,6 +2,7 @@
 meta:
   layout: blank
   public: true
+  title: 비밀번호 찾기 - YEMO
 </route>
 
 <script setup>

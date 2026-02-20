@@ -8,13 +8,22 @@ meta:
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import { useSnackbar } from '@/composables/useSnackbar'
 
 const router = useRouter()
+const route = useRoute()
 const customerAuthStore = useCustomerAuthStore()
 const { success: showSuccess, error: showError } = useSnackbar()
+
+// 신규 유저 프로필 등록 모드 감지
+const isNewUserSetup = computed(() => {
+  return customerAuthStore.isNewUser && !customerAuthStore.hasPhone
+})
+
+// redirectAfter 쿼리 파라미터 (OAuth 콜백에서 보존된 원래 목적지)
+const redirectAfter = computed(() => route.query.redirectAfter || null)
 
 onMounted(async () => {
   if (!customerAuthStore.customer) {
@@ -24,6 +33,11 @@ onMounted(async () => {
     catch {
       showError('프로필 정보를 불러올 수 없습니다')
     }
+  }
+
+  // 신규 유저 설정 모드이면 자동으로 편집 모드 활성화
+  if (isNewUserSetup.value) {
+    startEdit()
   }
 })
 
@@ -120,9 +134,24 @@ async function handleSave() {
       marketingAgree: form.value.marketingAgree,
     }
 
+    // 저장 전 신규 유저 설정 모드였는지 확인
+    const wasNewUserSetup = isNewUserSetup.value
+
     await customerAuthStore.updateProfile(payload)
+
+    // 신규 유저가 전화번호를 등록 완료한 경우 isNewUser 해제
+    if (wasNewUserSetup && payload.phone) {
+      customerAuthStore.isNewUser = false
+    }
+
     showSuccess('프로필이 수정되었습니다')
     editing.value = false
+
+    // 신규 유저 설정 완료 후 원래 목적지 또는 /booking으로 이동
+    if (wasNewUserSetup && payload.phone) {
+      const destination = redirectAfter.value || '/booking'
+      router.push(destination)
+    }
   }
   catch (error) {
     const message = error.response?.data?.error?.message || '프로필 수정에 실패했습니다'
@@ -184,6 +213,24 @@ watch(customer, newVal => {
       </template>
 
       <template v-else-if="customer">
+        <!-- New User Setup Banner -->
+        <VAlert
+          v-if="isNewUserSetup"
+          type="info"
+          variant="tonal"
+          prominent
+          class="mb-4"
+          rounded="lg"
+        >
+          <template #title>
+            전화번호를 등록해주세요
+          </template>
+          <p class="text-body-2 mb-0">
+            예약 서비스를 이용하려면 전화번호 등록이 필요합니다.
+            아래 정보를 수정하여 전화번호를 등록해주세요.
+          </p>
+        </VAlert>
+
         <!-- Profile Header Card -->
         <VCard
           class="mb-4"

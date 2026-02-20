@@ -89,10 +89,10 @@
                         {{ plan.name }}
                       </h4>
                       <p class="text-h4 font-weight-bold text-primary">
-                        {{ formatCurrency(plan.monthlyPrice) }}~/월
+                        {{ formatCurrency(plan.monthlyPrice) }}/월
                       </p>
                       <p class="text-caption text-medium-emphasis">
-                        VAT 별도
+                        VAT 포함
                       </p>
                     </div>
                     <VDivider class="my-4" />
@@ -125,7 +125,7 @@
                 <template #label>
                   <div>
                     <span class="font-weight-bold">월 결제</span>
-                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.monthlyPrice || 0) }}/월 (VAT 별도)</span>
+                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.monthlyPrice || 0) }}/월 (VAT 포함)</span>
                   </div>
                 </template>
               </VRadio>
@@ -133,7 +133,7 @@
                 <template #label>
                   <div>
                     <span class="font-weight-bold">연간 결제</span>
-                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.yearlyPrice || 0) }}/년 (VAT 별도)</span>
+                    <span class="text-body-2 ms-2">{{ formatCurrency(selectedPlanInfo?.yearlyPrice || 0) }}/년 (VAT 포함)</span>
                     <VChip color="success" size="x-small" class="ms-2">
                       2개월 무료
                     </VChip>
@@ -248,13 +248,13 @@
 
             <!-- 결제 금액 상세 -->
             <div class="mb-4">
-              <!-- 상품 금액 -->
+              <!-- 상품 금액 (공급가액) -->
               <div class="d-flex justify-space-between align-center mb-2">
                 <p class="text-body-2 text-medium-emphasis mb-0">
-                  상품 금액
+                  공급가액
                 </p>
                 <p class="text-body-1 mb-0">
-                  {{ selectedPlanInfo ? formatCurrency(originalAmount) : '0원' }}
+                  {{ selectedPlanInfo ? formatCurrency(supplyAmount) : '0원' }}
                 </p>
               </div>
 
@@ -293,7 +293,7 @@
               <!-- 최종 결제 금액 -->
               <div class="d-flex justify-space-between align-center">
                 <p class="text-subtitle-1 font-weight-bold mb-0">
-                  최종 결제 금액
+                  최종 결제 금액 (VAT 포함)
                 </p>
                 <p class="text-h5 font-weight-bold text-primary mb-0">
                   {{ selectedPlanInfo ? formatCurrency(totalAmount) : '0원' }}
@@ -375,13 +375,13 @@ const couponCode = ref('')
 const couponLoading = ref(false)
 const appliedCoupon = ref(null)
 
-// 플랜 정보 (FREE 제외, 2티어: 유료만)
+// 플랜 정보 (FREE 제외, 2티어: 유료만) - VAT 포함 금액
 const availablePlans = [
   {
     value: 'PAID',
     name: '유료',
-    monthlyPrice: 20000,
-    yearlyPrice: 200000,
+    monthlyPrice: 22000,
+    yearlyPrice: 220000,
     badge: '추천',
     badgeColor: 'primary',
     features: [
@@ -442,7 +442,7 @@ const nextBillingDate = computed(() => {
   })
 })
 
-// 상품 금액 (VAT 별도)
+// 상품 금액 (VAT 포함)
 const originalAmount = computed(() => {
   if (!selectedPlanInfo.value) return 0
   return billingCycle.value === 'yearly'
@@ -450,13 +450,13 @@ const originalAmount = computed(() => {
     : selectedPlanInfo.value.monthlyPrice
 })
 
-// VAT 금액
-const vatAmount = computed(() => Math.round(originalAmount.value * 0.1))
+// 공급가액 (VAT 포함 금액에서 역산)
+const supplyAmount = computed(() => Math.round(originalAmount.value / 1.1))
 
-// VAT 포함 금액 (할인 전)
-const totalBeforeDiscount = computed(() => originalAmount.value + vatAmount.value)
+// VAT 금액 (역산)
+const vatAmount = computed(() => originalAmount.value - supplyAmount.value)
 
-// 연간 결제 시 절약 금액
+// 연간 결제 시 절약 금액 (VAT 포함)
 const savedAmount = computed(() => {
   if (billingCycle.value === 'yearly' && selectedPlanInfo.value) {
     return selectedPlanInfo.value.monthlyPrice * 12 - selectedPlanInfo.value.yearlyPrice
@@ -471,7 +471,7 @@ const discountAmount = computed(() => {
 
 // 최종 결제 금액 (VAT 포함, 쿠폰 할인 적용)
 const totalAmount = computed(() => {
-  return Math.max(0, totalBeforeDiscount.value - discountAmount.value)
+  return Math.max(0, originalAmount.value - discountAmount.value)
 })
 
 // 통화 포맷팅

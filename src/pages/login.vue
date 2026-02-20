@@ -2,6 +2,8 @@
 meta:
   layout: blank
   public: true
+  title: 로그인 - YEMO
+  description: YEMO 관리자 로그인 페이지입니다.
 </route>
 
 <script setup>
@@ -11,7 +13,8 @@ import authV1LoginMaskDark from '@images/pages/auth-v1-login-mask-dark.png'
 import authV1LoginMaskLight from '@images/pages/auth-v1-login-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import { ref } from 'vue'
+import { OAUTH_BASE_URL } from '@/utils/oauth'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -29,11 +32,10 @@ const form = ref({
 
 const authV1ThemeLoginMask = useGenerateImageVariant(authV1LoginMaskLight, authV1LoginMaskDark)
 
-// 개발 환경 여부
-const isDev = import.meta.env.DEV
-
-// OAuth2 엔드포인트는 /api 접두사 없이 사용
-const OAUTH_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace('/api', '')
+// 테스트 계정: 개발 환경이면서 환경변수가 설정된 경우에만 표시
+const testEmail = import.meta.env.VITE_TEST_EMAIL
+const testPassword = import.meta.env.VITE_TEST_PASSWORD
+const showTestAccount = computed(() => import.meta.env.DEV && !!testEmail && !!testPassword)
 
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
@@ -64,10 +66,11 @@ async function handleLogin() {
   }
 }
 
-// 테스트 계정으로 빠른 로그인
+// 테스트 계정으로 빠른 로그인 (환경변수 필수)
 function quickLogin() {
-  form.value.email = import.meta.env.VITE_TEST_EMAIL || 'owner@salon.com'
-  form.value.password = import.meta.env.VITE_TEST_PASSWORD || 'password123'
+  if (!testEmail || !testPassword) return
+  form.value.email = testEmail
+  form.value.password = testPassword
   handleLogin()
 }
 
@@ -278,8 +281,8 @@ function handleKakaoLogin() {
         </VForm>
       </VCardText>
 
-      <!-- 개발용: 빠른 로그인 -->
-      <VCardText v-if="isDev">
+      <!-- 개발용: 빠른 로그인 (환경변수 VITE_TEST_EMAIL, VITE_TEST_PASSWORD 설정 시에만 표시) -->
+      <VCardText v-if="showTestAccount">
         <VCard variant="tonal" color="info" class="pa-3">
           <div class="text-body-2 text-center mb-2">
             <VIcon icon="ri-information-line" size="18" class="me-1" />

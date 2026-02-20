@@ -39,7 +39,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
 </script>
 
 <template>
-  <IconBtn id="notification-btn">
+  <IconBtn id="notification-btn" aria-label="알림">
     <VBadge
       dot
       v-bind="props.badgeProps"
@@ -81,6 +81,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
             <IconBtn
               v-show="props.notifications.length"
               size="small"
+              :aria-label="!isAllMarkRead ? '전체 읽지 않음으로 표시' : '전체 읽음으로 표시'"
               @click="markAllReadOrUnread"
             >
               <VIcon
@@ -131,6 +132,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
                     <VImg
                       v-if="notification.img"
                       :src="notification.img"
+                      :alt="notification.title || '알림 이미지'"
                     />
 
                     <VIcon

@@ -44,7 +44,7 @@ meta:
               <tr>
                 <td>월 요금</td>
                 <td>0원</td>
-                <td>20,000원/월 (VAT 별도)</td>
+                <td>22,000원/월 (VAT 포함)</td>
               </tr>
               <tr>
                 <td>월 예약 건수</td>
@@ -111,9 +111,9 @@ meta:
             계산 예시 (월 22,000원 VAT 포함 기준, 해당월 30일):
           </p>
           <ul class="mb-6">
-            <li>10일 사용 후 해지 → 22,000 &divide; 30 &times; 20 = <strong>14,667원</strong> 환불</li>
-            <li>20일 사용 후 해지 → 22,000 &divide; 30 &times; 10 = <strong>7,333원</strong> 환불</li>
-            <li>25일 사용 후 해지 → 22,000 &divide; 30 &times; 5 = <strong>3,667원</strong> 환불</li>
+            <li>10일 사용 후 해지 → 22,000 &divide; 30 &times; 20 = <strong>약 14,667원</strong> 환불</li>
+            <li>20일 사용 후 해지 → 22,000 &divide; 30 &times; 10 = <strong>약 7,333원</strong> 환불</li>
+            <li>25일 사용 후 해지 → 22,000 &divide; 30 &times; 5 = <strong>약 3,667원</strong> 환불</li>
           </ul>
 
           <h6 class="text-h6 mb-3">
@@ -287,10 +287,4 @@ meta:
 </template>
 
 <script setup>
-// 페이지 메타 설정
-definePage({
-  meta: {
-    title: '환불 정책',
-  },
-})
 </script>

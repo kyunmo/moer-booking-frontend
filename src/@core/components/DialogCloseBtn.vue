@@ -14,7 +14,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <IconBtn class="v-dialog-close-btn">
+  <IconBtn class="v-dialog-close-btn" aria-label="닫기">
     <VIcon
       :icon="props.icon"
       :size="props.iconSize"

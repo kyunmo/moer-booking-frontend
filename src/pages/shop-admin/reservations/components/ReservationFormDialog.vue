@@ -202,6 +202,40 @@
                 </template>
               </VSelect>
 
+              <!-- 시간 충돌 경고 -->
+              <VAlert
+                v-if="conflictWarning && !conflictWarning.available"
+                type="warning"
+                variant="tonal"
+                class="mt-2 mb-2"
+                density="compact"
+              >
+                <div class="text-subtitle-2 mb-1">
+                  해당 시간에 이미 예약이 있습니다
+                </div>
+                <div
+                  v-for="c in conflictWarning.conflicts"
+                  :key="c.reservationId"
+                  class="text-body-2"
+                >
+                  {{ c.customerName }} ({{ c.startTime }}~{{ c.endTime }}, {{ c.serviceName }})
+                </div>
+              </VAlert>
+
+              <!-- 가용 확인 중 표시 -->
+              <div
+                v-if="availabilityChecking"
+                class="d-flex align-center gap-2 mt-2 mb-2"
+              >
+                <VProgressCircular
+                  indeterminate
+                  size="16"
+                  width="2"
+                  color="primary"
+                />
+                <span class="text-caption text-medium-emphasis">시간 가용성 확인 중...</span>
+              </div>
+
               <!-- 메모 -->
               <div class="text-subtitle-2 text-medium-emphasis mb-2 mt-4">
                 <VIcon icon="ri-file-text-line" size="18" class="me-1" />
@@ -262,6 +296,9 @@
                     <p class="text-body-2 font-weight-medium mb-0">
                       {{ formatSummaryDate() }}
                     </p>
+                    <p v-if="timeRangeDisplay" class="text-caption text-medium-emphasis mb-0">
+                      {{ timeRangeDisplay }}
+                    </p>
                   </div>
 
                   <!-- 서비스 -->
@@ -300,6 +337,9 @@
                       {{ totalDuration }}분
                     </span>
                   </div>
+                  <p v-if="durationBreakdownText" class="text-caption text-medium-emphasis mb-0">
+                    {{ durationBreakdownText }}
+                  </p>
 
                   <!-- 담당 직원 -->
                   <div>
@@ -347,6 +387,7 @@ import { useCustomerStore } from '@/stores/customer'
 import { useReservationStore } from '@/stores/reservation'
 import { useServiceStore } from '@/stores/service'
 import { useStaffStore } from '@/stores/staff'
+import { formatTimeKR, formatTimeRange, calculateEndTime, formatDurationBreakdown } from '@/utils/dateFormat'
 import { computed, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -374,6 +415,8 @@ const formRef = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
 const customerType = ref('existing')
+const availabilityChecking = ref(false)
+const conflictWarning = ref(null)
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.reservation?.id)
@@ -457,6 +500,23 @@ const selectedStaffName = computed(() => {
   return staff?.name || ''
 })
 
+// 예상 종료 시간 계산
+const estimatedEndTime = computed(() => {
+  if (!form.value.startTime || !totalDuration.value) return ''
+  return calculateEndTime(form.value.startTime, totalDuration.value)
+})
+
+// 시간 범위 표시 (오전/오후)
+const timeRangeDisplay = computed(() => {
+  if (!form.value.startTime || !estimatedEndTime.value) return ''
+  return formatTimeRange(form.value.startTime, estimatedEndTime.value)
+})
+
+// 서비스별 소요시간 내역
+const durationBreakdownText = computed(() => {
+  return formatDurationBreakdown(selectedServices.value)
+})
+
 // 요약 날짜 포맷
 function formatSummaryDate() {
   if (!form.value.reservationDate) return '-'
@@ -467,9 +527,49 @@ function formatSummaryDate() {
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   const dayName = days[date.getDay()]
-  const time = form.value.startTime || ''
+  const time = form.value.startTime ? formatTimeKR(form.value.startTime) : ''
 
   return `${y}.${m}.${d} (${dayName}) ${time}`
+}
+
+// === 시간 충돌 검증 ===
+
+let availabilityTimer = null
+
+watch(
+  [() => form.value.staffId, () => form.value.reservationDate, () => form.value.startTime, estimatedEndTime],
+  () => {
+    conflictWarning.value = null
+    clearTimeout(availabilityTimer)
+    if (!form.value.staffId || !form.value.reservationDate || !form.value.startTime || !estimatedEndTime.value) return
+    availabilityTimer = setTimeout(() => checkTimeConflict(), 500)
+  },
+)
+
+async function checkTimeConflict() {
+  availabilityChecking.value = true
+  try {
+    const params = {
+      staffId: form.value.staffId,
+      date: form.value.reservationDate,
+      startTime: form.value.startTime,
+      endTime: estimatedEndTime.value,
+    }
+
+    if (isEditMode.value) {
+      params.excludeReservationId = props.reservation.id
+    }
+
+    const result = await reservationStore.checkAvailability(params)
+
+    conflictWarning.value = result
+  }
+  catch {
+    // 가용성 확인 실패는 무시 (제출 시 서버에서 검증)
+  }
+  finally {
+    availabilityChecking.value = false
+  }
 }
 
 // === Watchers ===
@@ -565,6 +665,7 @@ function resetForm() {
   }
   customerType.value = 'existing'
   errorMessage.value = ''
+  conflictWarning.value = null
   if (formRef.value) {
     formRef.value.resetValidation()
   }
@@ -610,7 +711,12 @@ async function handleSubmit() {
     handleClose()
   }
   catch (error) {
-    errorMessage.value = error.details || '저장에 실패했습니다.'
+    if (error.code === 'C001') {
+      errorMessage.value = '해당 시간에 이미 예약이 있습니다. 다른 시간을 선택해주세요.'
+    }
+    else {
+      errorMessage.value = error.details || error.message || '저장에 실패했습니다.'
+    }
   }
   finally {
     loading.value = false

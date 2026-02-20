@@ -68,6 +68,7 @@ watch([
         <IconBtn
           id="vertical-nav-toggle-btn"
           class="ms-n2 d-lg-none"
+          aria-label="메뉴 열기"
           @click="toggleVerticalOverlayNavActive(true)"
         >
           <VIcon icon="ri-menu-line" />
@@ -84,6 +85,7 @@ watch([
         <IconBtn
           id="tour-trigger-btn"
           class="me-1"
+          aria-label="가이드 투어"
           @click="handleTourClick"
         >
           <VTooltip activator="parent" location="bottom">

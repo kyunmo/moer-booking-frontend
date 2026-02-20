@@ -2,56 +2,62 @@
   <div>
     <!-- 헤더 -->
     <VCard class="mb-4">
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center pe-2" :class="{ 'flex-wrap ga-2': smAndDown }">
         <VIcon icon="ri-user-heart-line" size="24" class="me-3" />
         <span>고객 관리</span>
 
         <VSpacer />
-
-        <!-- 필터 -->
-        <VBtnToggle
-          id="customer-filter"
-          v-model="filterType"
-          density="compact"
-          class="me-3"
-          variant="outlined"
-          divided
-        >
-          <VBtn value="all" size="small">
-            전체
-          </VBtn>
-          <VBtn value="vip" size="small">
-            VIP
-          </VBtn>
-          <VBtn value="regular" size="small">
-            단골
-          </VBtn>
-          <VBtn value="new" size="small">
-            신규
-          </VBtn>
-        </VBtnToggle>
-
-        <!-- 검색 -->
-        <VTextField
-          v-model="searchQuery"
-          placeholder="이름 또는 전화번호 검색"
-          prepend-inner-icon="ri-search-line"
-          density="compact"
-          style="max-inline-size: 300px;"
-          class="me-3"
-          clearable
-        />
 
         <!-- 새 고객 등록 -->
         <VBtn
           id="customer-create-btn"
           color="primary"
           prepend-icon="ri-user-add-line"
+          :size="smAndDown ? 'small' : 'default'"
           @click="openCreateDialog"
         >
           고객 등록
         </VBtn>
       </VCardTitle>
+
+      <!-- 필터 영역 -->
+      <VCardText class="pt-0">
+        <VRow dense>
+          <VCol cols="12" sm="auto">
+            <VBtnToggle
+              id="customer-filter"
+              v-model="filterType"
+              density="compact"
+              variant="outlined"
+              divided
+            >
+              <VBtn value="all" size="small">
+                전체
+              </VBtn>
+              <VBtn value="vip" size="small">
+                VIP
+              </VBtn>
+              <VBtn value="regular" size="small">
+                단골
+              </VBtn>
+              <VBtn value="new" size="small">
+                신규
+              </VBtn>
+            </VBtnToggle>
+          </VCol>
+
+          <VCol cols="12" sm="">
+            <VTextField
+              v-model="searchQuery"
+              placeholder="이름 또는 전화번호 검색"
+              prepend-inner-icon="ri-search-line"
+              density="compact"
+              clearable
+              hide-details
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
     </VCard>
 
     <!-- 통계 카드 -->
@@ -100,7 +106,121 @@
         <VProgressCircular indeterminate color="primary" />
       </div>
 
-      <!-- 테이블 -->
+      <!-- 모바일 카드 뷰 -->
+      <template v-else-if="smAndDown">
+        <!-- 데이터 없음 -->
+        <template v-if="filteredCustomers.length === 0">
+          <EmptyState
+            icon="ri-user-line"
+            title="등록된 고객이 없습니다"
+            description="첫 고객을 등록하고 예약을 시작하세요"
+            action-label="고객 등록하기"
+            action-icon="ri-user-add-line"
+            @action="openCreateDialog"
+          />
+        </template>
+
+        <!-- 카드 리스트 -->
+        <div v-else class="pa-3 d-flex flex-column gap-3">
+          <VCard
+            v-for="item in paginatedCustomers"
+            :key="item.id"
+            variant="outlined"
+            class="customer-mobile-card"
+            @click="viewCustomer(item)"
+          >
+            <VCardText class="pa-3">
+              <!-- 상단: 고객명 + 등급 태그 -->
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center">
+                  <VAvatar
+                    color="primary"
+                    size="36"
+                    class="me-2"
+                  >
+                    <span class="text-sm">{{ getInitial(item.name) }}</span>
+                  </VAvatar>
+                  <div>
+                    <div class="font-weight-medium text-body-1">{{ item.name }}</div>
+                    <div class="text-xs text-disabled">{{ item.phone }}</div>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-1">
+                  <VChip
+                    v-if="item.isVip"
+                    color="warning"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    VIP
+                  </VChip>
+                  <VChip
+                    v-if="item.isRegular"
+                    color="success"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    단골
+                  </VChip>
+                  <VChip
+                    v-if="item.isNew"
+                    color="info"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    신규
+                  </VChip>
+                </div>
+              </div>
+
+              <VDivider class="mb-2" />
+
+              <!-- 하단: 핵심 정보 -->
+              <div class="d-flex align-center justify-space-between text-body-2">
+                <div class="d-flex align-center">
+                  <VIcon icon="ri-footprint-line" size="16" class="me-1 text-disabled" />
+                  <VChip
+                    :color="getVisitCountColor(item.visitCount)"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    {{ item.visitCount || 0 }}회 방문
+                  </VChip>
+                </div>
+
+                <div class="d-flex align-center">
+                  <VIcon icon="ri-money-cny-circle-line" size="16" class="me-1 text-disabled" />
+                  <span class="font-weight-medium">{{ (item.totalSpent || 0).toLocaleString() }}원</span>
+                </div>
+
+                <div class="d-flex align-center">
+                  <VIcon icon="ri-calendar-line" size="16" class="me-1 text-disabled" />
+                  <span :class="getDateClass(item.lastVisitDate)">
+                    {{ formatDateShort(item.lastVisitDate) }}
+                  </span>
+                </div>
+              </div>
+            </VCardText>
+          </VCard>
+
+          <!-- 모바일 페이지네이션 -->
+          <div
+            v-if="mobileCustomerTotalPages > 1"
+            class="d-flex justify-center pt-2 pb-1"
+          >
+            <VPagination
+              v-model="mobileCustomerPage"
+              :length="mobileCustomerTotalPages"
+              :total-visible="5"
+              density="compact"
+              size="small"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- 데스크톱 테이블 -->
       <VDataTable
         v-else
         :headers="headers"
@@ -278,9 +398,11 @@ import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, onMounted, ref, watch } from 'vue'
+import { useDisplay } from 'vuetify'
 import CustomerDetailDialog from './components/CustomerDetailDialog.vue'
 import CustomerFormDialog from './components/CustomerFormDialog.vue'
 
+const { smAndDown } = useDisplay()
 const { error: showError } = useSnackbar()
 const customerStore = useCustomerStore()
 
@@ -292,6 +414,10 @@ const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
 const selectedCustomer = ref(null)
 const customerToEdit = ref(null)
+
+// 모바일 페이지네이션
+const mobileCustomerPage = ref(1)
+const mobileItemsPerPage = 10
 
 // 테이블 헤더
 const headers = [
@@ -323,6 +449,27 @@ const filteredCustomers = computed(() => {
   }
 
   return result
+})
+
+// 모바일 검색 필터가 적용된 고객 목록
+const mobileFilteredCustomers = computed(() => {
+  if (!searchQuery.value) return filteredCustomers.value
+  const query = searchQuery.value.toLowerCase()
+  return filteredCustomers.value.filter(item =>
+    item.name?.toLowerCase().includes(query)
+    || item.phone?.includes(query),
+  )
+})
+
+// 모바일 페이지네이션 총 페이지 수
+const mobileCustomerTotalPages = computed(() =>
+  Math.ceil(mobileFilteredCustomers.value.length / mobileItemsPerPage),
+)
+
+// 페이지네이션된 고객 목록
+const paginatedCustomers = computed(() => {
+  const start = (mobileCustomerPage.value - 1) * mobileItemsPerPage
+  return mobileFilteredCustomers.value.slice(start, start + mobileItemsPerPage)
 })
 
 // 필터 변경 시 목록 새로고침
@@ -358,6 +505,16 @@ function formatDate(dateString) {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+// 날짜 포맷 (모바일용 짧은 형식)
+function formatDateShort(dateString) {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ko-KR', {
     month: 'short',
     day: 'numeric',
   })
@@ -438,6 +595,17 @@ onMounted(() => {
 
 <style scoped>
 .customer-table :deep(tbody tr:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.04);
+}
+
+.customer-mobile-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.customer-mobile-card:hover,
+.customer-mobile-card:active {
+  border-color: rgb(var(--v-theme-primary));
   background-color: rgba(var(--v-theme-primary), 0.04);
 }
 </style>

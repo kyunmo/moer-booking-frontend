@@ -8,7 +8,7 @@
         class="cursor-pointer"
         @click="triggerFileInput"
       >
-        <VImg v-if="profileImageUrl" :src="profileImageUrl" />
+        <VImg v-if="profileImageUrl" :src="profileImageUrl" alt="내 프로필 사진" />
         <span v-else class="text-h4 font-weight-medium">
           {{ userInitial }}
         </span>

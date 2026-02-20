@@ -8,7 +8,11 @@ export {}
 declare global {
   const $api: typeof import('./src/utils/api.js')['$api']
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']
+  const DEFAULT_DESCRIPTION: typeof import('./src/composables/useSeoMeta.js')['DEFAULT_DESCRIPTION']
+  const DEFAULT_TITLE: typeof import('./src/composables/useSeoMeta.js')['DEFAULT_TITLE']
   const EffectScope: typeof import('vue')['EffectScope']
+  const OAUTH_BASE_URL: typeof import('./src/utils/oauth.js')['OAUTH_BASE_URL']
+  const SITE_NAME: typeof import('./src/composables/useSeoMeta.js')['SITE_NAME']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
   const alphaDashValidator: typeof import('./src/@core/utils/validators.js')['alphaDashValidator']
   const alphaValidator: typeof import('./src/@core/utils/validators.js')['alphaValidator']
@@ -16,6 +20,7 @@ declare global {
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const avatarText: typeof import('./src/@core/utils/formatters.js')['avatarText']
   const betweenValidator: typeof import('./src/@core/utils/validators.js')['betweenValidator']
+  const calculateEndTime: typeof import('./src/utils/dateFormat.js')['calculateEndTime']
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
@@ -50,6 +55,9 @@ declare global {
   const extendRef: typeof import('@vueuse/core')['extendRef']
   const formatDate: typeof import('./src/@core/utils/formatters.js')['formatDate']
   const formatDateToMonthShort: typeof import('./src/@core/utils/formatters.js')['formatDateToMonthShort']
+  const formatDurationBreakdown: typeof import('./src/utils/dateFormat.js')['formatDurationBreakdown']
+  const formatTimeKR: typeof import('./src/utils/dateFormat.js')['formatTimeKR']
+  const formatTimeRange: typeof import('./src/utils/dateFormat.js')['formatTimeRange']
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
@@ -159,6 +167,8 @@ declare global {
   const unref: typeof import('vue')['unref']
   const unrefElement: typeof import('@vueuse/core')['unrefElement']
   const until: typeof import('@vueuse/core')['until']
+  const updateSeoMeta: typeof import('./src/composables/useSeoMeta.js')['updateSeoMeta']
+  const updateStructuredData: typeof import('./src/composables/useSeoMeta.js')['updateStructuredData']
   const urlValidator: typeof import('./src/@core/utils/validators.js')['urlValidator']
   const useAbs: typeof import('@vueuse/math')['useAbs']
   const useActiveElement: typeof import('@vueuse/core')['useActiveElement']
@@ -376,7 +386,11 @@ declare module 'vue' {
   interface ComponentCustomProperties {
     readonly $api: UnwrapRef<typeof import('./src/utils/api.js')['$api']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']>
+    readonly DEFAULT_DESCRIPTION: UnwrapRef<typeof import('./src/composables/useSeoMeta.js')['DEFAULT_DESCRIPTION']>
+    readonly DEFAULT_TITLE: UnwrapRef<typeof import('./src/composables/useSeoMeta.js')['DEFAULT_TITLE']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly OAUTH_BASE_URL: UnwrapRef<typeof import('./src/utils/oauth.js')['OAUTH_BASE_URL']>
+    readonly SITE_NAME: UnwrapRef<typeof import('./src/composables/useSeoMeta.js')['SITE_NAME']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly alphaDashValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['alphaDashValidator']>
     readonly alphaValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['alphaValidator']>
@@ -384,6 +398,7 @@ declare module 'vue' {
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly avatarText: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['avatarText']>
     readonly betweenValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['betweenValidator']>
+    readonly calculateEndTime: UnwrapRef<typeof import('./src/utils/dateFormat.js')['calculateEndTime']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -418,6 +433,9 @@ declare module 'vue' {
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDateToMonthShort']>
+    readonly formatDurationBreakdown: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatDurationBreakdown']>
+    readonly formatTimeKR: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatTimeKR']>
+    readonly formatTimeRange: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatTimeRange']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
@@ -527,6 +545,8 @@ declare module 'vue' {
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>
+    readonly updateSeoMeta: UnwrapRef<typeof import('./src/composables/useSeoMeta.js')['updateSeoMeta']>
+    readonly updateStructuredData: UnwrapRef<typeof import('./src/composables/useSeoMeta.js')['updateStructuredData']>
     readonly urlValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['urlValidator']>
     readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>

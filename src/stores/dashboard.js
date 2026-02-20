@@ -31,9 +31,7 @@ export const useDashboardStore = defineStore('dashboard', {
           { params },
         )
 
-        const apiData = response.data || response
-
-        this.dashboardData = apiData
+        this.dashboardData = response.data
       }
       catch (error) {
 
@@ -57,7 +55,7 @@ export const useDashboardStore = defineStore('dashboard', {
 
         const response = await dashboardApi.getStats(businessId, params)
 
-        this.periodStats = response.data || response
+        this.periodStats = response.data
       }
       catch (error) {
 
@@ -75,7 +73,7 @@ export const useDashboardStore = defineStore('dashboard', {
         const params = month ? { month } : {}
         const response = await dashboardApi.getGoals(businessId, params)
 
-        this.goals = response.data || response
+        this.goals = response.data
       }
       catch (error) {
 

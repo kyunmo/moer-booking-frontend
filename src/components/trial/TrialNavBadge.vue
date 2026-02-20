@@ -7,6 +7,7 @@
           icon
           variant="text"
           size="small"
+          aria-label="구독 관리"
           :to="{ name: 'shop-admin-subscription' }"
         >
           <VBadge

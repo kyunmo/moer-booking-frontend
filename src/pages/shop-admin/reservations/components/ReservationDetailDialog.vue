@@ -67,7 +67,7 @@
               <div>
                 <p class="text-xs text-disabled mb-0">시간</p>
                 <p class="text-sm font-weight-medium mb-0">
-                  {{ reservation.startTime }} - {{ reservation.endTime }}
+                  {{ formatTimeRange(reservation.startTime, reservation.endTime) }}
                   <span class="text-xs text-disabled">({{ reservation.totalDuration }}분)</span>
                 </p>
               </div>
@@ -313,6 +313,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { formatTimeRange } from '@/utils/dateFormat'
 
 const { serviceIcon } = useBusinessIcon()
 

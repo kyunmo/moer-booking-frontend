@@ -45,6 +45,7 @@
 meta:
   layout: blank
   public: true
+  title: 로그인 처리 중 - YEMO
 </route>
 
 <script setup>
@@ -77,15 +78,23 @@ async function handleCustomerLogin(accessToken, refreshToken, isNewUser) {
   // 고객 프로필 조회
   await customerAuthStore.fetchProfile()
 
+  // 저장된 리다이렉트 경로 (로그인 전 가려던 목적지)
+  const redirectPath = customerAuthStore.consumeRedirectPath()
+
   // 신규 사용자면 프로필 페이지로 (전화번호 등록 유도)
+  // 원래 가려던 목적지를 쿼리 파라미터로 보존
   if (customerAuthStore.isNewUser) {
-    router.push('/booking/profile')
+    const profileRoute = {
+      path: '/booking/profile',
+      query: redirectPath ? { redirectAfter: redirectPath } : {},
+    }
+
+    router.push(profileRoute)
 
     return
   }
 
   // 기존 사용자면 저장된 리다이렉트 경로 또는 /booking으로 이동
-  const redirectPath = customerAuthStore.consumeRedirectPath()
   router.push(redirectPath || '/booking')
 }
 
@@ -130,7 +139,7 @@ onMounted(async () => {
   // 에러가 있는 경우
   if (errorParam) {
     error.value = true
-    errorMessage.value = message || 'SNS 로그인에 실패했습니다.'
+    errorMessage.value = message || '소셜 로그인에 실패했습니다. 다시 시도해주세요.'
 
     return
   }

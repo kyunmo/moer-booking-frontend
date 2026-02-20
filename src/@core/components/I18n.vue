@@ -15,7 +15,7 @@ const { locale } = useI18n({ useScope: 'global' })
 </script>
 
 <template>
-  <IconBtn>
+  <IconBtn aria-label="언어 변경">
     <VIcon icon="ri-translate-2" />
 
     <!-- Menu -->

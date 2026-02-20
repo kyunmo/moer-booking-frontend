@@ -91,7 +91,7 @@
 
       <!-- 시간 -->
       <template #item.startTime="{ item }">
-        <span>{{ item.startTime }} ~ {{ item.endTime }}</span>
+        <span>{{ formatTimeRange(item.startTime, item.endTime) }}</span>
       </template>
 
       <!-- 서비스 목록 -->
@@ -134,6 +134,7 @@
 import customerApi from '@/api/customers'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useAuthStore } from '@/stores/auth'
+import { formatTimeRange } from '@/utils/dateFormat'
 import { ref, watch } from 'vue'
 
 const props = defineProps({

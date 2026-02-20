@@ -131,6 +131,7 @@ watch(() => props.isDialogVisible, () => {
               <IconBtn
                 class="mt-n2"
                 color="medium-emphasis"
+                aria-label="검색 닫기"
                 @click="clearSearchAndCloseDialog"
               >
                 <VIcon icon="ri-close-line" />

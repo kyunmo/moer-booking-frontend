@@ -56,14 +56,15 @@ const defaultNavItems = [
   { title: '지원', to: '/support', icon: 'ri-customer-service-line' },
 ]
 
-// 예약 페이지 전용 네비게이션 (고객 로그인 시 추가 메뉴)
+// 예약 페이지 전용 네비게이션 (고객 로그인 시 "내 예약" 표시, 미로그인 시 "예약 확인" 표시)
 const bookingNavItems = computed(() => {
   const items = [
     { title: '매장 검색', to: '/booking', icon: 'ri-search-line' },
-    { title: '예약 확인', to: '/booking/reservation', icon: 'ri-calendar-check-line' },
   ]
   if (customerAuthStore.isAuthenticated) {
     items.push({ title: '내 예약', to: '/booking/my-reservations', icon: 'ri-calendar-line' })
+  } else {
+    items.push({ title: '예약 확인', to: '/booking/reservation', icon: 'ri-calendar-check-line' })
   }
   return items
 })
@@ -105,9 +106,10 @@ function handleCustomerLogout() {
   router.push('/booking')
 }
 
-// 고객 로그인 페이지로 이동
-function goToCustomerLogin() {
-  customerAuthStore.startKakaoLogin(route.fullPath)
+// 고객 소셜 로그인
+function handleProviderLogin(provider) {
+  mobileDrawer.value = false
+  customerAuthStore.startSocialLogin(provider, route.fullPath)
 }
 </script>
 
@@ -153,6 +155,7 @@ function goToCustomerLogin() {
             variant="text"
             size="small"
             class="me-1"
+            :aria-label="theme.global.current.value.dark ? '라이트 모드로 전환' : '다크 모드로 전환'"
             @click="toggleTheme"
           >
             <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
@@ -242,16 +245,37 @@ function goToCustomerLogin() {
               </VBtn>
             </template>
 
-            <!-- Customer Kakao Login -->
-            <VBtn
-              color="primary"
-              variant="outlined"
-              class="ms-2"
-              prepend-icon="ri-kakao-talk-fill"
-              @click="goToCustomerLogin"
-            >
-              고객 로그인
-            </VBtn>
+            <!-- Customer Login Menu -->
+            <VMenu>
+              <template #activator="{ props }">
+                <VBtn
+                  v-bind="props"
+                  color="primary"
+                  variant="outlined"
+                  class="ms-2"
+                  prepend-icon="ri-login-box-line"
+                >
+                  고객 로그인
+                </VBtn>
+              </template>
+              <VList min-width="200">
+                <VListItem
+                  prepend-icon="ri-kakao-talk-fill"
+                  title="카카오 로그인"
+                  @click="handleProviderLogin('kakao')"
+                />
+                <VListItem
+                  prepend-icon="ri-global-line"
+                  title="네이버 로그인"
+                  @click="handleProviderLogin('naver')"
+                />
+                <VListItem
+                  prepend-icon="ri-google-fill"
+                  title="구글 로그인"
+                  @click="handleProviderLogin('google')"
+                />
+              </VList>
+            </VMenu>
           </template>
 
           <!-- === AUTH BRANCH: normal pages (non-booking) === -->
@@ -305,6 +329,7 @@ function goToCustomerLogin() {
           icon
           variant="text"
           class="d-md-none"
+          :aria-label="mobileDrawer ? '메뉴 닫기' : '메뉴 열기'"
           @click="mobileDrawer = !mobileDrawer"
         >
           <VIcon icon="ri-menu-line" />
@@ -312,7 +337,8 @@ function goToCustomerLogin() {
       </VContainer>
     </VAppBar>
 
-    <!-- Mobile Navigation Drawer -->
+    <!-- Mobile Navigation Drawer (teleported to body to avoid sticky stacking context issues on tablets) -->
+    <Teleport to="body">
     <VNavigationDrawer
       v-model="mobileDrawer"
       temporary
@@ -322,7 +348,7 @@ function goToCustomerLogin() {
     >
       <!-- Close Button -->
       <div class="d-flex justify-end pa-2">
-        <VBtn icon variant="text" size="small" @click="mobileDrawer = false">
+        <VBtn icon variant="text" size="small" aria-label="메뉴 닫기" @click="mobileDrawer = false">
           <VIcon icon="ri-close-line" />
         </VBtn>
       </div>
@@ -460,11 +486,29 @@ function goToCustomerLogin() {
 
             <VBtn
               block
-              color="primary"
+              class="kakao-mobile-btn mb-2"
               prepend-icon="ri-kakao-talk-fill"
-              @click="mobileDrawer = false; goToCustomerLogin()"
+              @click="handleProviderLogin('kakao')"
             >
-              고객 로그인
+              카카오 로그인
+            </VBtn>
+            <VBtn
+              block
+              color="success"
+              variant="outlined"
+              class="mb-2"
+              prepend-icon="ri-global-line"
+              @click="handleProviderLogin('naver')"
+            >
+              네이버 로그인
+            </VBtn>
+            <VBtn
+              block
+              variant="outlined"
+              prepend-icon="ri-google-fill"
+              @click="handleProviderLogin('google')"
+            >
+              구글 로그인
             </VBtn>
           </template>
 
@@ -511,6 +555,7 @@ function goToCustomerLogin() {
         </div>
       </div>
     </VNavigationDrawer>
+    </Teleport>
   </div>
 </template>
 
@@ -571,6 +616,15 @@ function goToCustomerLogin() {
 }
 
 // Nav link styling with active state and hover effects
+.public-mobile-drawer {
+  z-index: 2000 !important;
+}
+
+.kakao-mobile-btn {
+  background-color: #FEE500 !important;
+  color: #191919 !important;
+}
+
 .nav-link-btn {
   font-weight: 500;
   letter-spacing: 0.015em;

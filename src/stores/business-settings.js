@@ -179,8 +179,16 @@ export const useBusinessSettingsStore = defineStore('businessSettings', {
 
       this.loading = true
       try {
-        // 1. businessHours 저장
+        // 1. businessHours 저장 (기존 데이터 유지하면서 업데이트)
+        const currentBusiness = this.business || {}
         await businessSettingsApi.updateBusinessInfo(businessId, {
+          name: currentBusiness.name,
+          businessType: currentBusiness.businessType,
+          phone: currentBusiness.phone,
+          address: currentBusiness.address,
+          description: currentBusiness.description,
+          profileImageUrl: currentBusiness.profileImageUrl,
+          coverImageUrl: currentBusiness.coverImageUrl,
           businessHours,
         })
 

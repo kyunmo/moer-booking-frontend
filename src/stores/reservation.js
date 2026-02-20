@@ -324,6 +324,47 @@ export const useReservationStore = defineStore('reservation', {
     },
 
     /**
+     * 다중 예약 일괄 상태 변경
+     */
+    async bulkUpdateStatus(reservationIds, status) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        const { data } = await reservationApi.bulkUpdateStatus(businessId, reservationIds, status)
+
+        return data
+      }
+      catch (error) {
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 직원 가용 시간 확인
+     */
+    async checkAvailability(params) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      const { data } = await reservationApi.checkAvailability(businessId, params)
+
+      return data
+    },
+
+    /**
      * 예약 삭제
      */
     async deleteReservation(reservationId) {

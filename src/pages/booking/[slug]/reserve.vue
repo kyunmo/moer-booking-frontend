@@ -12,6 +12,7 @@ import { useBookingStore } from '@/stores/booking'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import customerApi from '@/api/customer'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { formatTimeKR, formatTimeRange, calculateEndTime, formatDurationBreakdown } from '@/utils/dateFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,18 @@ const { error: showError, success: showSuccess } = useSnackbar()
 const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
 
 const slug = computed(() => route.params.slug)
+
+// =====================================================
+// Rebook Mode
+// =====================================================
+const rebookMode = computed(() => route.query.rebook === 'true')
+const rebookServiceIds = computed(() => {
+  if (!route.query.serviceIds) return []
+  return route.query.serviceIds.split(',').map(Number).filter(Boolean)
+})
+const rebookStaffId = computed(() => {
+  return route.query.staffId ? Number(route.query.staffId) : null
+})
 
 // =====================================================
 // Error Code Messages
@@ -74,6 +87,23 @@ const availableSlots = computed(() => bookingStore.availableSlots)
 const totalPrice = computed(() => bookingStore.totalPrice)
 const totalDuration = computed(() => bookingStore.totalDuration)
 const reservationResult = computed(() => bookingStore.reservationResult)
+
+// 예상 종료 시간 계산
+const estimatedEndTime = computed(() => {
+  if (!selectedTime.value?.startTime || !totalDuration.value) return ''
+  return calculateEndTime(selectedTime.value.startTime, totalDuration.value)
+})
+
+// 시간 범위 표시 (오전/오후)
+const timeRangeDisplay = computed(() => {
+  if (!selectedTime.value?.startTime || !estimatedEndTime.value) return ''
+  return formatTimeRange(selectedTime.value.startTime, estimatedEndTime.value)
+})
+
+// 서비스별 소요시간 내역
+const durationBreakdown = computed(() => {
+  return formatDurationBreakdown(selectedServices.value)
+})
 
 // =====================================================
 // Step 1: Service Selection
@@ -365,12 +395,40 @@ const stepperItems = computed(() => [
 ])
 
 // =====================================================
+// Rebook: Auto-select previous services/staff
+// =====================================================
+function applyRebookData() {
+  const allServices = bookingStore.business?.services || []
+  const matchedServices = allServices.filter(s => rebookServiceIds.value.includes(s.id))
+
+  if (matchedServices.length > 0) {
+    bookingStore.selectedServices = matchedServices
+  }
+
+  // staffId는 Step 2에서 시간 선택 후 자동 선택됨 (아래 watch 참고)
+}
+
+// 재예약 모드: 시간 선택 시 이전 담당자 자동 선택
+watch(currentSlotStaffs, (staffs) => {
+  if (!rebookMode.value || !rebookStaffId.value || !staffs.length) return
+  const matchedStaff = staffs.find(s => s.id === rebookStaffId.value)
+  if (matchedStaff) {
+    bookingStore.selectedStaff = matchedStaff
+  }
+})
+
+// =====================================================
 // Lifecycle
 // =====================================================
 onMounted(async () => {
   try {
     if (!bookingStore.business || bookingStore.business.slug !== slug.value) {
       await bookingStore.fetchBusinessDetail(slug.value)
+    }
+
+    // 재예약 모드: 이전 서비스/스태프 자동 선택
+    if (rebookMode.value && rebookServiceIds.value.length > 0) {
+      applyRebookData()
     }
   } catch (err) {
     showError('매장 정보를 불러오지 못했습니다')
@@ -451,7 +509,7 @@ onUnmounted(() => {
                 <VListItemSubtitle class="text-body-2">
                   {{ formatDate(selectedDate) }}
                   <br>
-                  {{ selectedTime?.startTime }} ~ {{ selectedTime?.endTime }}
+                  {{ timeRangeDisplay }}
                 </VListItemSubtitle>
               </VListItem>
 
@@ -604,6 +662,17 @@ onUnmounted(() => {
               </VCardTitle>
 
               <VDivider />
+
+              <VAlert
+                v-if="rebookMode"
+                type="info"
+                variant="tonal"
+                class="ma-5 mb-0"
+                density="compact"
+                closable
+              >
+                이전 예약 기반으로 서비스가 자동 선택되었습니다. 변경할 수 있습니다.
+              </VAlert>
 
               <VCardText class="pa-5">
                 <!-- No services -->
@@ -803,10 +872,26 @@ onUnmounted(() => {
                               class="time-slot-btn"
                               @click="selectTime(slot)"
                             >
-                              {{ slot.startTime }} ~ {{ slot.endTime }}
+                              {{ formatTimeKR(slot.startTime) }}
                             </VBtn>
                           </VCol>
                         </VRow>
+
+                        <!-- 예상 종료 시간 표시 (시간 선택 후) -->
+                        <template v-if="selectedTime && estimatedEndTime">
+                          <VAlert
+                            type="info"
+                            variant="tonal"
+                            class="mt-4"
+                            density="compact"
+                          >
+                            <div class="d-flex align-center flex-wrap ga-1">
+                              <VIcon icon="ri-time-line" size="18" class="me-1" />
+                              <span class="font-weight-bold">{{ timeRangeDisplay }}</span>
+                              <span class="text-medium-emphasis ms-1">({{ durationBreakdown }}, 총 {{ totalDuration }}분)</span>
+                            </div>
+                          </VAlert>
+                        </template>
 
                         <!-- Staff Selection (after time selected) -->
                         <template v-if="selectedTime">
@@ -856,7 +941,7 @@ onUnmounted(() => {
                               @click="selectStaff(staff)"
                             >
                               <VAvatar color="primary" variant="tonal" size="48" class="mb-2">
-                                <VImg v-if="staff.profileImageUrl" :src="staff.profileImageUrl" />
+                                <VImg v-if="staff.profileImageUrl" :src="staff.profileImageUrl" :alt="`${staff.name} 프로필 사진`" />
                                 <span v-else class="text-body-1 font-weight-bold">
                                   {{ staff.name?.charAt(0) }}
                                 </span>
@@ -1162,7 +1247,10 @@ onUnmounted(() => {
                     <VListItemSubtitle>
                       {{ formatDate(selectedDate) }}
                       <br>
-                      {{ selectedTime?.startTime }} ~ {{ selectedTime?.endTime }}
+                      {{ timeRangeDisplay }}
+                      <span v-if="durationBreakdown" class="text-caption text-medium-emphasis">
+                        ({{ durationBreakdown }})
+                      </span>
                     </VListItemSubtitle>
                   </VListItem>
 

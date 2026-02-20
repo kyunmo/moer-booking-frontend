@@ -368,6 +368,16 @@
     "toFrontendPlan": true,
     "useTrialGuard": true,
     "toBackendBillingCycle": true,
-    "toFrontendBillingCycle": true
+    "toFrontendBillingCycle": true,
+    "calculateEndTime": true,
+    "formatDurationBreakdown": true,
+    "formatTimeKR": true,
+    "formatTimeRange": true,
+    "OAUTH_BASE_URL": true,
+    "DEFAULT_DESCRIPTION": true,
+    "DEFAULT_TITLE": true,
+    "SITE_NAME": true,
+    "updateSeoMeta": true,
+    "updateStructuredData": true
   }
 }

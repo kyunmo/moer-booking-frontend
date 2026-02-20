@@ -41,7 +41,7 @@ export const useStatisticsStore = defineStore('statistics', {
       try {
         const response = await statisticsApi.getRevenue(businessId, params)
 
-        this.revenueData = response.data || response
+        this.revenueData = response.data
       }
       catch (error) {
 
@@ -61,7 +61,7 @@ export const useStatisticsStore = defineStore('statistics', {
       try {
         const response = await statisticsApi.getReservations(businessId, params)
 
-        this.reservationData = response.data || response
+        this.reservationData = response.data
       }
       catch (error) {
 
@@ -81,7 +81,7 @@ export const useStatisticsStore = defineStore('statistics', {
       try {
         const response = await statisticsApi.getCustomers(businessId, params)
 
-        this.customerData = response.data || response
+        this.customerData = response.data
       }
       catch (error) {
 
@@ -101,7 +101,7 @@ export const useStatisticsStore = defineStore('statistics', {
       try {
         const response = await statisticsApi.getStaff(businessId, params)
 
-        this.staffData = response.data || response
+        this.staffData = response.data
       }
       catch (error) {
 
@@ -121,7 +121,7 @@ export const useStatisticsStore = defineStore('statistics', {
       try {
         const response = await statisticsApi.getServices(businessId, params)
 
-        this.serviceData = response.data || response
+        this.serviceData = response.data
       }
       catch (error) {
 

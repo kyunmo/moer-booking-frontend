@@ -12,6 +12,7 @@ import { useRouter } from 'vue-router'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import { useSnackbar } from '@/composables/useSnackbar'
 import customerApi from '@/api/customer'
+import { formatTimeRange } from '@/utils/dateFormat'
 
 const router = useRouter()
 const customerAuthStore = useCustomerAuthStore()
@@ -46,6 +47,7 @@ const statusConfig = {
   CONFIRMED: { color: 'info', label: '확정', icon: 'ri-check-line' },
   COMPLETED: { color: 'success', label: '완료', icon: 'ri-check-double-line' },
   CANCELLED: { color: 'error', label: '취소됨', icon: 'ri-close-circle-line' },
+  NO_SHOW: { color: 'grey', label: '노쇼', icon: 'ri-user-unfollow-line' },
 }
 
 const statusFilters = [
@@ -54,6 +56,7 @@ const statusFilters = [
   { label: '확정', value: 'CONFIRMED' },
   { label: '완료', value: 'COMPLETED' },
   { label: '취소됨', value: 'CANCELLED' },
+  { label: '노쇼', value: 'NO_SHOW' },
 ]
 
 function getStatusConfig(status) {
@@ -78,10 +81,23 @@ async function fetchReservations() {
       params.status = statusFilter.value
     }
 
-    const { data } = await customerApi.getMyReservations(params)
+    const result = await customerApi.getMyReservations(params)
 
-    reservations.value = data.items || []
-    totalCount.value = data.totalCount || 0
+    // axios interceptor가 response.data를 반환 → { success, data: { content, totalElements, ... } }
+    const data = result?.data ?? result
+
+    if (Array.isArray(data)) {
+      reservations.value = data
+      totalCount.value = data.length
+    }
+    else if (data) {
+      reservations.value = data.content || data.items || []
+      totalCount.value = data.totalElements || data.totalCount || 0
+    }
+    else {
+      reservations.value = []
+      totalCount.value = 0
+    }
   }
   catch (error) {
     if (error.status === 401) {
@@ -103,9 +119,9 @@ async function openDetail(reservation) {
   detailLoading.value = true
 
   try {
-    const { data } = await customerApi.getReservation(reservation.reservationNumber)
+    const result = await customerApi.getReservation(reservation.reservationNumber)
 
-    detailItem.value = data
+    detailItem.value = result?.data ?? result
   }
   catch (error) {
     showError(error.message || '예약 상세 조회에 실패했습니다')
@@ -148,12 +164,59 @@ async function handleCancel() {
   }
 }
 
+function getBusinessIdentifier(reservation) {
+  return reservation.businessSlug || reservation.businessId || null
+}
+
 function goToReview(reservation) {
-  router.push(`/booking/${reservation.businessSlug}/review?reservationNumber=${reservation.reservationNumber}`)
+  const identifier = getBusinessIdentifier(reservation)
+  if (!identifier) {
+    showError('매장 정보를 찾을 수 없습니다')
+
+    return
+  }
+  router.push(`/booking/${identifier}/review?reservationNumber=${reservation.reservationNumber}`)
 }
 
 function goToBooking(reservation) {
-  router.push(`/booking/${reservation.businessSlug}`)
+  const identifier = getBusinessIdentifier(reservation)
+  if (!identifier) {
+    showError('매장 정보를 찾을 수 없습니다')
+
+    return
+  }
+  router.push(`/booking/${identifier}`)
+}
+
+async function handleRebook(reservation) {
+  const identifier = getBusinessIdentifier(reservation)
+  if (!identifier) {
+    showError('매장 정보를 찾을 수 없습니다')
+
+    return
+  }
+
+  // 상세 조회로 serviceIds, staffId 확보
+  try {
+    const result = await customerApi.getReservation(reservation.reservationNumber)
+    const data = result?.data ?? result
+    const query = { rebook: 'true' }
+
+    if (data?.serviceIds?.length) {
+      query.serviceIds = data.serviceIds.join(',')
+    }
+    if (data?.staffId) {
+      query.staffId = String(data.staffId)
+    }
+
+    router.push({
+      path: `/booking/${identifier}/reserve`,
+      query,
+    })
+  }
+  catch (error) {
+    showError('재예약 정보를 불러오지 못했습니다')
+  }
 }
 
 // --- Watchers ---
@@ -345,7 +408,7 @@ function formatPrice(price) {
                   size="16"
                   color="medium-emphasis"
                 />
-                <span>{{ reservation.startTime }} ~ {{ reservation.endTime }}</span>
+                <span>{{ formatTimeRange(reservation.startTime, reservation.endTime) }}</span>
               </div>
 
               <div class="d-flex align-center gap-1">
@@ -354,7 +417,7 @@ function formatPrice(price) {
                   size="16"
                   color="medium-emphasis"
                 />
-                <span>{{ reservation.staffName }}</span>
+                <span>{{ reservation.staffName || '자동 배정' }}</span>
               </div>
 
               <div class="d-flex align-center gap-1 font-weight-bold text-primary">
@@ -371,7 +434,7 @@ function formatPrice(price) {
                 variant="tonal"
                 color="primary"
               >
-                {{ service }}
+                {{ typeof service === 'string' ? service : service.name }}
               </VChip>
             </div>
 
@@ -423,6 +486,22 @@ function formatPrice(price) {
                   ri-check-line
                 </VIcon>
                 리뷰 작성됨
+              </VBtn>
+
+              <VBtn
+                v-if="reservation.status === 'COMPLETED'"
+                color="primary"
+                variant="tonal"
+                size="small"
+                @click.stop="handleRebook(reservation)"
+              >
+                <VIcon
+                  start
+                  size="16"
+                >
+                  ri-repeat-line
+                </VIcon>
+                재예약
               </VBtn>
             </div>
           </VCardText>
@@ -513,11 +592,13 @@ function formatPrice(price) {
                   <span class="info-label">매장명</span>
                   <span class="info-value">
                     <a
+                      v-if="getBusinessIdentifier(detailItem)"
                       class="text-primary text-decoration-none cursor-pointer"
                       @click="goToBooking(detailItem); detailDialog = false"
                     >
                       {{ detailItem.businessName }}
                     </a>
+                    <span v-else>{{ detailItem.businessName }}</span>
                   </span>
                 </div>
               </div>
@@ -542,7 +623,7 @@ function formatPrice(price) {
                 </div>
                 <div class="info-item">
                   <span class="info-label">예약 시간</span>
-                  <span class="info-value">{{ detailItem.startTime }} ~ {{ detailItem.endTime }}</span>
+                  <span class="info-value">{{ formatTimeRange(detailItem.startTime, detailItem.endTime) }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">담당자</span>
@@ -559,7 +640,7 @@ function formatPrice(price) {
                       color="primary"
                       class="me-1 mb-1"
                     >
-                      {{ service }}
+                      {{ typeof service === 'string' ? service : service.name }}
                     </VChip>
                   </span>
                 </div>
@@ -604,6 +685,18 @@ function formatPrice(price) {
                   ri-star-line
                 </VIcon>
                 리뷰 작성
+              </VBtn>
+
+              <VBtn
+                v-if="detailItem.status === 'COMPLETED'"
+                color="primary"
+                variant="tonal"
+                @click="detailDialog = false; handleRebook(detailItem)"
+              >
+                <VIcon start>
+                  ri-repeat-line
+                </VIcon>
+                재예약
               </VBtn>
 
               <VSpacer />

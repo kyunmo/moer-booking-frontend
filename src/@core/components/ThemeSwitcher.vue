@@ -18,7 +18,7 @@ watch(() => configStore.theme, () => {
 </script>
 
 <template>
-  <IconBtn>
+  <IconBtn aria-label="테마 변경">
     <VIcon :icon="props.themes.find(t => t.name === configStore.theme)?.icon" />
 
     <VTooltip

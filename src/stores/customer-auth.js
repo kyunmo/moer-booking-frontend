@@ -1,4 +1,5 @@
 import customerApi from '@/api/customer'
+import { OAUTH_BASE_URL } from '@/utils/oauth'
 import { defineStore } from 'pinia'
 
 export const useCustomerAuthStore = defineStore('customerAuth', {
@@ -25,15 +26,31 @@ export const useCustomerAuthStore = defineStore('customerAuth', {
      * 카카오 로그인 시작
      */
     startKakaoLogin(redirectPath) {
-      // 로그인 후 돌아갈 경로 저장
+      this.startSocialLogin('kakao', redirectPath)
+    },
+
+    /**
+     * 네이버 로그인 시작
+     */
+    startNaverLogin(redirectPath) {
+      this.startSocialLogin('naver', redirectPath)
+    },
+
+    /**
+     * 구글 로그인 시작
+     */
+    startGoogleLogin(redirectPath) {
+      this.startSocialLogin('google', redirectPath)
+    },
+
+    /**
+     * 통합 소셜 로그인 시작
+     */
+    startSocialLogin(provider, redirectPath) {
       if (redirectPath) {
         localStorage.setItem('customerLoginRedirect', redirectPath)
       }
-
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
-      const apiBaseUrl = baseUrl.replace(/\/api$/, '')
-
-      window.location.href = `${apiBaseUrl}/oauth2/authorize/kakao?loginType=customer`
+      window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/${provider}?loginType=customer`
     },
 
     /**
@@ -62,8 +79,8 @@ export const useCustomerAuthStore = defineStore('customerAuth', {
         return data
       }
       catch (error) {
-        // 인증 실패 시 로그아웃
-        if (error.status === 401) {
+        // 인증 실패(401) 또는 권한 오류(403) 시 로그아웃
+        if (error.status === 401 || error.status === 403) {
           this.logout()
         }
         throw error

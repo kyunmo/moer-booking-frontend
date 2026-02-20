@@ -129,7 +129,7 @@
         pointer-events: none;
       }
 
-      a {
+      a:focus:not(:focus-visible) {
         outline: none;
       }
     }

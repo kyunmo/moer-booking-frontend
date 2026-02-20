@@ -314,7 +314,7 @@
 
                     <VListItemTitle>{{ reservation.customerName }}</VListItemTitle>
                     <VListItemSubtitle>
-                      {{ reservation.startTime }} - {{ reservation.endTime }}
+                      {{ formatTimeRange(reservation.startTime, reservation.endTime) }}
                       <template v-if="reservation.services?.length || reservation.serviceName">
                         &middot; {{ reservation.services?.join(', ') || reservation.serviceName }}
                       </template>
@@ -411,6 +411,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useOnboardingStore } from '@/stores/onboarding'
 import { useSubscriptionStore } from '@/stores/subscription'
 import { useTour } from '@/composables/useTour'
+import { formatTimeRange } from '@/utils/dateFormat'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import { useTheme } from 'vuetify'

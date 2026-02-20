@@ -6,20 +6,30 @@ meta:
 </route>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { formatTimeRange } from '@/utils/dateFormat'
 
 const router = useRouter()
 const bookingStore = useBookingStore()
 const { success: showSuccess, error: showError } = useSnackbar()
 
 // Search form
-const reservationNumber = ref('')
+const customerName = ref('')
 const phone = ref('')
+const reservationNumber = ref('')
+const showReservationNumber = ref(false)
 const searchLoading = ref(false)
 const searched = ref(false)
+
+const canSearch = computed(() => {
+  if (showReservationNumber.value) {
+    return reservationNumber.value.trim() && phone.value.trim()
+  }
+  return customerName.value.trim() && phone.value.trim()
+})
 
 // Cancel dialog
 const cancelDialog = ref(false)
@@ -28,6 +38,8 @@ const cancelLoading = ref(false)
 
 // Store state
 const reservation = computed(() => bookingStore.reservationLookup)
+const reservationList = computed(() => bookingStore.reservationLookupList)
+const hasMultipleResults = computed(() => reservationList.value.length > 1 && !reservation.value)
 
 // Status config
 const statusConfig = {
@@ -53,10 +65,20 @@ function getErrorMessage(error, defaultMessage) {
   return errorMessages[error?.code] || error?.message || defaultMessage
 }
 
+// Select a reservation from list
+function selectReservation(item) {
+  bookingStore.reservationLookup = item
+}
+
+// Go back to list
+function backToList() {
+  bookingStore.reservationLookup = null
+}
+
 // Lookup reservation
 async function handleLookup() {
-  if (!reservationNumber.value.trim() || !phone.value.trim()) {
-    showError('예약번호와 전화번호를 모두 입력해주세요')
+  if (!canSearch.value) {
+    showError('필수 정보를 모두 입력해주세요')
     return
   }
 
@@ -64,15 +86,27 @@ async function handleLookup() {
   searched.value = true
 
   try {
-    await bookingStore.lookupReservation(
-      reservationNumber.value.trim(),
-      phone.value.trim(),
-    )
+    if (showReservationNumber.value && reservationNumber.value.trim()) {
+      await bookingStore.lookupReservation(
+        reservationNumber.value.trim(),
+        phone.value.trim(),
+      )
+    } else {
+      const list = await bookingStore.lookupReservationByNamePhone(
+        customerName.value.trim(),
+        phone.value.trim(),
+      )
+      if (list.length === 0) {
+        bookingStore.reservationLookup = null
+        bookingStore.reservationLookupList = []
+      }
+    }
   }
   catch (error) {
     const message = getErrorMessage(error, '예약 조회에 실패했습니다')
     showError(message)
     bookingStore.reservationLookup = null
+    bookingStore.reservationLookupList = []
   }
   finally {
     searchLoading.value = false
@@ -90,7 +124,8 @@ async function handleCancel() {
   cancelLoading.value = true
 
   try {
-    await bookingStore.cancelReservation(reservationNumber.value.trim(), {
+    const resNumber = reservation.value?.reservationNumber
+    await bookingStore.cancelReservation(resNumber, {
       phone: phone.value.trim(),
       reason: cancelReason.value || null,
     })
@@ -98,10 +133,14 @@ async function handleCancel() {
     cancelDialog.value = false
 
     // Reload reservation data
-    await bookingStore.lookupReservation(
-      reservationNumber.value.trim(),
-      phone.value.trim(),
-    )
+    if (showReservationNumber.value && reservationNumber.value.trim()) {
+      await bookingStore.lookupReservation(resNumber, phone.value.trim())
+    } else {
+      await bookingStore.lookupReservationByNamePhone(
+        customerName.value.trim(),
+        phone.value.trim(),
+      )
+    }
   }
   catch (error) {
     const message = getErrorMessage(error, '예약 취소에 실패했습니다')
@@ -160,7 +199,7 @@ function formatCancelDeadline(deadlineStr) {
               예약 조회
             </h1>
             <p class="text-body-1 text-medium-emphasis">
-              예약번호와 전화번호로 예약 내역을 확인하세요
+              이름과 전화번호로 예약 내역을 확인하세요
             </p>
           </div>
 
@@ -172,10 +211,10 @@ function formatCancelDeadline(deadlineStr) {
           >
             <VCardText class="pa-6">
               <VTextField
-                v-model="reservationNumber"
-                label="예약번호"
-                placeholder="260220-A3B9"
-                prepend-inner-icon="ri-hashtag"
+                v-model="customerName"
+                label="이름"
+                placeholder="예약 시 입력한 이름"
+                prepend-inner-icon="ri-user-line"
                 variant="outlined"
                 density="comfortable"
                 class="mb-4"
@@ -190,17 +229,41 @@ function formatCancelDeadline(deadlineStr) {
                 prepend-inner-icon="ri-phone-line"
                 variant="outlined"
                 density="comfortable"
-                class="mb-6"
+                class="mb-4"
                 hide-details="auto"
                 @keydown.enter="handleLookup"
               />
+
+              <VExpandTransition>
+                <VTextField
+                  v-if="showReservationNumber"
+                  v-model="reservationNumber"
+                  label="예약번호 (선택)"
+                  placeholder="260220-A3B9"
+                  prepend-inner-icon="ri-hashtag"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mb-4"
+                  hide-details="auto"
+                  @keydown.enter="handleLookup"
+                />
+              </VExpandTransition>
+
+              <div class="d-flex align-center mb-6">
+                <VCheckbox
+                  v-model="showReservationNumber"
+                  label="예약번호로 조회"
+                  density="compact"
+                  hide-details
+                />
+              </div>
 
               <VBtn
                 color="primary"
                 size="large"
                 block
                 :loading="searchLoading"
-                :disabled="!reservationNumber.trim() || !phone.trim()"
+                :disabled="!canSearch"
                 @click="handleLookup"
               >
                 <VIcon start>
@@ -213,7 +276,7 @@ function formatCancelDeadline(deadlineStr) {
 
           <!-- No Result Message -->
           <div
-            v-if="searched && !reservation && !searchLoading"
+            v-if="searched && !reservation && !hasMultipleResults && !searchLoading"
             class="text-center py-8"
           >
             <VIcon
@@ -227,12 +290,89 @@ function formatCancelDeadline(deadlineStr) {
             </p>
           </div>
 
+          <!-- Multiple Results List -->
+          <div v-if="hasMultipleResults">
+            <VAlert
+              type="info"
+              variant="tonal"
+              class="mb-4"
+            >
+              {{ reservationList.length }}건의 예약이 조회되었습니다. 확인할 예약을 선택해주세요.
+            </VAlert>
+
+            <VCard
+              v-for="(item, idx) in reservationList"
+              :key="item.reservationNumber || idx"
+              class="mb-3 cursor-pointer"
+              rounded="lg"
+              variant="outlined"
+              hover
+              @click="selectReservation(item)"
+            >
+              <VCardText class="pa-4">
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <div class="d-flex align-center ga-2 mb-1">
+                      <span class="text-subtitle-2 font-weight-bold">
+                        {{ item.businessName }}
+                      </span>
+                      <VChip
+                        :color="getStatusConfig(item.status).color"
+                        :prepend-icon="getStatusConfig(item.status).icon"
+                        size="x-small"
+                        label
+                      >
+                        {{ getStatusConfig(item.status).label }}
+                      </VChip>
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis">
+                      {{ formatDate(item.reservationDate) }}
+                      <template v-if="item.startTime">
+                        {{ item.startTime }}
+                      </template>
+                    </div>
+                    <div v-if="item.services" class="d-flex flex-wrap ga-1 mt-1">
+                      <VChip
+                        v-for="(service, sIdx) in item.services"
+                        :key="sIdx"
+                        size="x-small"
+                        variant="tonal"
+                        color="primary"
+                      >
+                        {{ service }}
+                      </VChip>
+                    </div>
+                  </div>
+                  <div class="text-end">
+                    <div v-if="item.totalPrice" class="text-subtitle-2 font-weight-bold text-primary">
+                      {{ item.totalPrice?.toLocaleString() }}원
+                    </div>
+                    <VIcon icon="ri-arrow-right-s-line" color="medium-emphasis" class="mt-1" />
+                  </div>
+                </div>
+              </VCardText>
+            </VCard>
+          </div>
+
           <!-- Result Card -->
           <VCard
             v-if="reservation"
             rounded="lg"
             elevation="2"
           >
+            <!-- Back to List (when selected from multiple) -->
+            <VBtn
+              v-if="reservationList.length > 1"
+              variant="text"
+              color="primary"
+              size="small"
+              prepend-icon="ri-arrow-left-s-line"
+              class="ma-4 mb-0"
+              @click="backToList"
+            >
+              목록으로 돌아가기
+            </VBtn>
+
             <!-- Status Header -->
             <div class="pa-6 pb-4">
               <div class="d-flex align-center justify-space-between mb-4">
@@ -316,7 +456,7 @@ function formatCancelDeadline(deadlineStr) {
                   </div>
                   <div class="info-item">
                     <span class="info-label">예약 시간</span>
-                    <span class="info-value">{{ reservation.startTime }} ~ {{ reservation.endTime }}</span>
+                    <span class="info-value">{{ formatTimeRange(reservation.startTime, reservation.endTime) }}</span>
                   </div>
                   <div class="info-item">
                     <span class="info-label">담당 스태프</span>

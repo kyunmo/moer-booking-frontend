@@ -40,9 +40,17 @@ onMounted(() => {
   }
 })
 
-// 카카오 로그인
+// 소셜 로그인
 function handleKakaoLogin() {
   customerAuthStore.startKakaoLogin(redirectPath.value)
+}
+
+function handleNaverLogin() {
+  customerAuthStore.startNaverLogin(redirectPath.value)
+}
+
+function handleGoogleLogin() {
+  customerAuthStore.startGoogleLogin(redirectPath.value)
 }
 
 // 매장 검색으로 돌아가기
@@ -88,8 +96,8 @@ function goToSearch() {
             <VBtn
               block
               size="large"
-              class="kakao-login-btn mb-4"
-              height="52"
+              class="kakao-login-btn mb-3"
+              height="48"
               @click="handleKakaoLogin"
             >
               <svg
@@ -108,9 +116,40 @@ function goToSearch() {
               카카오로 시작하기
             </VBtn>
 
+            <!-- 네이버 로그인 버튼 -->
+            <VBtn
+              block
+              size="large"
+              class="naver-login-btn mb-3"
+              height="48"
+              @click="handleNaverLogin"
+            >
+              <svg class="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.56 10.7L6.15 2H2v16h4.44V9.3L13.85 18H18V2h-4.44v8.7z" fill="white" />
+              </svg>
+              네이버로 시작하기
+            </VBtn>
+
+            <!-- 구글 로그인 버튼 -->
+            <VBtn
+              block
+              size="large"
+              class="google-login-btn mb-4"
+              height="48"
+              @click="handleGoogleLogin"
+            >
+              <svg class="me-2" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.6 10.23c0-.68-.06-1.36-.17-2.01H10v3.8h5.38a4.6 4.6 0 01-2 3.02v2.5h3.24c1.89-1.74 2.98-4.3 2.98-7.31z" fill="#4285F4" />
+                <path d="M10 20c2.7 0 4.96-.9 6.62-2.42l-3.24-2.51c-.89.6-2.04.96-3.38.96-2.6 0-4.8-1.76-5.58-4.12H1.07v2.6A9.99 9.99 0 0010 20z" fill="#34A853" />
+                <path d="M4.42 11.91A6.01 6.01 0 014.1 10c0-.66.12-1.31.32-1.91V5.49H1.07A9.99 9.99 0 000 10c0 1.61.39 3.14 1.07 4.51l3.35-2.6z" fill="#FBBC05" />
+                <path d="M10 3.96c1.47 0 2.78.5 3.81 1.5l2.85-2.85C14.96.99 12.7 0 10 0A9.99 9.99 0 001.07 5.49l3.35 2.6C5.2 5.72 7.4 3.96 10 3.96z" fill="#EA4335" />
+              </svg>
+              구글로 시작하기
+            </VBtn>
+
             <!-- 안내 문구 -->
             <p class="text-body-2 text-medium-emphasis text-center mb-6">
-              카카오 계정으로 간편하게 로그인하고<br>
+              소셜 계정으로 간편하게 로그인하고<br>
               예약 내역을 관리할 수 있습니다
             </p>
 
@@ -167,6 +206,35 @@ function goToSearch() {
 
   &:hover {
     background-color: #F5DC00 !important;
+  }
+}
+
+.naver-login-btn {
+  background-color: #03C75A !important;
+  color: white !important;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  border-radius: 8px !important;
+  text-transform: none;
+
+  &:hover {
+    background-color: #02B550 !important;
+  }
+}
+
+.google-login-btn {
+  background-color: #FFFFFF !important;
+  color: #3c4043 !important;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  border-radius: 8px !important;
+  text-transform: none;
+  border: 1px solid #dadce0 !important;
+
+  &:hover {
+    background-color: #F7F8F8 !important;
   }
 }
 </style>

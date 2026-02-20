@@ -21,6 +21,7 @@ const emit = defineEmits(['cancel'])
     <IconBtn
       class="text-medium-emphasis ms-1"
       size="x-small"
+      aria-label="닫기"
       @click="$emit('cancel', $event)"
     >
       <VIcon

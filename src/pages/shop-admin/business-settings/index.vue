@@ -22,7 +22,7 @@
         <div class="d-flex align-center gap-6 flex-wrap">
           <!-- 현재 이미지 미리보기 -->
           <VAvatar size="120" rounded="lg" color="primary" variant="tonal">
-            <VImg v-if="profileImagePreview || profileImageUrl" :src="profileImagePreview || profileImageUrl" cover />
+            <VImg v-if="profileImagePreview || profileImageUrl" :src="profileImagePreview || profileImageUrl" alt="매장 프로필 이미지" cover />
             <VIcon v-else icon="ri-store-2-line" size="48" />
           </VAvatar>
 
@@ -149,11 +149,36 @@
             </VCol>
 
             <VCol cols="12">
+              <div class="d-flex ga-2 align-start">
+                <VTextField
+                  v-model="form.address"
+                  label="주소"
+                  prepend-inner-icon="ri-map-pin-line"
+                  placeholder="주소 검색 버튼을 클릭하세요"
+                  readonly
+                  class="flex-grow-1"
+                  @click="openAddressSearch"
+                />
+                <VBtn
+                  color="primary"
+                  variant="tonal"
+                  class="mt-1"
+                  @click="openAddressSearch"
+                >
+                  <VIcon start>
+                    ri-search-line
+                  </VIcon>
+                  주소 검색
+                </VBtn>
+              </div>
+            </VCol>
+
+            <VCol cols="12">
               <VTextField
-                v-model="form.address"
-                label="주소"
-                prepend-inner-icon="ri-map-pin-line"
-                placeholder="서울특별시 강남구 테헤란로 123"
+                v-model="form.addressDetail"
+                label="상세주소"
+                prepend-inner-icon="ri-building-2-line"
+                placeholder="상세주소 입력 (건물명, 호수 등)"
               />
             </VCol>
 
@@ -285,6 +310,108 @@
       </VCardText>
     </VCard>
 
+    <!-- 고객 등급 설정 -->
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center">
+        <VIcon icon="ri-vip-crown-line" size="24" class="me-3" />
+        <span>고객 등급 설정</span>
+      </VCardTitle>
+
+      <VDivider />
+
+      <VCardText>
+        <VAlert
+          color="info"
+          variant="tonal"
+          class="mb-4"
+        >
+          <VIcon icon="ri-information-line" class="me-2" />
+          방문 횟수 기준으로 고객 등급이 자동으로 분류됩니다. 설정 변경 후 다음 예약 완료 시점부터 적용됩니다.
+        </VAlert>
+
+        <div v-if="tierLoading" class="text-center py-6">
+          <VProgressCircular indeterminate color="primary" />
+        </div>
+
+        <VForm v-else ref="tierFormRef" @submit.prevent="handleTierSubmit">
+          <VRow>
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model.number="tierForm.regularThreshold"
+                label="단골 고객 기준 (방문 횟수) *"
+                type="number"
+                prepend-inner-icon="ri-user-star-line"
+                :rules="[required, minOneRule]"
+                min="1"
+                step="1"
+                hint="이 횟수 이상 방문 시 '단골' 등급"
+                persistent-hint
+              />
+            </VCol>
+
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model.number="tierForm.vipThreshold"
+                label="VIP 고객 기준 (방문 횟수) *"
+                type="number"
+                prepend-inner-icon="ri-vip-crown-line"
+                :rules="[required, minOneRule, vipGreaterThanRegularRule]"
+                min="1"
+                step="1"
+                hint="이 횟수 이상 방문 시 'VIP' 등급"
+                persistent-hint
+              />
+            </VCol>
+
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model="tierForm.vipBenefitDescription"
+                label="VIP 혜택 설명"
+                placeholder="예: VIP 고객 10% 할인"
+                prepend-inner-icon="ri-gift-line"
+                hint="VIP 고객에게 표시할 혜택 안내"
+                persistent-hint
+              />
+            </VCol>
+          </VRow>
+
+          <!-- 미리보기 -->
+          <VRow class="mt-2">
+            <VCol cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-2">등급 기준 미리보기</div>
+              <div class="d-flex flex-wrap gap-3">
+                <VChip color="default" variant="tonal" size="small">
+                  <VIcon start size="16">ri-user-line</VIcon>
+                  신규: 0~{{ (tierForm.regularThreshold || 3) - 1 }}회
+                </VChip>
+                <VChip color="success" variant="tonal" size="small">
+                  <VIcon start size="16">ri-user-star-line</VIcon>
+                  단골: {{ tierForm.regularThreshold || 3 }}~{{ (tierForm.vipThreshold || 10) - 1 }}회
+                </VChip>
+                <VChip color="warning" variant="tonal" size="small">
+                  <VIcon start size="16">ri-vip-crown-line</VIcon>
+                  VIP: {{ tierForm.vipThreshold || 10 }}회 이상
+                </VChip>
+              </div>
+            </VCol>
+          </VRow>
+        </VForm>
+      </VCardText>
+
+      <VDivider />
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="primary"
+          :loading="tierSaving"
+          @click="handleTierSubmit"
+        >
+          등급 설정 저장
+        </VBtn>
+      </VCardActions>
+    </VCard>
+
     <!-- 예약 페이지 주소 설정 -->
     <VCard id="settings-booking-url">
       <VCardTitle class="d-flex align-center">
@@ -410,6 +537,7 @@ import { useSnackbar } from '@/composables/useSnackbar'
 import { useTour } from '@/composables/useTour'
 import { BUSINESS_TYPES, BUSINESS_TYPE_OPTIONS } from '@/constants/businessTypes'
 import publicBookingApi from '@/api/public-booking'
+import businessSettingsApi from '@/api/business-settings'
 import apiClient from '@/api/axios'
 import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
@@ -520,6 +648,8 @@ const form = ref({
   businessType: BUSINESS_TYPES.BEAUTY_SHOP,
   phone: '',
   address: '',
+  addressDetail: '',
+  zipCode: '',
   description: '',
   dailyRevenueGoal: null,
   monthlyRevenueGoal: null,
@@ -528,6 +658,38 @@ const form = ref({
 
 // 업종 옵션 (상수에서 import)
 const businessTypeOptions = BUSINESS_TYPE_OPTIONS
+
+// Address search (Kakao/Daum Postcode)
+function openAddressSearch() {
+  if (typeof daum === 'undefined' || !daum.Postcode) {
+    const script = document.createElement('script')
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+    script.onload = () => executeDaumPostcode()
+    document.head.appendChild(script)
+    return
+  }
+  executeDaumPostcode()
+}
+
+function executeDaumPostcode() {
+  new daum.Postcode({
+    oncomplete: function(data) {
+      let fullAddress = data.roadAddress || data.jibunAddress
+      let extraAddress = ''
+      if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+        extraAddress += data.bname
+      }
+      if (data.buildingName !== '' && data.apartment === 'Y') {
+        extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName)
+      }
+      if (extraAddress !== '') {
+        fullAddress += ` (${extraAddress})`
+      }
+      form.value.address = fullAddress
+      form.value.zipCode = data.zonecode
+    },
+  }).open()
+}
 
 // Validation
 const required = value => !!value || '필수 입력 항목입니다.'
@@ -543,6 +705,8 @@ function resetForm() {
       businessType: BUSINESS_TYPES.BEAUTY_SHOP,
       phone: '',
       address: '',
+      addressDetail: '',
+      zipCode: '',
       description: '',
       dailyRevenueGoal: null,
       monthlyRevenueGoal: null,
@@ -561,6 +725,8 @@ function loadBusinessInfo() {
     businessType: business.businessType || BUSINESS_TYPES.BEAUTY_SHOP,
     phone: business.phone || '',
     address: business.address || '',
+    addressDetail: business.addressDetail || '',
+    zipCode: business.zipCode || '',
     description: business.description || '',
     dailyRevenueGoal: business.dailyRevenueGoal ?? null,
     monthlyRevenueGoal: business.monthlyRevenueGoal ?? null,
@@ -708,6 +874,67 @@ function copyBookingUrl() {
   success('예약 URL이 복사되었습니다.')
 }
 
+// ===== 고객 등급 설정 =====
+const tierFormRef = ref(null)
+const tierLoading = ref(false)
+const tierSaving = ref(false)
+const tierForm = ref({
+  regularThreshold: 3,
+  vipThreshold: 10,
+  vipBenefitDescription: '',
+})
+
+const minOneRule = value => {
+  if (value === null || value === '') return '필수 입력 항목입니다.'
+  return value >= 1 || '1 이상의 숫자를 입력하세요'
+}
+
+const vipGreaterThanRegularRule = () => {
+  if (!tierForm.value.vipThreshold || !tierForm.value.regularThreshold) return true
+  return tierForm.value.vipThreshold > tierForm.value.regularThreshold || 'VIP 임계값은 단골 임계값보다 커야 합니다'
+}
+
+async function loadTierSettings() {
+  const businessId = authStore.businessId
+  if (!businessId) return
+
+  tierLoading.value = true
+  try {
+    const { data } = await businessSettingsApi.getCustomerTierSettings(businessId)
+    tierForm.value = {
+      regularThreshold: data.regularThreshold ?? 3,
+      vipThreshold: data.vipThreshold ?? 10,
+      vipBenefitDescription: data.vipBenefitDescription || '',
+    }
+  }
+  catch {
+    // 설정 미존재 시 기본값 유지
+  }
+  finally {
+    tierLoading.value = false
+  }
+}
+
+async function handleTierSubmit() {
+  const { valid } = await tierFormRef.value.validate()
+  if (!valid) return
+
+  const businessId = authStore.businessId
+  if (!businessId) return
+
+  tierSaving.value = true
+  try {
+    await businessSettingsApi.updateCustomerTierSettings(businessId, tierForm.value)
+    success('고객 등급 설정이 저장되었습니다.')
+  }
+  catch (err) {
+    showError(err.message || '설정 저장에 실패했습니다.')
+  }
+  finally {
+    tierSaving.value = false
+  }
+}
+
 // 컴포넌트 마운트 시
 onMounted(async () => {
   refreshTourCount()
@@ -718,5 +945,6 @@ onMounted(async () => {
   catch (error) {
     // 매장 정보 조회 실패
   }
+  loadTierSettings()
 })
 </script>

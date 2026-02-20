@@ -15,6 +15,7 @@ import HeroSection from '@/components/public/landing/HeroSection.vue'
 import PricingPreviewSection from '@/components/public/landing/PricingPreviewSection.vue'
 import ProblemSolutionSection from '@/components/public/landing/ProblemSolutionSection.vue'
 import TargetUsersSection from '@/components/public/landing/TargetUsersSection.vue'
+import TestimonialsSection from '@/components/public/landing/TestimonialsSection.vue'
 import UseCasesSection from '@/components/public/landing/UseCasesSection.vue'
 </script>
 
@@ -24,6 +25,7 @@ import UseCasesSection from '@/components/public/landing/UseCasesSection.vue'
     <ProblemSolutionSection />
     <FeaturesSection />
     <UseCasesSection />
+    <TestimonialsSection />
     <TargetUsersSection />
     <PricingPreviewSection />
     <FaqPreviewSection />

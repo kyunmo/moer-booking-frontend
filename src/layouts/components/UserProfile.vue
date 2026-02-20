@@ -96,7 +96,7 @@ async function handleLogout() {
       :color="userAvatar ? undefined : 'primary'"
     >
       <!-- 프로필 이미지가 있는 경우 -->
-      <VImg v-if="userAvatar" :src="userAvatar" />
+      <VImg v-if="userAvatar" :src="userAvatar" :alt="`${userName} 프로필 사진`" />
 
       <!-- 프로필 이미지가 없는 경우: 이름 첫 글자 표시 -->
       <span v-else class="text-base font-weight-medium">
@@ -115,7 +115,7 @@ async function handleLogout() {
           <VListItem class="px-4">
             <div class="d-flex gap-x-2 align-center">
               <VAvatar :color="userAvatar ? undefined : 'primary'">
-                <VImg v-if="userAvatar" :src="userAvatar" />
+                <VImg v-if="userAvatar" :src="userAvatar" :alt="`${userName} 프로필 사진`" />
                 <span v-else class="text-base font-weight-medium">
                   {{ userInitial }}
                 </span>

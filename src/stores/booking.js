@@ -40,6 +40,7 @@ export const useBookingStore = defineStore('booking', {
     // 결과
     reservationResult: null,
     reservationLookup: null,
+    reservationLookupList: [],
   }),
 
   getters: {
@@ -68,19 +69,65 @@ export const useBookingStore = defineStore('booking', {
     // 요일별 영업시간 배열
     businessHoursList: state => {
       if (!state.business?.businessHours) return []
-      const dayMap = {
-        mon: '월요일',
-        tue: '화요일',
-        wed: '수요일',
-        thu: '목요일',
-        fri: '금요일',
-        sat: '토요일',
-        sun: '일요일',
+
+      const days = [
+        { key: 'mon', full: 'monday', label: '월요일' },
+        { key: 'tue', full: 'tuesday', label: '화요일' },
+        { key: 'wed', full: 'wednesday', label: '수요일' },
+        { key: 'thu', full: 'thursday', label: '목요일' },
+        { key: 'fri', full: 'friday', label: '금요일' },
+        { key: 'sat', full: 'saturday', label: '토요일' },
+        { key: 'sun', full: 'sunday', label: '일요일' },
+      ]
+
+      const hours = state.business.businessHours
+
+      // Handle array format: [{dayOfWeek: 'MON', openTime: '09:00', closeTime: '18:00'}, ...]
+      if (Array.isArray(hours)) {
+        const hoursMap = {}
+        hours.forEach(h => {
+          const key = (h.dayOfWeek || h.day || '').toLowerCase().substring(0, 3)
+          hoursMap[key] = { open: h.openTime || h.open, close: h.closeTime || h.close }
+        })
+
+        return days.map(d => ({
+          day: d.label,
+          dayKey: d.key,
+          hours: hoursMap[d.key] || null,
+        }))
       }
-      return Object.entries(dayMap).map(([key, label]) => ({
-        day: label,
-        hours: state.business.businessHours[key],
-      }))
+
+      // Handle object format - normalize keys to match
+      // Supports: {mon: ...}, {MON: ...}, {monday: ...}, {MONDAY: ...}
+      const normalizedHours = {}
+      Object.entries(hours).forEach(([key, value]) => {
+        const lower = key.toLowerCase()
+        // Map full names to abbreviated: monday→mon, tuesday→tue, etc.
+        const abbr = lower.length > 3 ? lower.substring(0, 3) : lower
+        // wednesday→wed (3글자), thursday→thu (3글자) - 이미 OK
+        normalizedHours[abbr] = value
+      })
+
+      return days.map(d => {
+        const h = normalizedHours[d.key]
+        if (!h) return { day: d.label, dayKey: d.key, hours: null }
+
+        // Admin format: { isOpen, openTime, closeTime }
+        // API format: { open, close }
+        if ('isOpen' in h) {
+          return {
+            day: d.label,
+            dayKey: d.key,
+            hours: h.isOpen ? { open: h.openTime, close: h.closeTime } : null,
+          }
+        }
+
+        return {
+          day: d.label,
+          dayKey: d.key,
+          hours: h.open || h.openTime ? { open: h.open || h.openTime, close: h.close || h.closeTime } : null,
+        }
+      })
     },
   },
 
@@ -211,6 +258,20 @@ export const useBookingStore = defineStore('booking', {
       }
     },
 
+    async lookupReservationByNamePhone(name, phone) {
+      try {
+        const { data } = await publicBookingApi.getReservationByNamePhone(name, phone)
+        const list = Array.isArray(data) ? data : (data?.data || data?.items || [data]).filter(Boolean)
+        this.reservationLookupList = list
+        this.reservationLookup = list.length === 1 ? list[0] : null
+        return list
+      }
+      catch (error) {
+
+        throw error
+      }
+    },
+
     async cancelReservation(reservationNumber, data) {
       try {
         await publicBookingApi.cancelReservation(reservationNumber, data)
@@ -253,6 +314,8 @@ export const useBookingStore = defineStore('booking', {
       this.availableDates = []
       this.availableSlots = []
       this.reservationResult = null
+      this.reservationLookup = null
+      this.reservationLookupList = []
     },
   },
 })

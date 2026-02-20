@@ -40,7 +40,10 @@ const configStore = useLayoutConfigStore()
       </div>
     </div>
 
-    <main class="layout-page-content">
+    <main
+      id="main-content"
+      class="layout-page-content"
+    >
       <slot />
     </main>
 

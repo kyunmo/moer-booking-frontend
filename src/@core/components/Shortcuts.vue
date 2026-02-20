@@ -17,7 +17,7 @@ const router = useRouter()
 </script>
 
 <template>
-  <IconBtn>
+  <IconBtn aria-label="바로가기">
     <VIcon :icon="props.togglerIcon" />
 
     <VMenu
@@ -36,7 +36,7 @@ const router = useRouter()
           </h6>
 
           <template #append>
-            <IconBtn size="small">
+            <IconBtn size="small" aria-label="바로가기 추가">
               <VIcon
                 icon="ri-add-line"
                 color="high-emphasis"

@@ -125,6 +125,67 @@
               />
             </div>
           </div>
+
+          <VDivider />
+
+          <!-- 직원 필터 -->
+          <div id="reservation-staff-filter" class="pa-5">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <h6 class="text-h6">
+                <VIcon icon="ri-team-line" class="me-2" />
+                직원 필터
+              </h6>
+              <VTooltip location="top">
+                <template #activator="{ props: tooltipProps }">
+                  <VBtn
+                    v-bind="tooltipProps"
+                    :icon="colorByStaff ? 'ri-palette-fill' : 'ri-palette-line'"
+                    :color="colorByStaff ? 'primary' : 'default'"
+                    size="x-small"
+                    variant="text"
+                    @click="colorByStaff = !colorByStaff"
+                  />
+                </template>
+                <span>{{ colorByStaff ? '상태별 색상으로 전환' : '직원별 색상으로 전환' }}</span>
+              </VTooltip>
+            </div>
+
+            <div class="d-flex flex-wrap ga-2">
+              <VChip
+                :color="isAllStaffSelected ? 'primary' : 'default'"
+                :variant="isAllStaffSelected ? 'elevated' : 'outlined'"
+                size="small"
+                @click="isAllStaffSelected = true"
+              >
+                전체
+              </VChip>
+              <VChip
+                v-for="staff in staffStore.activeStaffs"
+                :key="staff.id"
+                :color="selectedStaffIds.includes(staff.id) ? getStaffColor(staff.id) : 'default'"
+                :variant="selectedStaffIds.includes(staff.id) ? 'elevated' : 'outlined'"
+                size="small"
+                @click="toggleStaffFilter(staff.id)"
+              >
+                <VAvatar
+                  v-if="colorByStaff"
+                  start
+                  size="18"
+                  :color="getStaffColor(staff.id)"
+                >
+                  <span class="text-white text-caption">{{ staff.name?.charAt(0) }}</span>
+                </VAvatar>
+                {{ staff.name }}
+              </VChip>
+            </div>
+
+            <p
+              v-if="staffStore.activeStaffs.length === 0"
+              class="text-body-2 text-medium-emphasis mt-2"
+            >
+              등록된 직원이 없습니다.
+            </p>
+          </div>
         </VNavigationDrawer>
 
         <!-- 👉 메인 캘린더 -->
@@ -226,6 +287,7 @@ import AppDateTimePicker from '@/@core/components/app-form-elements/AppDateTimeP
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { useReservationStore } from '@/stores/reservation'
+import { useStaffStore } from '@/stores/staff'
 import { useSubscriptionStore } from '@/stores/subscription'
 import koLocale from '@fullcalendar/core/locales/ko'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
@@ -241,7 +303,38 @@ import ReservationFormDialog from './components/ReservationFormDialog.vue'
 const { error: showError } = useSnackbar()
 const businessSettingsStore = useBusinessSettingsStore()
 const reservationStore = useReservationStore()
+const staffStore = useStaffStore()
 const subscriptionStore = useSubscriptionStore()
+
+// 직원별 색상 팔레트
+const staffColorPalette = [
+  '#5B8DEF', // 파랑
+  '#FF6B6B', // 빨강
+  '#51CF66', // 초록
+  '#FF922B', // 오렌지
+  '#CC5DE8', // 보라
+  '#20C997', // 틸
+  '#FCC419', // 노랑
+  '#F06595', // 핑크
+  '#339AF0', // 스카이블루
+  '#A9E34B', // 라임
+  '#845EF7', // 인디고
+  '#22B8CF', // 시안
+]
+
+// 직원 ID -> 색상 매핑
+const staffColorMap = computed(() => {
+  const map = {}
+  staffStore.activeStaffs.forEach((staff, index) => {
+    map[staff.id] = staffColorPalette[index % staffColorPalette.length]
+  })
+  return map
+})
+
+// 직원 색상 가져오기
+function getStaffColor(staffId) {
+  return staffColorMap.value[staffId] || '#78909C'
+}
 
 // 요일 매핑 (FullCalendar: 0=일, 1=월, ..., 6=토)
 const dayToNumber = {
@@ -342,6 +435,31 @@ const availableStatuses = [
 
 const selectedStatuses = ref(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'])
 
+// 직원 필터
+const selectedStaffIds = ref([]) // 빈 배열 = 전체 선택
+
+const isAllStaffSelected = computed({
+  get: () => selectedStaffIds.value.length === 0,
+  set: val => {
+    if (val) {
+      selectedStaffIds.value = []
+    }
+  },
+})
+
+function toggleStaffFilter(staffId) {
+  const index = selectedStaffIds.value.indexOf(staffId)
+  if (index > -1) {
+    selectedStaffIds.value.splice(index, 1)
+  }
+  else {
+    selectedStaffIds.value.push(staffId)
+  }
+}
+
+// 직원 색상 모드 (상태 색상 vs 직원 색상)
+const colorByStaff = ref(false)
+
 // 전체 선택 체크박스
 const checkAll = computed({
   get: () => selectedStatuses.value.length === availableStatuses.length,
@@ -357,16 +475,43 @@ const checkAll = computed({
 
 // 필터링된 이벤트
 const filteredEvents = computed(() => {
-  return reservationStore.calendarEvents.filter(event => {
-    return selectedStatuses.value.includes(event.extendedProps.reservation.status)
-  })
+  return reservationStore.calendarEvents
+    .filter(event => {
+      const reservation = event.extendedProps.reservation
+
+      // 상태 필터
+      if (!selectedStatuses.value.includes(reservation.status))
+        return false
+
+      // 직원 필터 (빈 배열이면 전체)
+      if (selectedStaffIds.value.length > 0 && !selectedStaffIds.value.includes(reservation.staffId))
+        return false
+
+      return true
+    })
+    .map(event => {
+      // 직원 색상 모드일 때 색상 오버라이드
+      if (colorByStaff.value && event.extendedProps.reservation.staffId) {
+        const staffColor = getStaffColor(event.extendedProps.reservation.staffId)
+        return {
+          ...event,
+          backgroundColor: staffColor,
+          borderColor: staffColor,
+        }
+      }
+      return event
+    })
 })
 
 // 필터링된 통계
 const filteredStats = computed(() => {
-  const filtered = reservationStore.reservations.filter(r =>
-    selectedStatuses.value.includes(r.status)
-  )
+  const filtered = reservationStore.reservations.filter(r => {
+    if (!selectedStatuses.value.includes(r.status))
+      return false
+    if (selectedStaffIds.value.length > 0 && !selectedStaffIds.value.includes(r.staffId))
+      return false
+    return true
+  })
 
   return {
     pending: filtered.filter(r => r.status === 'PENDING').length,
@@ -526,6 +671,7 @@ onMounted(async () => {
     loadReservations(),
     subscriptionStore.fetchSubscriptionInfo(),
     businessSettingsStore.fetchBusinessInfo(),
+    staffStore.staffs.length === 0 ? staffStore.fetchStaffs() : Promise.resolve(),
   ])
 })
 </script>

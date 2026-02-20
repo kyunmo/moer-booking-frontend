@@ -2,6 +2,8 @@
 meta:
   layout: blank
   public: true
+  title: 회원가입 - YEMO
+  description: YEMO에 가입하고 예약 관리를 자동화하세요. 무료로 시작 가능합니다.
 </route>
 
 <script setup>

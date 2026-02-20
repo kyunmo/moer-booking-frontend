@@ -152,9 +152,14 @@ body,
   }
 
   .v-list-item:hover,
-  .v-list-item:focus,
   .v-list-item:active,
   .v-list-item.active {
+    > .v-list-item__overlay {
+      opacity: 0 !important;
+    }
+  }
+
+  .v-list-item:focus:not(:focus-visible) {
     > .v-list-item__overlay {
       opacity: 0 !important;
     }
@@ -226,9 +231,9 @@ body,
   align-items: center;
 }
 
-// 👉 Btn focus outline style removed
+// 👉 Btn focus-visible style (a11y: keyboard focus ring restored)
 .v-btn:focus-visible::after {
-  opacity: 0 !important;
+  opacity: var(--v-focus-opacity, 0.12) !important;
 }
 
 // .v-select chip spacing for slot

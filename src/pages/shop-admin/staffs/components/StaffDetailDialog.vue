@@ -54,7 +54,7 @@
                 size="100"
                 class="mb-3"
               >
-                <VImg v-if="staff.profileImageUrl" :src="getImageUrl(staff.profileImageUrl)" />
+                <VImg v-if="staff.profileImageUrl" :src="getImageUrl(staff.profileImageUrl)" :alt="`${staff.name} 프로필 사진`" />
                 <span v-else class="text-h4">
                   {{ getInitial(staff.name) }}
                 </span>

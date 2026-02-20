@@ -61,4 +61,17 @@ export default {
   deleteReservation(businessId, reservationId) {
     return apiClient.delete(`/businesses/${businessId}/reservations/${reservationId}`)
   },
+
+  // 다중 예약 일괄 상태 변경
+  bulkUpdateStatus(businessId, reservationIds, status) {
+    return apiClient.patch(`/businesses/${businessId}/reservations/bulk-status`, {
+      reservationIds,
+      status,
+    })
+  },
+
+  // 직원 가용 시간 확인
+  checkAvailability(businessId, params) {
+    return apiClient.get(`/businesses/${businessId}/reservations/availability`, { params })
+  },
 }

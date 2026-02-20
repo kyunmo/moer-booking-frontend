@@ -34,7 +34,7 @@
             <div class="text-sm">
               <div><strong>고객:</strong> {{ reservation?.customerName }}</div>
               <div><strong>날짜:</strong> {{ formatDate(reservation?.reservationDate) }}</div>
-              <div><strong>시간:</strong> {{ reservation?.startTime }} - {{ reservation?.endTime }}</div>
+              <div><strong>시간:</strong> {{ formatTimeRange(reservation?.startTime, reservation?.endTime) }}</div>
             </div>
           </VAlert>
 
@@ -104,6 +104,7 @@
 <script setup>
 import { useReservationStore } from '@/stores/reservation'
 import { useStaffStore } from '@/stores/staff'
+import { formatTimeRange } from '@/utils/dateFormat'
 import { onMounted, ref } from 'vue'
 
 const props = defineProps({

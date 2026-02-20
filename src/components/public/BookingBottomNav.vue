@@ -23,6 +23,7 @@ const showBottomNav = computed(() => isBookingPage.value && !isHiddenPage.value)
 const activeTab = computed(() => {
   const path = route.path
   if (path === '/booking/my-reservations') return 'my-reservations'
+  if (path === '/booking/reservation') return 'reservation-lookup'
   if (path === '/booking/profile') return 'profile'
 
   // /booking 또는 /booking/[slug] 등은 검색 탭으로
@@ -50,6 +51,8 @@ function handleTabClick(tabPath) {
     grow
     color="primary"
     class="booking-bottom-nav d-sm-none"
+    role="navigation"
+    aria-label="하단 네비게이션"
   >
     <VBtn
       value="search"
@@ -59,12 +62,24 @@ function handleTabClick(tabPath) {
       <span>검색</span>
     </VBtn>
 
+    <!-- 로그인 상태: 내 예약 -->
     <VBtn
+      v-if="isCustomerLoggedIn"
       value="my-reservations"
       @click="handleTabClick('/booking/my-reservations')"
     >
       <VIcon>ri-calendar-line</VIcon>
       <span>내 예약</span>
+    </VBtn>
+
+    <!-- 비로그인 상태: 예약 확인 (전화번호 조회) -->
+    <VBtn
+      v-else
+      value="reservation-lookup"
+      @click="handleTabClick('/booking/reservation')"
+    >
+      <VIcon>ri-calendar-check-line</VIcon>
+      <span>예약확인</span>
     </VBtn>
 
     <VBtn

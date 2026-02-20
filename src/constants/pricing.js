@@ -15,6 +15,8 @@ export const PLANS = {
     name: '무료',
     monthlyPrice: 0,
     yearlyPrice: 0,
+    monthlyPriceVatIncluded: 0,
+    yearlyPriceVatIncluded: 0,
     maxReservations: 30,
     maxStaff: 1,
     maxServices: 10,
@@ -47,6 +49,8 @@ export const PLANS = {
     name: '유료',
     monthlyPrice: 20000,
     yearlyPrice: 200000,
+    monthlyPriceVatIncluded: 22000,
+    yearlyPriceVatIncluded: 220000,
     maxReservations: -1,
     maxStaff: 5,
     maxServices: -1,
@@ -86,25 +90,37 @@ export function getPlanPrice(planKey, billingCycle) {
 }
 
 /**
- * 월 환산 금액 (VAT 별도)
+ * 플랜 가격 조회 (VAT 포함 기준)
+ */
+export function getPlanPriceVatIncluded(planKey, billingCycle) {
+  const plan = PLANS[planKey]
+  if (!plan) return 0
+
+  return billingCycle === BILLING_CYCLES.YEARLY
+    ? plan.yearlyPriceVatIncluded
+    : plan.monthlyPriceVatIncluded
+}
+
+/**
+ * 월 환산 금액 (VAT 포함)
  */
 export function getMonthlyEquivalent(planKey, billingCycle) {
   const plan = PLANS[planKey]
   if (!plan) return 0
 
   return billingCycle === BILLING_CYCLES.YEARLY
-    ? Math.round(plan.yearlyPrice / 12)
-    : plan.monthlyPrice
+    ? Math.round(plan.yearlyPriceVatIncluded / 12)
+    : plan.monthlyPriceVatIncluded
 }
 
 /**
- * 연간 결제 시 절약 금액 (VAT 별도)
+ * 연간 결제 시 절약 금액 (VAT 포함)
  */
 export function getYearlySavings(planKey) {
   const plan = PLANS[planKey]
   if (!plan) return 0
 
-  return (plan.monthlyPrice * 12) - plan.yearlyPrice
+  return (plan.monthlyPriceVatIncluded * 12) - plan.yearlyPriceVatIncluded
 }
 
 /**
@@ -119,6 +135,20 @@ export function getVatAmount(amount) {
  */
 export function getAmountWithVat(amount) {
   return amount + getVatAmount(amount)
+}
+
+/**
+ * VAT 포함 금액에서 공급가액 역산
+ */
+export function getSupplyAmount(vatIncludedAmount) {
+  return Math.round(vatIncludedAmount / 1.1)
+}
+
+/**
+ * VAT 포함 금액에서 VAT 역산
+ */
+export function getVatFromTotal(vatIncludedAmount) {
+  return vatIncludedAmount - getSupplyAmount(vatIncludedAmount)
 }
 
 /**

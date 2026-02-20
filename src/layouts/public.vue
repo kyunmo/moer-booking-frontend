@@ -26,6 +26,13 @@ watch([
 
 <template>
   <VApp>
+    <a
+      href="#main-content"
+      class="skip-link"
+    >
+      본문으로 건너뛰기
+    </a>
+
     <AppLoadingIndicator ref="refLoadingIndicator" />
 
     <div class="layout-wrapper layout-public">
@@ -33,7 +40,10 @@ watch([
       <PublicHeader />
 
       <!-- Main Content -->
-      <VMain class="main-content">
+      <VMain
+        id="main-content"
+        class="main-content"
+      >
         <RouterView #="{Component}">
           <Suspense
             :timeout="0"

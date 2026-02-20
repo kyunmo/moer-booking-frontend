@@ -4,7 +4,6 @@
       <!-- Period Presets -->
       <VBtnToggle
         v-model="preset"
-        mandatory
         color="primary"
         variant="outlined"
         density="comfortable"
@@ -79,7 +78,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -93,6 +92,21 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'search'])
+
+// Debounce timer for auto-search
+let debounceTimer = null
+let isPresetChanging = false
+
+function debouncedSearch() {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    onSearch()
+  }, 300)
+}
+
+onUnmounted(() => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+})
 
 const presets = [
   { title: '오늘', value: 'today' },
@@ -175,7 +189,12 @@ function getDateRange(presetValue) {
 }
 
 function onPresetChange(val) {
+  if (!val) return
+
   const range = getDateRange(val)
+
+  // Flag to prevent individual watch handlers from clearing preset
+  isPresetChanging = true
 
   localFilters.startDate = range.start
   localFilters.endDate = range.end
@@ -186,12 +205,48 @@ function onPresetChange(val) {
   else if (days <= 62) localFilters.groupBy = 'daily'
   else if (days <= 180) localFilters.groupBy = 'weekly'
   else localFilters.groupBy = 'monthly'
+
+  // Reset flag after Vue reactivity cycle
+  nextTick(() => {
+    isPresetChanging = false
+  })
+
+  // Auto-search on preset change
+  debouncedSearch()
 }
 
 function onSearch() {
   emit('update:modelValue', { ...localFilters })
   emit('search')
 }
+
+// Watch individual filter changes for auto-search
+// When date is changed manually (not via preset), clear the preset selection
+watch(() => localFilters.startDate, (newVal, oldVal) => {
+  if (oldVal && newVal && newVal !== oldVal) {
+    if (!isPresetChanging) preset.value = null
+    debouncedSearch()
+  }
+})
+
+watch(() => localFilters.endDate, (newVal, oldVal) => {
+  if (oldVal && newVal && newVal !== oldVal) {
+    if (!isPresetChanging) preset.value = null
+    debouncedSearch()
+  }
+})
+
+watch(() => localFilters.compareWith, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal) {
+    debouncedSearch()
+  }
+})
+
+watch(() => localFilters.groupBy, (newVal, oldVal) => {
+  if (oldVal && newVal !== oldVal) {
+    if (!isPresetChanging) debouncedSearch()
+  }
+})
 
 watch(() => props.modelValue, val => {
   if (val) {

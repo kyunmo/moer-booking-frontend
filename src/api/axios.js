@@ -1,4 +1,5 @@
 import { useTrialGuard } from '@/composables/useTrialGuard'
+import { router } from '@/router'
 import axios from 'axios'
 
 // Axios 인스턴스 생성
@@ -139,7 +140,7 @@ apiClient.interceptors.response.use(
               // 토큰 갱신 실패 시 로그아웃 처리
               localStorage.removeItem('accessToken')
               localStorage.removeItem('refreshToken')
-              window.location.href = '/login'
+              router.push('/login')
 
               return Promise.reject(refreshError)
             }
@@ -154,7 +155,7 @@ apiClient.interceptors.response.use(
           // A001, A002: 인증 필요, 유효하지 않은 토큰
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          window.location.href = '/login'
+          router.push('/login')
         }
       }
       // 402 에러 (결제 필요)

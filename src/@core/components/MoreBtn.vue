@@ -24,6 +24,7 @@ const props = defineProps({
   <IconBtn
     size="small"
     :class="props.class"
+    aria-label="더 보기"
   >
     <VIcon
       :size="iconSize"

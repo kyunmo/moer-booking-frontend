@@ -2,6 +2,8 @@
 meta:
   layout: public
   public: true
+  title: 매장 정보 - YEMO
+  description: YEMO에서 매장 정보를 확인하고 간편하게 예약하세요.
 </route>
 
 <script setup>
@@ -11,6 +13,8 @@ import { useBookingStore } from '@/stores/booking'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import { useSnackbar } from '@/composables/useSnackbar'
 import publicBookingApi from '@/api/public-booking'
+import { getBusinessTypeIcon } from '@/constants/businessTypes'
+import KakaoMap from '@/components/public/KakaoMap.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,6 +33,8 @@ const notFound = ref(false)
 // Review filters
 const reviewPage = ref(1)
 const reviewRatingFilter = ref(null)
+const reviewServiceFilter = ref(null)
+const reviewStaffFilter = ref(null)
 const reviewSortBy = ref('latest')
 const reviewLoading = ref(false)
 
@@ -49,6 +55,36 @@ const reviewSortOptions = [
 
 const totalReviewPages = computed(() => {
   return Math.ceil(reviewTotalCount.value / 10) || 1
+})
+
+// 서비스 목록 (리뷰 필터용) - business.services에서 추출
+const serviceFilterOptions = computed(() => {
+  if (!business.value?.services) return []
+  return business.value.services.map(s => ({
+    title: s.name,
+    value: s.name,
+  }))
+})
+
+// 스태프 목록 (리뷰 필터용) - business.staffs에서 추출
+const staffFilterOptions = computed(() => {
+  if (!business.value?.staffs) return []
+  return business.value.staffs.map(s => ({
+    title: s.name,
+    value: s.name,
+  }))
+})
+
+// 클라이언트 측 서비스/스태프 필터링 (서버 파라미터와 병행)
+const filteredReviews = computed(() => {
+  let result = reviews.value
+  if (reviewServiceFilter.value) {
+    result = result.filter(r => r.serviceName === reviewServiceFilter.value)
+  }
+  if (reviewStaffFilter.value) {
+    result = result.filter(r => r.staffName === reviewStaffFilter.value)
+  }
+  return result
 })
 
 const ratingDistributionBars = computed(() => {
@@ -76,6 +112,84 @@ const todayDayKey = computed(() => {
   }
   return dayMap[keys[dayIndex]]
 })
+
+// 오늘의 영업시간 데이터 추출 (다양한 형식 대응)
+function getTodayHoursData(businessHours) {
+  if (!businessHours) return null
+
+  const now = new Date()
+  const dayIndex = now.getDay()
+  // 약어 + 풀네임 매핑
+  const dayMapping = [
+    { abbr: 'sun', full: 'sunday' },
+    { abbr: 'mon', full: 'monday' },
+    { abbr: 'tue', full: 'tuesday' },
+    { abbr: 'wed', full: 'wednesday' },
+    { abbr: 'thu', full: 'thursday' },
+    { abbr: 'fri', full: 'friday' },
+    { abbr: 'sat', full: 'saturday' },
+  ]
+  const today = dayMapping[dayIndex]
+
+  // 배열 형식
+  if (Array.isArray(businessHours)) {
+    const found = businessHours.find(h => {
+      const key = (h.dayOfWeek || h.day || '').toLowerCase()
+      return key === today.abbr || key === today.full || key.startsWith(today.abbr)
+    })
+    if (found) return { open: found.openTime || found.open, close: found.closeTime || found.close }
+    return null
+  }
+
+  // 객체 형식 - 약어/풀네임/대문자 모두 시도
+  const candidates = [today.abbr, today.full, today.abbr.toUpperCase(), today.full.toUpperCase()]
+  for (const key of candidates) {
+    const h = businessHours[key]
+    if (!h) continue
+
+    // Admin format: { isOpen, openTime, closeTime }
+    if ('isOpen' in h) {
+      return h.isOpen ? { open: h.openTime, close: h.closeTime } : null
+    }
+    // API format: { open, close }
+    if (h.open || h.openTime) {
+      return { open: h.open || h.openTime, close: h.close || h.closeTime }
+    }
+  }
+
+  return null
+}
+
+// Business open/closed status
+const isBusinessOpen = computed(() => {
+  const todayHours = getTodayHoursData(business.value?.businessHours)
+  if (!todayHours) return false
+
+  const now = new Date()
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  return currentTime >= todayHours.open && currentTime <= todayHours.close
+})
+
+const todayBusinessHours = computed(() => {
+  return getTodayHoursData(business.value?.businessHours)
+})
+
+// Holidays
+const holidays = ref([])
+const holidaysLoading = ref(false)
+
+async function fetchHolidays() {
+  holidaysLoading.value = true
+  try {
+    const year = new Date().getFullYear()
+    const { data } = await publicBookingApi.getBusinessHolidays(slug.value, year)
+    holidays.value = Array.isArray(data) ? data : (data?.items || [])
+  } catch {
+    holidays.value = []
+  } finally {
+    holidaysLoading.value = false
+  }
+}
 
 // Portfolio dialog
 const portfolioDialog = ref(false)
@@ -127,6 +241,8 @@ async function fetchReviews() {
       size: 10,
       rating: reviewRatingFilter.value,
       sortBy: reviewSortBy.value,
+      serviceName: reviewServiceFilter.value || undefined,
+      staffName: reviewStaffFilter.value || undefined,
     })
   }
   catch {
@@ -182,7 +298,7 @@ watch(activeTab, (newTab) => {
   }
 })
 
-watch([reviewRatingFilter, reviewSortBy], () => {
+watch([reviewRatingFilter, reviewSortBy, reviewServiceFilter, reviewStaffFilter], () => {
   reviewPage.value = 1
   fetchReviews()
 })
@@ -227,6 +343,13 @@ onUnmounted(() => {
   metaTags.forEach(tag => tag.remove())
 })
 
+// --- Watchers for holidays ---
+watch(() => business.value?.id, (newId) => {
+  if (newId) {
+    fetchHolidays()
+  }
+})
+
 // --- Lifecycle ---
 onMounted(() => {
   fetchBusiness()
@@ -266,6 +389,19 @@ onMounted(() => {
 
     <!-- Business Detail -->
     <template v-else-if="business">
+      <!-- Back to Search -->
+      <VContainer style="max-inline-size: 1200px;" class="py-2">
+        <VBtn
+          variant="text"
+          color="primary"
+          size="small"
+          prepend-icon="ri-arrow-left-s-line"
+          @click="router.push('/booking')"
+        >
+          매장 검색으로 돌아가기
+        </VBtn>
+      </VContainer>
+
       <!-- Cover Image Section -->
       <section class="business-cover">
         <VImg
@@ -314,6 +450,26 @@ onMounted(() => {
                     {{ business.name }}
                   </h1>
 
+                  <!-- Business Status -->
+                  <div class="d-flex align-center ga-2 mb-2">
+                    <VChip
+                      :color="isBusinessOpen ? 'success' : 'error'"
+                      size="small"
+                      label
+                    >
+                      <VIcon start size="14">
+                        {{ isBusinessOpen ? 'ri-checkbox-circle-line' : 'ri-close-circle-line' }}
+                      </VIcon>
+                      {{ isBusinessOpen ? '영업중' : '영업종료' }}
+                    </VChip>
+                    <span v-if="todayBusinessHours" class="text-body-2 text-medium-emphasis">
+                      오늘 {{ todayBusinessHours.open }} - {{ todayBusinessHours.close }}
+                    </span>
+                    <span v-else class="text-body-2 text-error">
+                      오늘 휴무
+                    </span>
+                  </div>
+
                   <!-- Rating -->
                   <div class="d-flex align-center gap-2 mb-3">
                     <VRating
@@ -336,7 +492,10 @@ onMounted(() => {
                   <!-- Address -->
                   <div v-if="business.address" class="d-flex align-center gap-1 mb-1">
                     <VIcon icon="ri-map-pin-line" size="18" color="medium-emphasis" />
-                    <span class="text-body-2 text-medium-emphasis">{{ business.address }}</span>
+                    <span class="text-body-2 text-medium-emphasis">
+                      {{ business.address }}
+                      <template v-if="business.addressDetail"> {{ business.addressDetail }}</template>
+                    </span>
                     <VBtn
                       icon
                       size="x-small"
@@ -353,7 +512,13 @@ onMounted(() => {
                   <!-- Phone -->
                   <div v-if="business.phone" class="d-flex align-center gap-1 mb-3">
                     <VIcon icon="ri-phone-line" size="18" color="medium-emphasis" />
-                    <span class="text-body-2 text-medium-emphasis">{{ business.phone }}</span>
+                    <a
+                      :href="`tel:${business.phone}`"
+                      class="text-body-2 text-medium-emphasis text-decoration-none"
+                      aria-label="전화 걸기"
+                    >
+                      {{ business.phone }}
+                    </a>
                     <VBtn
                       icon
                       size="x-small"
@@ -366,6 +531,21 @@ onMounted(() => {
                       </VTooltip>
                     </VBtn>
                   </div>
+
+                  <!-- 전화 문의 버튼 (모바일 강조) -->
+                  <VBtn
+                    v-if="business.phone"
+                    :href="`tel:${business.phone}`"
+                    tag="a"
+                    color="success"
+                    variant="tonal"
+                    size="small"
+                    class="mb-3"
+                    aria-label="전화 걸기"
+                  >
+                    <VIcon icon="ri-phone-fill" start />
+                    전화 문의
+                  </VBtn>
 
                   <!-- Chips: Business Type + Tags -->
                   <div class="d-flex flex-wrap gap-2">
@@ -417,7 +597,7 @@ onMounted(() => {
         <VContainer style="max-inline-size: 1200px;">
           <VTabs v-model="activeTab" class="mb-6">
             <VTab :value="0">
-              <VIcon icon="ri-scissors-line" start />
+              <VIcon :icon="getBusinessTypeIcon(business.businessType)" start />
               서비스
             </VTab>
             <VTab :value="1">
@@ -641,7 +821,7 @@ onMounted(() => {
               </VCard>
 
               <!-- Review Filters -->
-              <div class="d-flex flex-wrap align-center gap-4 mb-6">
+              <div class="d-flex flex-wrap align-center gap-4 mb-4">
                 <VBtnToggle
                   v-model="reviewRatingFilter"
                   mandatory
@@ -667,6 +847,35 @@ onMounted(() => {
                 />
               </div>
 
+              <!-- Service & Staff Filters -->
+              <div class="d-flex flex-wrap align-center gap-4 mb-6">
+                <VSelect
+                  v-if="serviceFilterOptions.length > 0"
+                  v-model="reviewServiceFilter"
+                  :items="serviceFilterOptions"
+                  label="서비스 필터"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  clearable
+                  prepend-inner-icon="ri-scissors-line"
+                  style="max-inline-size: 220px;"
+                />
+
+                <VSelect
+                  v-if="staffFilterOptions.length > 0"
+                  v-model="reviewStaffFilter"
+                  :items="staffFilterOptions"
+                  label="스태프 필터"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  clearable
+                  prepend-inner-icon="ri-user-line"
+                  style="max-inline-size: 220px;"
+                />
+              </div>
+
               <!-- Review Loading -->
               <div v-if="reviewLoading" class="py-8">
                 <VSkeletonLoader v-for="i in 3" :key="i" type="list-item-three-line" class="mb-4" />
@@ -674,15 +883,15 @@ onMounted(() => {
 
               <!-- Review List -->
               <template v-else>
-                <div v-if="reviews.length === 0" class="text-center py-12">
+                <div v-if="filteredReviews.length === 0" class="text-center py-12">
                   <VIcon icon="ri-chat-smile-3-line" size="48" color="medium-emphasis" class="mb-3" />
                   <p class="text-body-1 text-medium-emphasis">
-                    아직 리뷰가 없습니다.
+                    {{ (reviewServiceFilter || reviewStaffFilter) ? '선택한 필터에 맞는 리뷰가 없습니다.' : '아직 리뷰가 없습니다.' }}
                   </p>
                 </div>
 
                 <VCard
-                  v-for="review in reviews"
+                  v-for="review in filteredReviews"
                   :key="review.id"
                   variant="outlined"
                   class="mb-4"
@@ -806,6 +1015,38 @@ onMounted(() => {
                 </VList>
               </VCard>
 
+              <!-- Holidays -->
+              <VCard variant="outlined" class="mb-6">
+                <VCardTitle class="text-subtitle-1 font-weight-bold">
+                  <VIcon icon="ri-calendar-close-line" start />
+                  휴무일 안내
+                </VCardTitle>
+                <VDivider />
+                <VCardText v-if="holidays.length > 0">
+                  <div
+                    v-for="holiday in holidays"
+                    :key="holiday.id || holiday.date"
+                    class="d-flex align-center justify-space-between py-2"
+                  >
+                    <div class="d-flex align-center ga-2">
+                      <VIcon icon="ri-calendar-event-line" size="18" color="error" />
+                      <span class="text-body-2">{{ holiday.date }}</span>
+                    </div>
+                    <VChip
+                      v-if="holiday.reason || holiday.name"
+                      size="x-small"
+                      variant="tonal"
+                      color="error"
+                    >
+                      {{ holiday.reason || holiday.name }}
+                    </VChip>
+                  </div>
+                </VCardText>
+                <VCardText v-else class="text-body-2 text-medium-emphasis">
+                  등록된 휴무일이 없습니다.
+                </VCardText>
+              </VCard>
+
               <!-- Address -->
               <VCard v-if="business.address" variant="outlined" class="mb-6">
                 <VCardTitle class="text-subtitle-1 font-weight-bold">
@@ -813,9 +1054,10 @@ onMounted(() => {
                   주소
                 </VCardTitle>
                 <VDivider />
-                <VCardText class="d-flex align-center justify-space-between">
-                  <span class="text-body-2">{{ business.address }}</span>
-                  <VBtn
+                <VCardText>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2">{{ business.address }}</span>
+                    <VBtn
                     icon
                     size="small"
                     variant="text"
@@ -826,6 +1068,22 @@ onMounted(() => {
                       주소 복사
                     </VTooltip>
                   </VBtn>
+                  </div>
+                  <div v-if="business.addressDetail" class="text-body-2 text-medium-emphasis mt-1">
+                    {{ business.addressDetail }}
+                  </div>
+
+                  <!-- Kakao Map -->
+                  <div class="mt-4">
+                    <KakaoMap
+                      :address="business.address"
+                      :address-detail="business.addressDetail"
+                      :latitude="business.latitude"
+                      :longitude="business.longitude"
+                      :business-name="business.name"
+                      :height="280"
+                    />
+                  </div>
                 </VCardText>
               </VCard>
 
@@ -836,21 +1094,20 @@ onMounted(() => {
                   전화번호
                 </VCardTitle>
                 <VDivider />
-                <VCardText class="d-flex align-center justify-space-between">
-                  <a :href="`tel:${business.phone}`" class="text-body-2 text-primary text-decoration-none">
-                    {{ business.phone }}
-                  </a>
-                  <VBtn
-                    icon
-                    size="small"
-                    variant="text"
-                    @click="copyToClipboard(business.phone, '전화번호가')"
-                  >
-                    <VIcon icon="ri-file-copy-line" />
-                    <VTooltip activator="parent" location="top">
-                      전화번호 복사
-                    </VTooltip>
-                  </VBtn>
+                <VCardText>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-1">{{ business.phone }}</span>
+                    <VBtn
+                      :href="`tel:${business.phone}`"
+                      tag="a"
+                      color="success"
+                      variant="elevated"
+                      size="default"
+                      prepend-icon="ri-phone-fill"
+                    >
+                      전화 걸기
+                    </VBtn>
+                  </div>
                 </VCardText>
               </VCard>
             </VWindowItem>
@@ -866,13 +1123,14 @@ onMounted(() => {
               <VImg
                 v-if="portfolioStaff?.profileImageUrl"
                 :src="portfolioStaff.profileImageUrl"
+                :alt="`${portfolioStaff?.name} 프로필 사진`"
                 cover
               />
               <VIcon v-else icon="ri-user-line" size="18" />
             </VAvatar>
             <span>{{ portfolioStaff?.name }} 포트폴리오</span>
             <VSpacer />
-            <VBtn icon variant="text" size="small" @click="portfolioDialog = false">
+            <VBtn icon variant="text" size="small" aria-label="닫기" @click="portfolioDialog = false">
               <VIcon icon="ri-close-line" />
             </VBtn>
           </VCardTitle>

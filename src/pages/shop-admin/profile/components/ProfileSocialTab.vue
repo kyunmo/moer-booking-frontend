@@ -100,6 +100,7 @@
 import { onMounted, ref } from 'vue'
 import authApi from '@/api/auth'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { OAUTH_BASE_URL } from '@/utils/oauth'
 
 const { success, error: showError } = useSnackbar()
 
@@ -154,8 +155,6 @@ async function fetchSocialAccounts() {
 }
 
 function connectProvider(providerId) {
-  const OAUTH_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace('/api', '')
-
   window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/${providerId}?loginType=admin`
 }
 

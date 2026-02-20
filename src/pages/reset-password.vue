@@ -2,6 +2,7 @@
 meta:
   layout: blank
   public: true
+  title: 비밀번호 재설정 - YEMO
 </route>
 
 <script setup>

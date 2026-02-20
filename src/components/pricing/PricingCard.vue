@@ -44,7 +44,7 @@ const planInfo = computed(() => {
   }
 })
 
-// 가격 표시 computed
+// 가격 표시 computed (VAT 포함 기준)
 const priceDisplay = computed(() => {
   if (props.plan === 'FREE') {
     return {
@@ -63,14 +63,14 @@ const priceDisplay = computed(() => {
     return {
       mainPrice: formatCurrency(monthlyEquivalent),
       period: '/월',
-      subText: `연 ${formatCurrency(planData.yearlyPrice)} (VAT 별도)`,
-      originalPrice: formatCurrency(planData.monthlyPrice),
+      subText: `연 ${formatCurrency(planData.yearlyPriceVatIncluded)} (VAT 포함)`,
+      originalPrice: formatCurrency(planData.monthlyPriceVatIncluded),
       savingsBadge: planData.yearlyBadge,
     }
   }
 
   return {
-    mainPrice: formatCurrency(planData.monthlyPrice),
+    mainPrice: formatCurrency(planData.monthlyPriceVatIncluded),
     period: '/월',
     subText: null,
     originalPrice: null,
@@ -151,13 +151,13 @@ function handleSelect() {
           </span>
         </div>
 
-        <!-- VAT 별도 또는 연간 총액 -->
+        <!-- VAT 포함 또는 연간 총액 -->
         <div v-if="plan !== 'FREE'" class="text-caption text-medium-emphasis mt-1">
           <template v-if="priceDisplay.subText">
             {{ priceDisplay.subText }}
           </template>
           <template v-else>
-            VAT 별도
+            VAT 포함
           </template>
         </div>
       </div>

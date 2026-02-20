@@ -40,7 +40,7 @@ function close() {
         <VIcon icon="ri-user-settings-line" size="24" class="me-3" />
         <span>내 프로필</span>
         <VSpacer />
-        <IconBtn @click="close">
+        <IconBtn aria-label="닫기" @click="close">
           <VIcon icon="ri-close-line" />
         </IconBtn>
       </VCardTitle>

@@ -54,6 +54,7 @@ const codeSnippet = computed(() => highlighter.codeToHtml(props.code[preferredCo
         <IconBtn
           :color="isCodeShown ? 'primary' : 'default'"
           :class="isCodeShown ? '' : 'text-disabled'"
+          :aria-label="isCodeShown ? '코드 숨기기' : '코드 보기'"
           @click="isCodeShown = !isCodeShown"
         >
           <VIcon
@@ -115,6 +116,7 @@ const codeSnippet = computed(() => highlighter.codeToHtml(props.code[preferredCo
             <IconBtn
               class="position-absolute app-card-code-copy-icon"
               color="white"
+              :aria-label="copied ? '복사됨' : '코드 복사'"
               @click="() => { copy() }"
             >
               <VIcon

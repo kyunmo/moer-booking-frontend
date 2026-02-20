@@ -19,7 +19,7 @@ export const useOnboardingStore = defineStore('onboarding', {
       try {
         const response = await onboardingApi.getOnboardingStatus(businessId)
 
-        this.status = response.data || response
+        this.status = response.data
       }
       catch (error) {
 

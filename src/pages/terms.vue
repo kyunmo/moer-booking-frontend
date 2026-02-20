@@ -33,10 +33,4 @@ meta:
 
 <script setup>
 import TermsContent from '@/components/legal/TermsContent.vue'
-
-definePage({
-  meta: {
-    title: '이용약관',
-  },
-})
 </script>

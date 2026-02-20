@@ -22,8 +22,11 @@ export const useNotificationStore = defineStore('notification', {
         return data
       }
       catch (error) {
-
-        throw error
+        // API 실패 시 빈 상태 유지 (더미 데이터 표시 방지)
+        this.notifications = []
+        this.unreadCount = 0
+        this.totalCount = 0
+        console.warn('[NotificationStore] 알림 조회 실패:', error.message)
       }
       finally {
         this.loading = false
@@ -61,9 +64,9 @@ export const useNotificationStore = defineStore('notification', {
 
     startPolling(intervalMs = 30000) {
       this.stopPolling()
-      this.fetchNotifications({ page: 1, size: 10 })
+      this.fetchNotifications({ page: 1, size: 10 }).catch(() => {})
       this._pollingTimer = setInterval(() => {
-        this.fetchNotifications({ page: 1, size: 10 })
+        this.fetchNotifications({ page: 1, size: 10 }).catch(() => {})
       }, intervalMs)
     },
 

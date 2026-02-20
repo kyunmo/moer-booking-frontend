@@ -111,6 +111,7 @@ const triggeredRemove = () => {
               <!-- 👉 Collapse button -->
               <IconBtn
                 v-if="(!(actionRemove || actionRefresh) || actionCollapsed) && !noActions"
+                :aria-label="isContentCollapsed ? '펼치기' : '접기'"
                 @click="triggerCollapse"
               >
                 <VIcon
@@ -124,6 +125,7 @@ const triggeredRemove = () => {
               <!-- 👉 Overlay button -->
               <IconBtn
                 v-if="(!(actionRemove || actionCollapsed) || actionRefresh) && !noActions"
+                aria-label="새로고침"
                 @click="triggerRefresh"
               >
                 <VIcon
@@ -135,6 +137,7 @@ const triggeredRemove = () => {
               <!-- 👉 Close button -->
               <IconBtn
                 v-if="(!(actionRefresh || actionCollapsed) || actionRemove) && !noActions"
+                aria-label="닫기"
                 @click="triggeredRemove"
               >
                 <VIcon

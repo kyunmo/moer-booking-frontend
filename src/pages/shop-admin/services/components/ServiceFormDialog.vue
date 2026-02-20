@@ -51,8 +51,14 @@
                 placeholder="예: 여성 컷"
                 :prepend-inner-icon="serviceIconLine"
                 :rules="[required]"
+                :loading="nameChecking"
+                :error-messages="nameDuplicate ? '이미 사용 중인 서비스명입니다' : ''"
                 required
-              />
+              >
+                <template v-if="form.name && !nameChecking && !nameDuplicate && !(isEditMode && props.service?.name === form.name)" #append-inner>
+                  <VIcon icon="ri-check-line" color="success" size="20" />
+                </template>
+              </VTextField>
             </VCol>
 
             <!-- 가격 -->
@@ -157,7 +163,9 @@
 </template>
 
 <script setup>
+import serviceApi from '@/api/services'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useAuthStore } from '@/stores/auth'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { useStaffStore } from '@/stores/staff'
@@ -177,6 +185,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const { serviceIconLine } = useBusinessIcon()
+const authStore = useAuthStore()
 const serviceStore = useServiceStore()
 const staffStore = useStaffStore()
 const categoryStore = useServiceCategoryStore()
@@ -185,6 +194,8 @@ const categoryStore = useServiceCategoryStore()
 const formRef = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
+const nameChecking = ref(false)
+const nameDuplicate = ref(false)
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.service)
@@ -206,6 +217,42 @@ const form = ref({
   staffIds: [],
   description: '',
 })
+
+// 서비스명 중복 체크 (debounced)
+let nameCheckTimer = null
+
+watch(() => form.value.name, newName => {
+  nameDuplicate.value = false
+  clearTimeout(nameCheckTimer)
+
+  if (!newName || newName.trim().length === 0) return
+
+  // 수정 모드에서 기존 이름과 동일하면 체크 불필요
+  if (isEditMode.value && props.service?.name === newName) return
+
+  nameCheckTimer = setTimeout(() => checkServiceName(newName), 300)
+})
+
+async function checkServiceName(name) {
+  const businessId = authStore.businessId
+  if (!businessId) return
+
+  nameChecking.value = true
+  try {
+    const { data } = await serviceApi.checkServiceName(
+      businessId,
+      name,
+      isEditMode.value ? props.service.id : null,
+    )
+    nameDuplicate.value = data.duplicate
+  }
+  catch {
+    // 중복 확인 실패 시 무시
+  }
+  finally {
+    nameChecking.value = false
+  }
+}
 
 // service prop 변경 시 폼 초기화
 watch(() => props.service, (newService) => {
@@ -244,6 +291,7 @@ function resetForm() {
     description: '',
   }
   errorMessage.value = ''
+  nameDuplicate.value = false
   if (formRef.value) {
     formRef.value.resetValidation()
   }
@@ -286,7 +334,14 @@ async function handleSubmit() {
     handleClose()
   }
   catch (error) {
-    errorMessage.value = error.response?.data?.message || '저장에 실패했습니다.'
+    const code = error.code || error.response?.data?.error?.code
+    if (code === 'SV007') {
+      nameDuplicate.value = true
+      errorMessage.value = '동일한 이름의 서비스가 이미 존재합니다.'
+    }
+    else {
+      errorMessage.value = error.response?.data?.message || error.message || '저장에 실패했습니다.'
+    }
   }
   finally {
     loading.value = false

@@ -65,4 +65,14 @@ export default {
   deleteHoliday(businessId, holidayId) {
     return apiClient.delete(`/businesses/${businessId}/holidays/${holidayId}`)
   },
+
+  // 고객 등급 설정 조회
+  getCustomerTierSettings(businessId) {
+    return apiClient.get(`/businesses/${businessId}/settings/customer-tiers`)
+  },
+
+  // 고객 등급 설정 저장
+  updateCustomerTierSettings(businessId, settings) {
+    return apiClient.put(`/businesses/${businessId}/settings/customer-tiers`, settings)
+  },
 }

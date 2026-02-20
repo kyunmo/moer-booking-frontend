@@ -46,7 +46,7 @@ function close() {
         />
         <span>{{ title }}</span>
         <VSpacer />
-        <IconBtn @click="close">
+        <IconBtn aria-label="닫기" @click="close">
           <VIcon icon="ri-close-line" />
         </IconBtn>
       </VCardTitle>

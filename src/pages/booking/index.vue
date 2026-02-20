@@ -59,9 +59,14 @@ async function search() {
   }
 }
 
-// Navigate to business detail
+// Navigate to business detail (slug preferred, fallback to id)
 function goToDetail(business) {
-  router.push(`/booking/${business.slug}`)
+  const identifier = business.slug || business.id
+  if (!identifier) {
+    showError('매장 정보를 불러올 수 없습니다')
+    return
+  }
+  router.push(`/booking/${identifier}`)
 }
 
 // Handle search form submit
@@ -75,6 +80,24 @@ function handleKeydown(e) {
   if (e.key === 'Enter') {
     handleSearch()
   }
+}
+
+// Select business type from chip tabs
+function selectBusinessType(type) {
+  businessType.value = type
+  page.value = 1
+  search()
+}
+
+// Navigate to reserve directly (slug preferred, fallback to id)
+function goToReserve(business, event) {
+  event.stopPropagation()
+  const identifier = business.slug || business.id
+  if (!identifier) {
+    showError('이 매장은 현재 예약이 불가능합니다')
+    return
+  }
+  router.push(`/booking/${identifier}/reserve`)
 }
 
 // Re-search when sort changes
@@ -100,23 +123,20 @@ onMounted(() => {
 <template>
   <div class="booking-search-page">
     <!-- Hero Section -->
-    <section class="hero-section py-16">
+    <section class="hero-section py-8 py-md-10">
       <VContainer>
         <VRow justify="center">
           <VCol cols="12" md="10" lg="8">
-            <div class="text-center mb-8">
-              <h1 class="text-h3 text-md-h2 font-weight-bold text-white mb-3">
-                내 주변 매장 찾기
+            <div class="text-center mb-5">
+              <h1 class="text-h4 text-md-h3 font-weight-bold text-white mb-2">
+                매장 찾기
               </h1>
-              <p class="text-h6 text-white" style="opacity: 0.85;">
-                원하는 매장을 검색하고 바로 예약하세요
-              </p>
             </div>
 
             <!-- Search Bar -->
             <VCard class="pa-4" rounded="xl" elevation="8">
               <VRow align="center" no-gutters>
-                <VCol cols="12" sm="5">
+                <VCol cols="12" sm="8" md="9">
                   <VTextField
                     v-model="keyword"
                     label="매장명, 지역으로 검색"
@@ -129,24 +149,11 @@ onMounted(() => {
                   />
                 </VCol>
 
-                <VCol cols="12" sm="4" class="mt-3 mt-sm-0 ms-sm-3">
-                  <VSelect
-                    v-model="businessType"
-                    :items="typeOptions"
-                    label="업종"
-                    prepend-inner-icon="ri-store-2-line"
-                    variant="outlined"
-                    density="comfortable"
-                    hide-details
-                  />
-                </VCol>
-
-                <VCol cols="12" sm="auto" class="mt-3 mt-sm-0 ms-sm-3">
+                <VCol cols="12" sm="4" md="3" class="mt-3 mt-sm-0 ps-sm-3">
                   <VBtn
                     color="primary"
                     size="large"
                     block
-                    min-width="120"
                     @click="handleSearch"
                   >
                     <VIcon start>
@@ -157,6 +164,22 @@ onMounted(() => {
                 </VCol>
               </VRow>
             </VCard>
+
+            <!-- Business Type Tabs -->
+            <div class="business-type-tabs mt-4">
+              <div class="d-flex ga-2 overflow-x-auto pb-2">
+                <VChip
+                  v-for="type in typeOptions"
+                  :key="type.value"
+                  :color="businessType === type.value ? 'primary' : undefined"
+                  :variant="businessType === type.value ? 'elevated' : 'outlined'"
+                  class="flex-shrink-0 chip-white"
+                  @click="selectBusinessType(type.value)"
+                >
+                  {{ type.title }}
+                </VChip>
+              </div>
+            </div>
           </VCol>
         </VRow>
       </VContainer>
@@ -166,7 +189,7 @@ onMounted(() => {
     <section class="results-section py-8">
       <VContainer style="max-inline-size: 1200px;">
         <!-- Sort Controls -->
-        <div class="d-flex align-center justify-space-between mb-6">
+        <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-6">
           <div class="text-body-1 text-medium-emphasis">
             <template v-if="pageInfo && !loading">
               총 <strong class="text-high-emphasis">{{ pageInfo.totalElements }}</strong>개의 매장
@@ -177,18 +200,18 @@ onMounted(() => {
             v-model="sortBy"
             mandatory
             density="compact"
-            variant="outlined"
-            divided
             color="primary"
+            rounded="lg"
+            class="sort-toggle"
           >
-            <VBtn value="rating" size="small">
-              <VIcon start size="18">
+            <VBtn value="rating" size="small" variant="text">
+              <VIcon start size="16">
                 ri-star-line
               </VIcon>
               평점순
             </VBtn>
-            <VBtn value="name" size="small">
-              <VIcon start size="18">
+            <VBtn value="name" size="small" variant="text">
+              <VIcon start size="16">
                 ri-sort-alphabet-asc
               </VIcon>
               이름순
@@ -255,14 +278,14 @@ onMounted(() => {
                 <!-- Open/Closed Badge -->
                 <div class="pa-3 d-flex justify-end">
                   <VChip
-                    :color="business.open ? 'success' : 'grey'"
+                    :color="business.isOpen ? 'success' : 'grey'"
                     size="small"
                     label
                   >
                     <VIcon start size="14">
-                      {{ business.open ? 'ri-time-line' : 'ri-time-fill' }}
+                      {{ business.isOpen ? 'ri-time-line' : 'ri-time-fill' }}
                     </VIcon>
-                    {{ business.open ? '영업중' : '영업종료' }}
+                    {{ business.isOpen ? '영업중' : '영업종료' }}
                   </VChip>
                 </div>
               </VImg>
@@ -323,7 +346,7 @@ onMounted(() => {
                 <!-- Tags -->
                 <div
                   v-if="business.tags && business.tags.length > 0"
-                  class="d-flex flex-wrap ga-1"
+                  class="d-flex flex-wrap ga-1 mb-3"
                 >
                   <VChip
                     v-for="tag in business.tags"
@@ -335,6 +358,20 @@ onMounted(() => {
                     {{ tag }}
                   </VChip>
                 </div>
+
+                <!-- Reserve Button -->
+                <VBtn
+                  color="primary"
+                  variant="elevated"
+                  block
+                  size="small"
+                  @click="goToReserve(business, $event)"
+                >
+                  <VIcon start size="18">
+                    ri-calendar-check-line
+                  </VIcon>
+                  예약하기
+                </VBtn>
               </VCardText>
             </VCard>
           </VCol>
@@ -382,5 +419,31 @@ onMounted(() => {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.business-type-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sort-toggle {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chip-white {
+  &.v-chip--variant-elevated {
+    color: white !important;
+  }
+
+  &.v-chip--variant-outlined {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
 }
 </style>

@@ -33,10 +33,4 @@ meta:
 
 <script setup>
 import PrivacyContent from '@/components/legal/PrivacyContent.vue'
-
-definePage({
-  meta: {
-    title: '개인정보처리방침',
-  },
-})
 </script>

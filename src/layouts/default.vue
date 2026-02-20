@@ -1,4 +1,5 @@
 <script setup>
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { useConfigStore } from '@core/stores/config'
 import { AppContentLayoutNav } from '@layouts/enums'
 import { switchToVerticalNavOnLtOverlayNavBreakpoint } from '@layouts/utils'
@@ -33,11 +34,21 @@ watch([
 </script>
 
 <template>
+  <a
+    href="#main-content"
+    class="skip-link"
+  >
+    본문으로 건너뛰기
+  </a>
+
   <Component
     v-bind="layoutAttrs"
     :is="configStore.appContentLayoutNav === AppContentLayoutNav.Vertical ? DefaultLayoutWithVerticalNav : DefaultLayoutWithHorizontalNav"
   >
     <AppLoadingIndicator ref="refLoadingIndicator" />
+
+    <!-- 브레드크럼 네비게이션 -->
+    <AppBreadcrumb />
 
     <RouterView v-slot="{ Component }">
       <Suspense
