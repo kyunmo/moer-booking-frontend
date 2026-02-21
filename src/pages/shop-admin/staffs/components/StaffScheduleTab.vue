@@ -33,6 +33,7 @@
                   v-model="schedule.startTime"
                   label="출근"
                   type="time"
+                  prepend-inner-icon="ri-time-line"
                   density="compact"
                   :disabled="!schedule.isWorking"
                   hide-details
@@ -44,6 +45,7 @@
                   v-model="schedule.endTime"
                   label="퇴근"
                   type="time"
+                  prepend-inner-icon="ri-time-line"
                   density="compact"
                   :disabled="!schedule.isWorking"
                   hide-details
@@ -61,6 +63,7 @@
                   v-model="schedule.breakStartTime"
                   label="휴게 시작"
                   type="time"
+                  prepend-inner-icon="ri-time-line"
                   density="compact"
                   :disabled="!schedule.isWorking"
                   hide-details
@@ -73,6 +76,7 @@
                   v-model="schedule.breakEndTime"
                   label="휴게 종료"
                   type="time"
+                  prepend-inner-icon="ri-time-line"
                   density="compact"
                   :disabled="!schedule.isWorking"
                   hide-details

@@ -1,6 +1,13 @@
+<script setup>
+import { ref } from 'vue'
+import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
+
+const isInquiryOpen = ref(false)
+</script>
+
 <template>
   <div class="h-100 d-flex align-center justify-space-between text-medium-emphasis">
-    <!-- 👉 Footer: left content -->
+    <!-- Footer: left content -->
     <div class="d-flex align-center text-base">
       &copy;
       {{ new Date().getFullYear() }},
@@ -13,7 +20,7 @@
       >MOER</a>
     </div>
 
-    <!-- 👉 Footer: right content -->
+    <!-- Footer: right content -->
     <span class="d-md-flex gap-x-4 text-primary d-none">
       <RouterLink
         to="/terms"
@@ -40,11 +47,14 @@
         고객지원
       </RouterLink>
       <a
-        href="mailto:kkm@moer.io"
+        href="#"
         class="text-primary text-decoration-none"
+        @click.prevent="isInquiryOpen = true"
       >
         문의하기
       </a>
     </span>
+
+    <InquiryFormDialog v-model="isInquiryOpen" />
   </div>
 </template>

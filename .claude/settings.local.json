@@ -18,7 +18,21 @@
       "Bash(git push:*)",
       "Bash(npm run build:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Phase 1 Quick Fix 7건 수정 및 문서 정리\n\n- support.vue: FAQ 버튼 disabled 제거, /faq 페이지로 연결\n- register.vue: 약관 링크 javascript:void\\(0\\) → RouterLink /terms, /privacy 연결\n- UserProfile.vue: 매장 설정 경로 /business-settings → /shop-admin/business-settings\n- staffs/list.vue: \"이번 달 예약 -건\" 하드코딩 → \"총 서비스\" 실데이터 표시\n- second-page.vue: Materio 템플릿 잔재 삭제\n- horizontal/index.js: 템플릿 기본 메뉴\\(Home, Second page\\) 제거\n- PublicFooter.vue: GitHub 링크 제거, SNS 링크 임시 # 처리\n- docs/TODO-2026-02-14.md 추가, 구버전 설계 문서 정리\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Phase 2 프론트엔드 전면 개선 - 예약/스태프/고객/대시보드\n\n- 예약 등록 다이얼로그 UX 개선 \\(2패널 레이아웃, 고객 탭 전환, 요약 사이드바\\)\n- 스태프 직급 관리 시스템 추가 \\(CRUD API, Pinia store, 관리 다이얼로그\\)\n- 스태프 서버사이드 검색/필터 \\(이름, 직급, 전문분야, 정렬\\)\n- 스태프 프로필 이미지 표시 버그 수정 \\(VAvatar 패턴\\)\n- 스태프 상세 탭 UI \\(근무 스케줄, 포트폴리오\\)\n- 고객 상세 예약 내역 탭 추가\n- 대시보드 통계/온보딩 위저드 개선\n- NavBar 알림 시스템 연동\n- 프로필 관리 페이지 추가\n- 불필요 문서 정리\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(cat:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(wc:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(node -e:*)",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(git log:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx vite:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

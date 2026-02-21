@@ -407,7 +407,8 @@ onMounted(() => {
         <VImg
           v-if="business.coverImageUrl"
           :src="business.coverImageUrl"
-          :alt="`${business.name} 커버`"
+          :alt="`${business.name} 매장 커버 이미지`"
+          :lazy-src="`${business.coverImageUrl}?w=40&q=10`"
           height="220"
           cover
           class="d-none d-md-block"
@@ -415,7 +416,8 @@ onMounted(() => {
         <VImg
           v-if="business.coverImageUrl"
           :src="business.coverImageUrl"
-          :alt="`${business.name} 커버`"
+          :alt="`${business.name} 매장 커버 이미지`"
+          :lazy-src="`${business.coverImageUrl}?w=40&q=10`"
           height="160"
           cover
           class="d-md-none"
@@ -438,7 +440,8 @@ onMounted(() => {
                   <VImg
                     v-if="business.profileImageUrl"
                     :src="business.profileImageUrl"
-                    :alt="business.name"
+                    :alt="`${business.name} 프로필 이미지`"
+                    :lazy-src="`${business.profileImageUrl}?w=40&q=10`"
                     cover
                   />
                   <VIcon v-else icon="ri-store-2-line" size="40" />
@@ -684,7 +687,8 @@ onMounted(() => {
                         <VImg
                           v-if="staff.profileImageUrl"
                           :src="staff.profileImageUrl"
-                          :alt="staff.name"
+                          :alt="`${staff.name} 프로필 이미지`"
+                          :lazy-src="`${staff.profileImageUrl}?w=40&q=10`"
                           cover
                         />
                         <VIcon v-else icon="ri-user-line" size="32" />
@@ -1167,7 +1171,8 @@ onMounted(() => {
                 >
                   <VImg
                     :src="item.imageUrl || item.url"
-                    :alt="item.title || `포트폴리오 ${index + 1}`"
+                    :alt="item.title || `${portfolioStaff?.name} 포트폴리오 ${index + 1}`"
+                    :lazy-src="`${item.imageUrl || item.url}?w=40&q=10`"
                     aspect-ratio="1"
                     cover
                   />

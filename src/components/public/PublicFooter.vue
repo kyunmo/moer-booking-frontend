@@ -1,6 +1,10 @@
 <script setup>
+import { ref } from 'vue'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
+
+const isInquiryOpen = ref(false)
 
 // Service links
 const serviceLinks = [
@@ -161,15 +165,25 @@ const socialLinks = [
                 <div class="text-body-2 footer-text mb-1">
                   대표 구균모
                 </div>
-                <div class="text-body-2 footer-text">
+                <div class="text-body-2 footer-text mb-2">
                   kkm@moer.io
                 </div>
+                <VBtn
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  @click="isInquiryOpen = true"
+                >
+                  문의하기
+                </VBtn>
               </div>
             </div>
           </VCol>
         </VRow>
       </VContainer>
     </VSheet>
+
+    <InquiryFormDialog v-model="isInquiryOpen" />
 
     <!-- Footer Bottom -->
     <div class="footer-bottom">

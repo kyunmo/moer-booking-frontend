@@ -127,6 +127,47 @@
             </span>
           </div>
         </VAlert>
+
+        <!-- 다운그레이드 환불 안내 -->
+        <VCard
+          v-if="downgradeRefundInfo && !isUpgrade"
+          variant="outlined"
+          class="mt-4"
+        >
+          <VCardText>
+            <div class="d-flex align-center mb-3">
+              <VIcon icon="ri-refund-line" color="warning" class="me-2" />
+              <span class="text-body-1 font-weight-medium">환불 예상 정보</span>
+            </div>
+
+            <div class="d-flex flex-column gap-2 text-body-2">
+              <div class="d-flex justify-space-between">
+                <span class="text-medium-emphasis">결제 금액</span>
+                <span>{{ formatRefundAmount(latestPayment?.amount || 0) }}</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span class="text-medium-emphasis">사용 기간</span>
+                <span>{{ downgradeRefundInfo.usedDays }}일 / {{ downgradeRefundInfo.totalDays }}일</span>
+              </div>
+              <VDivider />
+              <div class="d-flex justify-space-between">
+                <span class="font-weight-medium">예상 환불 금액</span>
+                <span class="font-weight-bold text-warning">
+                  {{ formatRefundAmount(downgradeRefundInfo.refundAmount) }}
+                </span>
+              </div>
+            </div>
+
+            <VAlert
+              type="info"
+              variant="tonal"
+              density="compact"
+              class="mt-3"
+            >
+              <span class="text-caption">플랜 다운그레이드 시 잔여 기간에 대한 환불이 진행됩니다.</span>
+            </VAlert>
+          </VCardText>
+        </VCard>
       </VCardText>
 
       <VCardActions>
@@ -152,6 +193,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { calculateRefund, formatRefundAmount } from '@/utils/refundCalculator'
 
 const props = defineProps({
   modelValue: {
@@ -169,6 +211,10 @@ const props = defineProps({
   currentReservationCount: {
     type: Number,
     default: 0,
+  },
+  latestPayment: {
+    type: Object,
+    default: null,
   },
 })
 
@@ -200,7 +246,7 @@ const plans = computed(() => [
   {
     value: 'PAID',
     name: '유료',
-    priceText: '22,000원/월 (VAT 포함)',
+    priceText: '19,800원/월 (VAT 포함)',
     badge: '추천',
     badgeColor: 'primary',
     features: [
@@ -222,6 +268,14 @@ const isUpgrade = computed(() => {
   const selectedIndex = planOrder.indexOf(selectedPlan.value)
 
   return selectedIndex > currentIndex
+})
+
+// 다운그레이드 시 환불 정보
+const downgradeRefundInfo = computed(() => {
+  if (!props.latestPayment || isUpgrade.value || !selectedPlan.value || selectedPlan.value === props.currentPlan) {
+    return null
+  }
+  return calculateRefund(props.latestPayment)
 })
 
 // 다운그레이드 차단 여부

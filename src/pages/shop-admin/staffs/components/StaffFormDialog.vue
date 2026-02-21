@@ -213,6 +213,7 @@
 
 <script setup>
 import staffApi from '@/api/staffs'
+import { usePhoneValidation } from '@/composables/usePhoneValidation'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { getImageUrl } from '@/utils/image'
 import { useAuthStore } from '@/stores/auth'
@@ -237,6 +238,7 @@ const staffStore = useStaffStore()
 const staffPositionStore = useStaffPositionStore()
 const authStore = useAuthStore()
 const { success: showSuccess, error: showError } = useSnackbar()
+const { phoneRules } = usePhoneValidation()
 
 // Refs
 const formRef = ref(null)
@@ -286,11 +288,7 @@ watch(() => props.staff, (newStaff) => {
 // Validation Rules
 const required = value => !!value || '필수 입력 항목입니다.'
 
-const phoneRule = value => {
-  if (!value) return true
-  const pattern = /^010-\d{4}-\d{4}$/
-  return pattern.test(value) || '전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)'
-}
+const phoneRule = phoneRules[0]
 
 const emailRule = value => {
   if (!value) return true

@@ -52,7 +52,7 @@
                 label="전화번호"
                 prepend-inner-icon="ri-phone-line"
                 placeholder="010-1234-5678"
-                :rules="[required]"
+                :rules="[required, ...phoneRules]"
                 required
               />
             </VCol>
@@ -176,6 +176,7 @@
                         v-model="workingHours[day.value].start"
                         label="시작 시간"
                         type="time"
+                        prepend-inner-icon="ri-time-line"
                         density="compact"
                         :disabled="!workingHours[day.value].enabled"
                         hide-details
@@ -187,6 +188,7 @@
                         v-model="workingHours[day.value].end"
                         label="종료 시간"
                         type="time"
+                        prepend-inner-icon="ri-time-line"
                         density="compact"
                         :disabled="!workingHours[day.value].enabled"
                         hide-details
@@ -226,6 +228,7 @@
 </template>
 
 <script setup>
+import { usePhoneValidation } from '@/composables/usePhoneValidation'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useStaffStore } from '@/stores/staff'
@@ -239,6 +242,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const { error: showError } = useSnackbar()
+const { phoneRules } = usePhoneValidation()
 const staffStore = useStaffStore()
 const categoryStore = useServiceCategoryStore()
 

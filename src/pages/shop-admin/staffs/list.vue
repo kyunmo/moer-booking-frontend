@@ -53,6 +53,7 @@
             <VTextField
               v-model="filters.name"
               placeholder="이름 검색"
+              aria-label="스태프 이름 검색"
               prepend-inner-icon="ri-search-line"
               density="compact"
               clearable
@@ -66,6 +67,7 @@
             <VSelect
               v-model="filters.positionId"
               placeholder="직급 전체"
+              aria-label="직급 필터"
               prepend-inner-icon="ri-shield-star-line"
               :items="positionFilterOptions"
               density="compact"
@@ -79,6 +81,7 @@
             <VTextField
               v-model="filters.specialty"
               placeholder="전문분야 검색"
+              aria-label="전문분야 검색"
               prepend-inner-icon="ri-star-line"
               density="compact"
               clearable
@@ -92,6 +95,7 @@
             <VSelect
               v-model="sortOption"
               prepend-inner-icon="ri-sort-desc"
+              aria-label="정렬 기준"
               :items="sortOptions"
               density="compact"
               hide-details
@@ -279,6 +283,7 @@
                 variant="text"
                 size="small"
                 color="error"
+                aria-label="삭제"
                 @click="confirmDelete(staff)"
               >
                 <VIcon icon="ri-delete-bin-line" />

@@ -100,6 +100,7 @@ const testimonials = [
                 :color="testimonial.color"
                 variant="tonal"
                 size="44"
+                :alt="`${testimonial.name} 프로필`"
               >
                 <span class="text-body-1 font-weight-bold">
                   {{ testimonial.avatar }}

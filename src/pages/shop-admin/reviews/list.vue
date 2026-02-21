@@ -76,6 +76,7 @@
               v-model="filters.startDate"
               label="시작일"
               type="date"
+              prepend-inner-icon="ri-calendar-line"
               density="compact"
             />
           </VCol>
@@ -85,6 +86,7 @@
               v-model="filters.endDate"
               label="종료일"
               type="date"
+              prepend-inner-icon="ri-calendar-line"
               density="compact"
             />
           </VCol>
@@ -148,6 +150,7 @@
             active-color="amber"
             density="compact"
             class="mb-2"
+            :aria-label="`평점 ${review.rating}점`"
           />
 
           <!-- 리뷰 내용 -->

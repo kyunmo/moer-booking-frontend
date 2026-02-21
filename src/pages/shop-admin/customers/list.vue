@@ -50,6 +50,7 @@
             <VTextField
               v-model="searchQuery"
               placeholder="이름 또는 전화번호 검색"
+              aria-label="이름 또는 전화번호 검색"
               prepend-inner-icon="ri-search-line"
               density="compact"
               clearable
@@ -315,6 +316,7 @@
               icon
               variant="text"
               size="small"
+              aria-label="상세보기"
               @click="viewCustomer(item)"
             >
               <VIcon icon="ri-eye-line" />
@@ -328,6 +330,7 @@
               variant="text"
               size="small"
               color="primary"
+              aria-label="수정"
               @click="editCustomer(item)"
             >
               <VIcon icon="ri-edit-line" />
@@ -341,6 +344,7 @@
               variant="text"
               size="small"
               color="error"
+              aria-label="삭제"
               @click="confirmDelete(item)"
             >
               <VIcon icon="ri-delete-bin-line" />

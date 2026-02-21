@@ -1,5 +1,31 @@
 // Write your overrides
 
+// 날짜/시간 입력 필드 전체 클릭 가능하도록 개선
+// 브라우저 기본 달력/시간 아이콘의 클릭 영역을 input 전체로 확장
+input[type="date"],
+input[type="time"] {
+  cursor: pointer;
+
+  &::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+  }
+}
+
+// Minimum touch target for mobile accessibility (WCAG 2.1 Level AA)
+@media (pointer: coarse) {
+  .v-btn--icon,
+  .v-btn--size-small {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 // Skip Navigation Link (accessibility)
 .skip-link {
   position: absolute;

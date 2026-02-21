@@ -326,7 +326,7 @@
           class="mb-4"
         >
           <VIcon icon="ri-information-line" class="me-2" />
-          방문 횟수 기준으로 고객 등급이 자동으로 분류됩니다. 설정 변경 후 다음 예약 완료 시점부터 적용됩니다.
+          방문 횟수 또는 누적 결제 금액 기준으로 고객 등급이 자동으로 분류됩니다. 설정 변경 후 다음 예약 완료 시점부터 적용됩니다.
         </VAlert>
 
         <div v-if="tierLoading" class="text-center py-6">
@@ -335,7 +335,7 @@
 
         <VForm v-else ref="tierFormRef" @submit.prevent="handleTierSubmit">
           <VRow>
-            <VCol cols="12" md="4">
+            <VCol cols="12" md="6">
               <VTextField
                 v-model.number="tierForm.regularThreshold"
                 label="단골 고객 기준 (방문 횟수) *"
@@ -349,7 +349,7 @@
               />
             </VCol>
 
-            <VCol cols="12" md="4">
+            <VCol cols="12" md="6">
               <VTextField
                 v-model.number="tierForm.vipThreshold"
                 label="VIP 고객 기준 (방문 횟수) *"
@@ -363,7 +363,20 @@
               />
             </VCol>
 
-            <VCol cols="12" md="4">
+            <VCol cols="12" md="6">
+              <VTextField
+                v-model.number="tierForm.vipSpendThreshold"
+                label="VIP 누적 결제 금액 기준 (원)"
+                type="number"
+                prepend-inner-icon="ri-money-won-circle-line"
+                min="0"
+                step="10000"
+                hint="이 금액 이상 누적 결제 시 'VIP' 등급 (방문 횟수와 별개)"
+                persistent-hint
+              />
+            </VCol>
+
+            <VCol cols="12" md="6">
               <VTextField
                 v-model="tierForm.vipBenefitDescription"
                 label="VIP 혜택 설명"
@@ -391,6 +404,9 @@
                 <VChip color="warning" variant="tonal" size="small">
                   <VIcon start size="16">ri-vip-crown-line</VIcon>
                   VIP: {{ tierForm.vipThreshold || 10 }}회 이상
+                  <template v-if="tierForm.vipSpendThreshold > 0">
+                    또는 {{ Number(tierForm.vipSpendThreshold).toLocaleString() }}원 이상
+                  </template>
                 </VChip>
               </div>
             </VCol>
@@ -881,6 +897,7 @@ const tierSaving = ref(false)
 const tierForm = ref({
   regularThreshold: 3,
   vipThreshold: 10,
+  vipSpendThreshold: 500000,
   vipBenefitDescription: '',
 })
 
@@ -904,6 +921,7 @@ async function loadTierSettings() {
     tierForm.value = {
       regularThreshold: data.regularThreshold ?? 3,
       vipThreshold: data.vipThreshold ?? 10,
+      vipSpendThreshold: data.vipSpendThreshold ?? 500000,
       vipBenefitDescription: data.vipBenefitDescription || '',
     }
   }

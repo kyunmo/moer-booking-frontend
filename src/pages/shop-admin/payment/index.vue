@@ -380,8 +380,8 @@ const availablePlans = [
   {
     value: 'PAID',
     name: '유료',
-    monthlyPrice: 22000,
-    yearlyPrice: 220000,
+    monthlyPrice: 19800,
+    yearlyPrice: 198000,
     badge: '추천',
     badgeColor: 'primary',
     features: [

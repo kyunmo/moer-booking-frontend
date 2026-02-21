@@ -378,6 +378,10 @@
     "DEFAULT_TITLE": true,
     "SITE_NAME": true,
     "updateSeoMeta": true,
-    "updateStructuredData": true
+    "updateStructuredData": true,
+    "useFormRules": true,
+    "usePhoneValidation": true,
+    "calculateRefund": true,
+    "formatRefundAmount": true
   }
 }

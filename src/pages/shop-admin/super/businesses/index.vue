@@ -30,7 +30,7 @@
     <VCard class="mb-6">
       <VCardText>
         <VRow>
-          <VCol cols="12" md="4">
+          <VCol cols="12" md="3">
             <VTextField
               v-model="filters.keyword"
               label="검색"
@@ -41,7 +41,7 @@
             />
           </VCol>
 
-          <VCol cols="12" md="3">
+          <VCol cols="12" md="2">
             <VSelect
               v-model="filters.businessType"
               label="업종"
@@ -50,7 +50,7 @@
             />
           </VCol>
 
-          <VCol cols="12" md="3">
+          <VCol cols="12" md="2">
             <VSelect
               v-model="filters.status"
               label="상태"
@@ -60,6 +60,24 @@
           </VCol>
 
           <VCol cols="12" md="2">
+            <VSelect
+              v-model="filters.planType"
+              label="구독 플랜"
+              :items="planTypeOptions"
+              clearable
+            />
+          </VCol>
+
+          <VCol cols="12" md="2">
+            <VSelect
+              v-model="filters.subscriptionStatus"
+              label="구독 상태"
+              :items="subscriptionStatusOptions"
+              clearable
+            />
+          </VCol>
+
+          <VCol cols="12" md="1">
             <VBtn
               block
               color="primary"
@@ -144,6 +162,9 @@
             <th>업종</th>
             <th>사장님</th>
             <th>상태</th>
+            <th>구독 플랜</th>
+            <th>구독 상태</th>
+            <th>다음 결제일</th>
             <th>생성일</th>
             <th class="text-center">액션</th>
           </tr>
@@ -151,7 +172,7 @@
 
         <tbody>
           <tr v-if="businesses.length === 0">
-            <td colspan="8" class="text-center pa-6">
+            <td colspan="11" class="text-center pa-6">
               매장이 없습니다
             </td>
           </tr>
@@ -166,8 +187,13 @@
 
             <td>{{ business.id }}</td>
 
-            <td class="font-weight-medium">
-              {{ business.name }}
+            <td>
+              <a
+                class="font-weight-medium text-primary cursor-pointer"
+                @click="openBusinessDetail(business)"
+              >
+                {{ business.name }}
+              </a>
             </td>
 
             <td>
@@ -188,6 +214,30 @@
               </VChip>
             </td>
 
+            <td>
+              <VChip
+                :color="getSubscriptionPlanColor(business.subscriptionPlan)"
+                size="small"
+                variant="tonal"
+              >
+                {{ getSubscriptionPlanLabel(business.subscriptionPlan) }}
+              </VChip>
+            </td>
+
+            <td>
+              <VChip
+                v-if="business.subscriptionStatus"
+                :color="getSubscriptionStatusColor(business.subscriptionStatus)"
+                size="small"
+                variant="tonal"
+              >
+                {{ getSubscriptionStatusLabel(business.subscriptionStatus) }}
+              </VChip>
+              <span v-else>-</span>
+            </td>
+
+            <td>{{ formatDate(business.nextBillingDate) }}</td>
+
             <td>{{ formatDate(business.createdAt) }}</td>
 
             <td class="text-center">
@@ -204,6 +254,13 @@
                 </template>
 
                 <VList>
+                  <VListItem @click="openBusinessDetail(business)">
+                    <template #prepend>
+                      <VIcon icon="ri-eye-line" />
+                    </template>
+                    <VListItemTitle>상세보기</VListItemTitle>
+                  </VListItem>
+
                   <VListItem @click="handleDelete(business, false)">
                     <template #prepend>
                       <VIcon icon="ri-delete-bin-line" />
@@ -289,13 +346,21 @@
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- 매장 상세보기 다이얼로그 -->
+    <BusinessDetailDialog
+      v-model="detailDialog"
+      :business-id="detailBusinessId"
+    />
   </div>
 </template>
 
 <script setup>
+import BusinessDetailDialog from '@/components/super/BusinessDetailDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { getBusinessTypeLabel as getBusinessTypeLabelUtil } from '@/constants/businessTypes'
 import { useSuperAdminStore } from '@/stores/superadmin'
+import { toFrontendPlan } from '@/utils/planAdapter'
 import { computed, onMounted, ref } from 'vue'
 
 const superadminStore = useSuperAdminStore()
@@ -311,6 +376,8 @@ const filters = ref({
   keyword: '',
   businessType: null,
   status: null,
+  planType: null,
+  subscriptionStatus: null,
 })
 
 // 삭제 다이얼로그
@@ -318,6 +385,10 @@ const deleteDialog = ref(false)
 const deleteTarget = ref(null)
 const deleteHard = ref(false)
 const deleteConfirmText = ref('')
+
+// 상세보기 다이얼로그
+const detailDialog = ref(false)
+const detailBusinessId = ref(null)
 
 // Options
 const businessTypes = [
@@ -336,6 +407,18 @@ const statusOptions = [
   { title: '활성', value: 'ACTIVE' },
   { title: '비활성', value: 'INACTIVE' },
   { title: '정지', value: 'SUSPENDED' },
+]
+
+const planTypeOptions = [
+  { title: '무료', value: 'FREE' },
+  { title: '유료', value: 'BASIC' },
+]
+
+const subscriptionStatusOptions = [
+  { title: '활성', value: 'ACTIVE' },
+  { title: '체험판', value: 'TRIAL' },
+  { title: '만료', value: 'EXPIRED' },
+  { title: '취소됨', value: 'CANCELED' },
 ]
 
 // Computed
@@ -461,6 +544,41 @@ function getStatusColor(status) {
 function formatDate(dateString) {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString('ko-KR')
+}
+
+function getSubscriptionPlanLabel(plan) {
+  const frontendPlan = toFrontendPlan(plan)
+  return frontendPlan === 'PAID' ? '유료' : '무료'
+}
+
+function getSubscriptionPlanColor(plan) {
+  const frontendPlan = toFrontendPlan(plan)
+  return frontendPlan === 'PAID' ? 'primary' : 'info'
+}
+
+function getSubscriptionStatusLabel(status) {
+  const labels = {
+    ACTIVE: '활성',
+    TRIAL: '체험판',
+    EXPIRED: '만료',
+    CANCELED: '취소됨',
+  }
+  return labels[status] || status || '-'
+}
+
+function getSubscriptionStatusColor(status) {
+  const colors = {
+    ACTIVE: 'success',
+    TRIAL: 'info',
+    EXPIRED: 'error',
+    CANCELED: 'warning',
+  }
+  return colors[status] || 'default'
+}
+
+function openBusinessDetail(business) {
+  detailBusinessId.value = business.id
+  detailDialog.value = true
 }
 
 // Lifecycle

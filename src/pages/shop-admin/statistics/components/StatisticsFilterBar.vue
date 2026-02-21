@@ -27,6 +27,7 @@
             v-model="localFilters.startDate"
             label="시작일"
             type="date"
+            prepend-inner-icon="ri-calendar-line"
             density="compact"
             hide-details
           />
@@ -37,6 +38,7 @@
             v-model="localFilters.endDate"
             label="종료일"
             type="date"
+            prepend-inner-icon="ri-calendar-line"
             density="compact"
             hide-details
           />

@@ -1,26 +1,16 @@
 <template>
-  <div v-if="shouldShow" class="d-inline-flex">
-    <VTooltip location="bottom">
-      <template #activator="{ props }">
-        <VBtn
-          v-bind="props"
-          icon
-          variant="text"
-          size="small"
-          aria-label="구독 관리"
-          :to="{ name: 'shop-admin-subscription' }"
-        >
-          <VBadge
-            :content="badgeText"
-            :color="badgeColor"
-            inline
-          >
-            <VIcon icon="ri-vip-crown-line" size="22" />
-          </VBadge>
-        </VBtn>
-      </template>
-      <span>{{ tooltipText }}</span>
-    </VTooltip>
+  <div v-if="shouldShow" class="d-inline-flex align-center">
+    <VBtn
+      variant="tonal"
+      :color="chipColor"
+      size="small"
+      class="trial-nav-badge"
+      aria-label="구독 관리"
+      :to="{ name: 'shop-admin-subscription' }"
+    >
+      <VIcon icon="ri-vip-crown-line" size="18" start />
+      <span class="text-caption font-weight-bold">{{ labelText }}</span>
+    </VBtn>
   </div>
 </template>
 
@@ -36,36 +26,30 @@ const shouldShow = computed(() => {
   return currentPlan.value === 'FREE' || trialStatus.value === 'active' || trialStatus.value === 'expiring'
 })
 
-const badgeText = computed(() => {
+const labelText = computed(() => {
   if (trialStatus.value === 'active' || trialStatus.value === 'expiring') {
-    return `D-${daysUntilTrialEnd.value}`
+    return `체험 D-${daysUntilTrialEnd.value}`
   }
   if (isTrialExpired.value) {
-    return 'FREE'
+    return '무료'
   }
 
-  return 'FREE'
+  return '무료'
 })
 
-const badgeColor = computed(() => {
+const chipColor = computed(() => {
   if (trialStatus.value === 'expiring') return 'warning'
   if (trialStatus.value === 'active') return 'info'
   if (isTrialExpired.value) return 'error'
 
   return 'secondary'
 })
-
-const tooltipText = computed(() => {
-  if (trialStatus.value === 'active') {
-    return `유료 기능 체험 중 (${daysUntilTrialEnd.value}일 남음)`
-  }
-  if (trialStatus.value === 'expiring') {
-    return `체험 종료 임박 (${daysUntilTrialEnd.value}일 남음)`
-  }
-  if (isTrialExpired.value) {
-    return '유료 체험이 종료되었습니다. 업그레이드하세요!'
-  }
-
-  return '무료 플랜 사용 중'
-})
 </script>
+
+<style lang="scss" scoped>
+.trial-nav-badge {
+  white-space: nowrap;
+  min-inline-size: auto;
+  letter-spacing: 0.2px;
+}
+</style>

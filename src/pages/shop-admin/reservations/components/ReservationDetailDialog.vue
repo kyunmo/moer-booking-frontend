@@ -313,6 +313,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { getStatusColor, getStatusLabel } from '@/constants/reservation-status'
 import { formatTimeRange } from '@/utils/dateFormat'
 
 const { serviceIcon } = useBusinessIcon()
@@ -338,29 +339,8 @@ function getInitial(name) {
   return name.charAt(0)
 }
 
-// 상태 색상
-function getStatusColor(status) {
-  const colors = {
-    PENDING: 'warning',
-    CONFIRMED: 'primary',
-    COMPLETED: 'success',
-    CANCELLED: 'error',
-    NO_SHOW: 'secondary',
-  }
-  return colors[status] || 'default'
-}
-
-// 상태 텍스트
-function getStatusText(status) {
-  const texts = {
-    PENDING: '대기',
-    CONFIRMED: '확정',
-    COMPLETED: '완료',
-    CANCELLED: '취소',
-    NO_SHOW: '노쇼',
-  }
-  return texts[status] || status
-}
+// 상태 텍스트 (imported getStatusLabel을 getStatusText로 alias)
+const getStatusText = getStatusLabel
 
 // 날짜 포맷
 function formatDate(dateString) {

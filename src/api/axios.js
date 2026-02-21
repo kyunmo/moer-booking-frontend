@@ -192,6 +192,10 @@ apiClient.interceptors.response.use(
       else if (status === 404) {
         // 404: 리소스를 찾을 수 없음
       }
+      // 429 에러 (Rate Limit 초과)
+      else if (status === 429) {
+        // IQ001 등 Rate Limit 에러는 개별 컴포넌트에서 처리
+      }
       // 409 에러 (충돌)
       else if (status === 409) {
         // U002: 이메일 중복

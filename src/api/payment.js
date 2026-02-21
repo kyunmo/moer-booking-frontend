@@ -57,6 +57,16 @@ const paymentApi = {
   getLatestPayment() {
     return apiClient.get('/payments/latest')
   },
+
+  /**
+   * 환불 미리보기
+   * GET /api/payments/{paymentId}/refund-preview
+   * @param {number} paymentId - 결제 ID
+   * @returns {{ refundAmount, usedDays, remainingDays, totalDays, formula }}
+   */
+  getRefundPreview(paymentId) {
+    return apiClient.get(`/payments/${paymentId}/refund-preview`)
+  },
 }
 
 export default paymentApi

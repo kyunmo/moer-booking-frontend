@@ -406,6 +406,7 @@ import ReservationUsageBanner from '@/components/trial/ReservationUsageBanner.vu
 import TrialBanner from '@/components/trial/TrialBanner.vue'
 import UnassignedReservationAlert from '@/components/UnassignedReservationAlert.vue'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { getStatusColor, getStatusLabel, getStatusIcon } from '@/constants/reservation-status'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useOnboardingStore } from '@/stores/onboarding'
@@ -568,41 +569,8 @@ function getInitial(name) {
   return name.charAt(0)
 }
 
-function getStatusColor(status) {
-  const colors = {
-    PENDING: 'warning',
-    CONFIRMED: 'info',
-    COMPLETED: 'success',
-    CANCELLED: 'error',
-    NO_SHOW: 'secondary',
-  }
-
-  return colors[status] || 'default'
-}
-
-function getStatusIcon(status) {
-  const icons = {
-    PENDING: 'ri-time-line',
-    CONFIRMED: 'ri-check-line',
-    COMPLETED: 'ri-checkbox-circle-line',
-    CANCELLED: 'ri-close-circle-line',
-    NO_SHOW: 'ri-user-unfollow-line',
-  }
-
-  return icons[status] || 'ri-calendar-line'
-}
-
-function getStatusText(status) {
-  const texts = {
-    PENDING: '대기',
-    CONFIRMED: '확정',
-    COMPLETED: '완료',
-    CANCELLED: '취소',
-    NO_SHOW: '노쇼',
-  }
-
-  return texts[status] || status
-}
+// 상태 관련 함수 (imported from @/constants/reservation-status)
+const getStatusText = getStatusLabel
 
 // ==================== 초기화 ====================
 

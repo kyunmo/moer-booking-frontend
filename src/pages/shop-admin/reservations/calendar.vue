@@ -52,6 +52,7 @@
           location="start"
           :temporary="$vuetify.display.mdAndDown"
           class="calendar-sidebar"
+          aria-label="예약 캘린더 사이드바"
         >
           <!-- 예약 등록 버튼 -->
           <div class="pa-5">
@@ -143,6 +144,7 @@
                     :color="colorByStaff ? 'primary' : 'default'"
                     size="x-small"
                     variant="text"
+                    :aria-label="colorByStaff ? '상태별 색상으로 전환' : '직원별 색상으로 전환'"
                     @click="colorByStaff = !colorByStaff"
                   />
                 </template>
@@ -199,6 +201,7 @@
               <VBtn
                 icon
                 variant="text"
+                aria-label="사이드바 열기/닫기"
                 @click="isLeftSidebarOpen = !isLeftSidebarOpen"
               >
                 <VIcon icon="ri-menu-line" />

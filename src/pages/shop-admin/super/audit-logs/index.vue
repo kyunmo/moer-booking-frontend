@@ -53,6 +53,7 @@
               v-model="filters.startDate"
               label="시작일"
               type="date"
+              prepend-inner-icon="ri-calendar-line"
             />
           </VCol>
 
@@ -61,6 +62,7 @@
               v-model="filters.endDate"
               label="종료일"
               type="date"
+              prepend-inner-icon="ri-calendar-line"
             />
           </VCol>
 

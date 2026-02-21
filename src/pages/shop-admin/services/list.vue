@@ -14,6 +14,7 @@
           v-model="selectedCategory"
           :items="categoryFilterOptions"
           placeholder="전체 카테고리"
+          aria-label="카테고리 필터"
           density="compact"
           style="max-inline-size: 200px;"
           class="me-3"
@@ -24,6 +25,7 @@
         <VTextField
           v-model="searchQuery"
           placeholder="서비스명 검색"
+          aria-label="서비스명 검색"
           prepend-inner-icon="ri-search-line"
           density="compact"
           style="max-inline-size: 250px;"
@@ -193,6 +195,7 @@
                 density="compact"
                 :loading="toggleLoadingId === service.id"
                 :disabled="toggleLoadingId === service.id"
+                :aria-label="`${service.name} 서비스 ${service.isActive !== false ? '비활성화' : '활성화'}`"
                 @update:model-value="toggleServiceActive(service)"
               />
 
@@ -213,6 +216,7 @@
                 variant="text"
                 size="small"
                 color="error"
+                aria-label="삭제"
                 @click="confirmDelete(service)"
               >
                 <VIcon icon="ri-delete-bin-line" />

@@ -7,6 +7,7 @@ export const usePaymentStore = defineStore('payment', {
     payments: [],
     currentPayment: null,
     latestPayment: null,
+    refundPreview: null,
     loading: false,
     error: null,
     totalCount: 0,
@@ -209,12 +210,31 @@ export const usePaymentStore = defineStore('payment', {
     },
 
     /**
+     * 환불 미리보기 조회
+     * API 호출 실패 시 프론트 계산 fallback
+     */
+    async fetchRefundPreview(paymentId) {
+      this.refundPreview = null
+      try {
+        const { data } = await paymentApi.getRefundPreview(paymentId)
+        this.refundPreview = data
+        return data
+      }
+      catch {
+        // API 미제공 시 null 반환 → 호출측에서 fallback 처리
+        this.refundPreview = null
+        return null
+      }
+    },
+
+    /**
      * 상태 초기화
      */
     reset() {
       this.payments = []
       this.currentPayment = null
       this.latestPayment = null
+      this.refundPreview = null
       this.loading = false
       this.error = null
       this.totalCount = 0

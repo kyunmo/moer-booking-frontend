@@ -10,8 +10,10 @@ meta:
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
 
 const router = useRouter()
+const isInquiryOpen = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('all')
 
@@ -44,11 +46,11 @@ const faqs = [
   { category: 'feature', q: '여러 매장을 운영하는데 가능한가요?', a: '가능합니다!\n\n현재 방법: 매장별 별도 계정\n• 각 매장마다 회원가입\n• 각각 독립 운영\n• 플랜 별도 결제\n\n향후 멀티 매장 관리 기능 추가 예정입니다.\n문의: kkm@moer.io' },
 
   // 3. 요금 & 결제
-  { category: 'pricing', q: '요금제는 어떻게 되나요?', a: '심플한 2가지 플랜이 있습니다.\n\n무료 플랜: 0원\n• 월 30건 예약\n• 스태프 1명\n• 기본 예약/고객 관리\n\n유료 플랜: 월 22,000원 (VAT 포함)\n• 월 예약 무제한\n• 스태프 5명\n• 카카오톡 자동 알림\n• 통계 및 리포트\n• 전체 기능 사용\n• 연간 결제 시 220,000원/년 (VAT 포함, 2개월 무료)\n\n자세한 내용: /pricing' },
-  { category: 'pricing', q: '표시 가격에 VAT가 포함되어 있나요?', a: '네, 모든 표시 가격은 VAT 포함 금액입니다.\n유료 플랜 월 22,000원(VAT 포함), 연간 결제 시 220,000원/년(VAT 포함)입니다.\n(공급가액 20,000원/월 + VAT 2,000원/월)\n\n사업자 고객:\n• 세금계산서 발행 가능\n• 이메일로 자동 발송\n• 부가세 공제 가능' },
+  { category: 'pricing', q: '요금제는 어떻게 되나요?', a: '심플한 2가지 플랜이 있습니다.\n\n무료 플랜: 0원\n• 월 30건 예약\n• 스태프 1명\n• 기본 예약/고객 관리\n\n유료 플랜: 월 19,800원 (VAT 포함)\n• 월 예약 무제한\n• 스태프 5명\n• 카카오톡 자동 알림\n• 통계 및 리포트\n• 전체 기능 사용\n• 연간 결제 시 198,000원/년 (VAT 포함, 2개월 무료)\n\n자세한 내용: /pricing' },
+  { category: 'pricing', q: '표시 가격에 VAT가 포함되어 있나요?', a: '네, 모든 표시 가격은 VAT 포함 금액입니다.\n유료 플랜 월 19,800원(VAT 포함), 연간 결제 시 198,000원/년(VAT 포함)입니다.\n(공급가액 18,000원/월 + VAT 1,800원/월)\n\n사업자 고객:\n• 세금계산서 발행 가능\n• 이메일로 자동 발송\n• 부가세 공제 가능' },
   { category: 'pricing', q: '결제 수단은 무엇이 있나요?', a: '다양한 결제 수단을 지원합니다.\n\n신용카드: 국내 모든 카드사, 체크카드, 법인카드\n계좌이체: 실시간 이체, CMS 자동이체\n간편결제: 카카오페이, 네이버페이, 토스페이, 페이코\n\n편하신 방법으로 선택하세요!' },
-  { category: 'pricing', q: '계약 기간이 있나요?', a: '없습니다!\n\n월간 결제:\n• 언제든 해지 가능\n• 위약금 없음\n• 클릭 한 번으로 해지\n\n연간 결제:\n• 중도 해지 가능\n• 남은 기간 일할 환불\n• 2개월 무료 혜택 (40,000원 절약)\n\n마음 편하게 시작하세요!' },
-  { category: 'pricing', q: '환불 정책은 어떻게 되나요?', a: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후:\n• 사용일 차감 후 일할 계산\n• 예: 월 22,000원(VAT 포함), 10일 사용 → 약 14,667원 환불\n• 신청 후 5영업일 이내 처리\n\n환불 신청: 대시보드 > 구독 관리' },
+  { category: 'pricing', q: '계약 기간이 있나요?', a: '없습니다!\n\n월간 결제:\n• 언제든 해지 가능\n• 위약금 없음\n• 클릭 한 번으로 해지\n\n연간 결제:\n• 중도 해지 가능\n• 남은 기간 일할 환불\n• 2개월 무료 혜택 (39,600원 절약)\n\n마음 편하게 시작하세요!' },
+  { category: 'pricing', q: '환불 정책은 어떻게 되나요?', a: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후:\n• 사용일 차감 후 일할 계산\n• 예: 월 19,800원(VAT 포함), 10일 사용 → 약 13,200원 환불\n• 신청 후 5영업일 이내 처리\n\n환불 신청: 대시보드 > 구독 관리' },
   { category: 'pricing', q: '플랜을 중간에 변경할 수 있나요?', a: '네, 언제든 가능합니다!\n\n업그레이드 (무료 → 유료):\n• 즉시 적용\n• 결제 후 바로 전체 기능 사용\n• 월/연간 결제 주기 선택 가능\n\n다운그레이드 (유료 → 무료):\n• 다음 결제일부터 적용\n• 현재 기간은 유료 기능 유지\n\n데이터는 모두 유지, 제한 사항만 변경됨' },
   { category: 'pricing', q: '예약 건수를 초과하면 어떻게 되나요?', a: '무료 플랜 (월 30건):\n• 30건 초과 시 새 예약 등록 제한\n• 기존 예약은 유지\n• 유료 플랜 업그레이드 시 즉시 무제한 사용\n\n유료 플랜: 무제한이므로 걱정 없습니다!\n\n다음 달 1일에 예약 카운트가 초기화됩니다.' },
   { category: 'pricing', q: '카카오톡 알림 비용은 별도인가요?', a: '유료 플랜에 포함되어 있습니다.\n\n유료 플랜:\n• 카카오톡 알림 기본 제공\n• 예약 확정, 리마인더, 취소 알림\n\n무료 플랜에서는 카카오톡 알림이 제공되지 않습니다.\n\n추가 비용 걱정 없이 사용하세요!' },
@@ -429,9 +431,9 @@ function contactSupport() {
                 <VBtn
                   variant="tonal"
                   color="primary"
-                  href="mailto:kkm@moer.io"
+                  @click="isInquiryOpen = true"
                 >
-                  이메일 보내기
+                  문의하기
                 </VBtn>
               </VCardText>
             </VCard>
@@ -487,6 +489,8 @@ function contactSupport() {
         </div>
       </VContainer>
     </section>
+
+    <InquiryFormDialog v-model="isInquiryOpen" />
   </div>
 </template>
 

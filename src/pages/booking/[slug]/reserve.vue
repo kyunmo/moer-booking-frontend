@@ -11,6 +11,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import customerApi from '@/api/customer'
+import { usePhoneValidation } from '@/composables/usePhoneValidation'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { formatTimeKR, formatTimeRange, calculateEndTime, formatDurationBreakdown } from '@/utils/dateFormat'
 
@@ -19,6 +20,7 @@ const router = useRouter()
 const bookingStore = useBookingStore()
 const customerAuthStore = useCustomerAuthStore()
 const { error: showError, success: showSuccess } = useSnackbar()
+const { requiredPhoneRules, formatPhoneInput } = usePhoneValidation()
 
 const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
 
@@ -247,27 +249,14 @@ async function loadAvailableSlots() {
 // Step 3: Customer Form Validation
 // =====================================================
 
-// Phone formatting (010-0000-0000)
-function formatPhoneInput(value) {
-  if (!value) return ''
-  const cleaned = value.replace(/[^0-9]/g, '')
-
-  if (cleaned.length <= 3) return cleaned
-  if (cleaned.length <= 7) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`
-
-  return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`
-}
-
+// Phone formatting (from usePhoneValidation composable)
 function handlePhoneInput(event) {
   const raw = event.target.value
 
   customerForm.value.phone = formatPhoneInput(raw)
 }
 
-const phoneRules = [
-  v => !!v || '전화번호를 입력해주세요',
-  v => /^010-\d{4}-\d{4}$/.test(v) || '올바른 전화번호 형식이 아닙니다 (010-0000-0000)',
-]
+const phoneRules = requiredPhoneRules
 
 const nameRules = [
   v => !!v || '이름을 입력해주세요',

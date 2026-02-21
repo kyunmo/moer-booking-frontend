@@ -35,6 +35,9 @@ export const useSuperAdminStore = defineStore('superadmin', {
       totalPages: 0,
     },
 
+    // 매장 상세
+    selectedBusiness: null,
+
     // 로딩 상태
     loading: false,
     error: null,
@@ -165,6 +168,26 @@ export const useSuperAdminStore = defineStore('superadmin', {
       }
       catch (error) {
 
+        this.error = error.message
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 매장 상세 조회
+     */
+    async fetchBusinessDetail(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const { data } = await superadminApi.getBusinessById(id)
+        this.selectedBusiness = data
+        return data
+      }
+      catch (error) {
         this.error = error.message
         throw error
       }

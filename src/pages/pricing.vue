@@ -3,7 +3,7 @@ meta:
   layout: public
   public: true
   title: 요금제 - YEMO
-  description: 무료로 시작하고 필요할 때 업그레이드. 월 22,000원(VAT 포함)으로 모든 기능을 사용하세요.
+  description: 무료로 시작하고 필요할 때 업그레이드. 월 19,800원(VAT 포함)으로 모든 기능을 사용하세요.
   keywords: 예약 시스템 가격, 요금제, 무료 체험, 월 결제, 연간 결제
 </route>
 
@@ -11,10 +11,12 @@ meta:
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PricingCard from '@/components/pricing/PricingCard.vue'
+import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
 import { PLANS, BILLING_CYCLES, formatCurrency, getMonthlyEquivalent, getYearlySavings } from '@/constants/pricing'
 
 const router = useRouter()
 const selectedPlan = ref('PAID')
+const isInquiryOpen = ref(false)
 const billingCycle = ref('yearly')
 
 const isYearly = computed({
@@ -77,7 +79,7 @@ const plansDetail = computed(() => {
 const faqs = [
   {
     question: '가격에 VAT가 포함되어 있나요?',
-    answer: '네, 표시된 가격은 모두 VAT 포함 금액입니다.\n\n유료 플랜 월 22,000원(VAT 포함)이며, 사업자 고객은 세금계산서 발행이 가능합니다.\n(공급가액 20,000원 + VAT 2,000원)',
+    answer: '네, 표시된 가격은 모두 VAT 포함 금액입니다.\n\n유료 플랜 월 19,800원(VAT 포함)이며, 사업자 고객은 세금계산서 발행이 가능합니다.\n(공급가액 18,000원 + VAT 1,800원)',
   },
   {
     question: '30일 무료 체험은 어떻게 이용하나요?',
@@ -93,7 +95,7 @@ const faqs = [
   },
   {
     question: '환불 정책은 어떻게 되나요?',
-    answer: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후: 사용 일수 차감 후 일할 계산 환불\n예: 월 22,000원(VAT 포함), 10일 사용 → 약 14,667원 환불\n\n환불 신청 후 5영업일 이내 처리됩니다.',
+    answer: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후: 사용 일수 차감 후 일할 계산 환불\n예: 월 19,800원(VAT 포함), 10일 사용 → 약 13,200원 환불\n\n환불 신청 후 5영업일 이내 처리됩니다.',
   },
   {
     question: '플랜을 변경하면 데이터는 어떻게 되나요?',
@@ -101,7 +103,7 @@ const faqs = [
   },
   {
     question: '연간 결제 시 할인이 있나요?',
-    answer: '네! 연간 결제 시 2개월 무료 혜택이 적용됩니다.\n\n월 결제: 22,000원 × 12개월 = 264,000원/년 (VAT 포함)\n연간 결제: 220,000원/년 (VAT 포함)\n\n절약 금액: 44,000원 (VAT 포함)\n\n연간 결제를 선택하면 월 환산 약 18,333원(VAT 포함)에 모든 기능을 사용하실 수 있습니다.',
+    answer: '네! 연간 결제 시 2개월 무료 혜택이 적용됩니다.\n\n월 결제: 19,800원 × 12개월 = 237,600원/년 (VAT 포함)\n연간 결제: 198,000원/년 (VAT 포함)\n\n절약 금액: 39,600원 (VAT 포함)\n\n연간 결제를 선택하면 월 환산 약 16,500원(VAT 포함)에 모든 기능을 사용하실 수 있습니다.',
   },
   {
     question: '월 결제에서 연간 결제로 변경 가능한가요?',
@@ -372,7 +374,7 @@ function startWithPlan(plan) {
           <p class="text-body-1 mb-4">
             더 궁금한 점이 있으신가요?
           </p>
-          <VBtn variant="outlined" to="/support">
+          <VBtn variant="outlined" @click="isInquiryOpen = true">
             1:1 문의하기
             <VIcon icon="ri-arrow-right-line" end />
           </VBtn>
@@ -389,7 +391,7 @@ function startWithPlan(plan) {
               지금 시작하세요
             </h2>
             <p class="text-h6 mb-8 text-white opacity-90">
-              커피 2~3잔 값으로 예약 관리 자동화
+              월 2만원도 안 되는 비용으로 예약 관리 자동화
             </p>
             <VBtn
               size="x-large"
@@ -419,6 +421,7 @@ function startWithPlan(plan) {
         </VRow>
       </VContainer>
     </section>
+    <InquiryFormDialog v-model="isInquiryOpen" />
   </div>
 </template>
 

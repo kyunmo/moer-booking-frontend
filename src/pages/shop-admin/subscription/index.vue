@@ -274,13 +274,14 @@
       :current-plan="currentPlan"
       :current-staff-count="currentStaffCount"
       :current-reservation-count="currentMonthReservationCount"
+      :latest-payment="paymentStore.latestPayment"
       @confirm="handlePlanChange"
     />
 
     <!-- 구독 취소 확인 다이얼로그 -->
     <VDialog
       v-model="isCancelDialogOpen"
-      max-width="500"
+      max-width="520"
     >
       <VCard>
         <VCardTitle class="d-flex align-center">
@@ -291,12 +292,58 @@
           <p class="text-body-1 mb-4">
             정말로 구독을 취소하시겠습니까?
           </p>
+
+          <!-- 환불 정보 (유료 플랜인 경우) -->
+          <template v-if="cancelLoading">
+            <div class="text-center pa-4">
+              <VProgressCircular indeterminate color="primary" size="32" />
+              <p class="text-body-2 text-medium-emphasis mt-2">환불 정보를 조회하는 중...</p>
+            </div>
+          </template>
+
+          <VCard
+            v-else-if="cancelRefundPreview"
+            variant="outlined"
+            class="mb-4"
+          >
+            <VCardText>
+              <div class="d-flex align-center mb-3">
+                <VIcon icon="ri-refund-line" color="warning" class="me-2" />
+                <span class="text-body-1 font-weight-medium">환불 예상 정보</span>
+              </div>
+
+              <div class="d-flex flex-column gap-2 text-body-2">
+                <div class="d-flex justify-space-between">
+                  <span class="text-medium-emphasis">결제 금액</span>
+                  <span>{{ formatCurrency(cancelRefundPreview.paymentAmount || 0) }}</span>
+                </div>
+                <div class="d-flex justify-space-between">
+                  <span class="text-medium-emphasis">사용 기간</span>
+                  <span>{{ cancelRefundPreview.usedDays }}일 / {{ cancelRefundPreview.totalDays }}일</span>
+                </div>
+                <VDivider />
+                <div class="d-flex justify-space-between">
+                  <span class="font-weight-medium">예상 환불 금액</span>
+                  <span class="font-weight-bold text-warning text-h6">
+                    {{ formatCurrency(cancelRefundPreview.refundAmount || 0) }}
+                  </span>
+                </div>
+              </div>
+            </VCardText>
+          </VCard>
+
           <VAlert
             type="warning"
             variant="tonal"
             density="compact"
           >
-            구독을 취소하면 모든 서비스 이용이 중단됩니다.
+            <ul class="text-caption ps-4 mb-0">
+              <li>구독 취소 시 무료 플랜으로 전환됩니다.</li>
+              <li>유료 기능(카카오 알림, 통계 등)이 제한됩니다.</li>
+              <li v-if="cancelRefundPreview">
+                잔여 기간에 대한 환불이 진행됩니다.
+              </li>
+            </ul>
           </VAlert>
         </VCardText>
         <VCardActions>
@@ -311,6 +358,7 @@
             color="error"
             variant="elevated"
             :loading="loading"
+            :disabled="cancelLoading"
             @click="handleCancelSubscription"
           >
             구독 취소
@@ -328,9 +376,13 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PlanChangeDialog from '@/components/subscription/PlanChangeDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { usePaymentStore } from '@/stores/payment'
+import { calculateRefund } from '@/utils/refundCalculator'
+import { formatCurrency } from '@/constants/pricing'
 
 const router = useRouter()
 const subscriptionStore = useSubscriptionStore()
+const paymentStore = usePaymentStore()
 const { showSnackbar } = useSnackbar()
 
 const {
@@ -358,6 +410,8 @@ const {
 
 const isPlanChangeDialogOpen = ref(false)
 const isCancelDialogOpen = ref(false)
+const cancelRefundPreview = ref(null)
+const cancelLoading = ref(false)
 
 // 플랜 정보 (2티어: 무료 + 유료)
 const plans = [
@@ -375,7 +429,7 @@ const plans = [
   {
     value: 'PAID',
     name: '유료',
-    priceText: '22,000원/월 (VAT 포함)',
+    priceText: '19,800원/월 (VAT 포함)',
     badge: '추천',
     badgeColor: 'primary',
     features: [
@@ -453,8 +507,29 @@ async function handlePlanChange(newPlan) {
 }
 
 // 구독 취소 다이얼로그 열기
-function openCancelDialog() {
+async function openCancelDialog() {
+  cancelRefundPreview.value = null
+  cancelLoading.value = true
   isCancelDialogOpen.value = true
+
+  // 유료 플랜인 경우에만 환불 미리보기 조회
+  if (currentPlan.value !== 'FREE') {
+    try {
+      const latestPayment = await paymentStore.fetchLatestPayment()
+      if (latestPayment) {
+        const preview = await paymentStore.fetchRefundPreview(latestPayment.id)
+        if (preview) {
+          cancelRefundPreview.value = { ...preview, paymentAmount: latestPayment.amount }
+        } else {
+          const calc = calculateRefund(latestPayment)
+          cancelRefundPreview.value = { ...calc, paymentAmount: latestPayment.amount }
+        }
+      }
+    } catch {
+      // 환불 미리보기 실패 시 무시
+    }
+  }
+  cancelLoading.value = false
 }
 
 // 구독 취소 처리
@@ -473,6 +548,10 @@ async function handleCancelSubscription() {
 onMounted(async () => {
   try {
     await subscriptionStore.fetchSubscriptionInfo()
+    // 유료 플랜이면 최근 결제 정보도 미리 조회
+    if (subscriptionStore.currentPlan !== 'FREE') {
+      paymentStore.fetchLatestPayment()
+    }
   }
   catch (error) {
     // 구독 정보 조회 실패

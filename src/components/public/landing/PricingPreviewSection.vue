@@ -24,7 +24,7 @@ const plans = [
     key: 'PAID',
     color: 'primary',
     icon: 'ri-vip-crown-line',
-    price: '22,000',
+    price: '19,800',
     period: '원/월 (VAT 포함)',
     features: [
       '무제한 예약',

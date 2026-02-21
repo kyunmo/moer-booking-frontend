@@ -2,7 +2,7 @@
   <div>
     <!-- 헤더 -->
     <VCard class="mb-4">
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center pe-2" :class="{ 'flex-wrap ga-2': smAndDown }">
         <VIcon icon="ri-calendar-close-line" size="24" class="me-3" />
         <span>휴무일 관리</span>
 
@@ -13,8 +13,9 @@
           v-model="selectedYear"
           :items="yearOptions"
           density="compact"
-          style="max-inline-size: 150px;"
+          :style="smAndDown ? 'max-inline-size: 110px;' : 'max-inline-size: 150px;'"
           class="me-3"
+          hide-details
           @update:model-value="loadHolidays"
         />
 
@@ -22,6 +23,7 @@
         <VBtn
           color="primary"
           prepend-icon="ri-add-line"
+          :size="smAndDown ? 'small' : 'default'"
           @click="openCreateDialog"
         >
           휴무일 추가
@@ -75,7 +77,91 @@
         <VProgressCircular indeterminate color="primary" />
       </div>
 
-      <!-- 테이블 -->
+      <!-- 모바일 카드 뷰 -->
+      <template v-else-if="smAndDown">
+        <!-- 데이터 없음 -->
+        <template v-if="sortedHolidays.length === 0">
+          <EmptyState
+            icon="ri-calendar-line"
+            title="등록된 휴무일이 없습니다"
+            description="휴무일을 추가하세요"
+            action-label="휴무일 추가하기"
+            action-icon="ri-add-line"
+            @action="openCreateDialog"
+          />
+        </template>
+
+        <!-- 카드 리스트 -->
+        <div v-else class="pa-3 d-flex flex-column gap-3">
+          <VCard
+            v-for="item in paginatedHolidays"
+            :key="item.id"
+            variant="outlined"
+            class="holiday-mobile-card"
+          >
+            <VCardText class="pa-3">
+              <!-- 상단: 날짜 + 유형 칩 -->
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div>
+                  <div class="font-weight-medium text-body-1">{{ formatDate(item.date) }}</div>
+                  <div class="text-xs text-disabled">{{ getDayOfWeek(item.date) }}</div>
+                </div>
+                <VChip
+                  :color="getTypeColor(item.type)"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ getTypeText(item.type) }}
+                </VChip>
+              </div>
+
+              <VDivider class="mb-2" />
+
+              <!-- 중단: 휴무일 정보 -->
+              <div class="d-flex flex-column gap-1">
+                <div class="d-flex align-center text-body-2">
+                  <VIcon icon="ri-text" size="16" class="me-2 text-disabled" />
+                  <span class="font-weight-medium">{{ item.name }}</span>
+                </div>
+
+                <div v-if="item.reason" class="d-flex align-center text-body-2">
+                  <VIcon icon="ri-chat-3-line" size="16" class="me-2 text-disabled" />
+                  <span class="text-disabled">{{ item.reason }}</span>
+                </div>
+              </div>
+
+              <!-- 하단: 액션 버튼 -->
+              <div class="mt-2 d-flex justify-end">
+                <VBtn
+                  variant="tonal"
+                  color="error"
+                  size="small"
+                  prepend-icon="ri-delete-bin-line"
+                  @click="confirmDelete(item)"
+                >
+                  삭제
+                </VBtn>
+              </div>
+            </VCardText>
+          </VCard>
+
+          <!-- 모바일 페이지네이션 -->
+          <div
+            v-if="mobileTotalPages > 1"
+            class="d-flex justify-center pt-2 pb-1"
+          >
+            <VPagination
+              v-model="mobilePage"
+              :length="mobileTotalPages"
+              :total-visible="5"
+              density="compact"
+              size="small"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- 데스크톱 테이블 -->
       <VDataTable
         v-else
         :headers="headers"
@@ -273,9 +359,11 @@ import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useBusinessSettingsStore } from '@/stores/business-settings'
 import { computed, onMounted, ref } from 'vue'
+import { useDisplay } from 'vuetify'
 
 const { error: showError } = useSnackbar()
 const settingsStore = useBusinessSettingsStore()
+const { smAndDown } = useDisplay()
 
 const formRef = ref(null)
 const isDialogVisible = ref(false)
@@ -283,6 +371,10 @@ const isDeleteDialogVisible = ref(false)
 const selectedHoliday = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
+
+// 모바일 페이지네이션
+const mobilePage = ref(1)
+const mobileItemsPerPage = 15
 
 // 현재 연도
 const currentYear = new Date().getFullYear()
@@ -325,6 +417,17 @@ const sortedHolidays = computed(() => {
   return [...settingsStore.holidays].sort((a, b) => {
     return new Date(a.date) - new Date(b.date)
   })
+})
+
+// 모바일 페이지네이션 총 페이지 수
+const mobileTotalPages = computed(() =>
+  Math.ceil(sortedHolidays.value.length / mobileItemsPerPage),
+)
+
+// 페이지네이션된 휴무일 (모바일)
+const paginatedHolidays = computed(() => {
+  const start = (mobilePage.value - 1) * mobileItemsPerPage
+  return sortedHolidays.value.slice(start, start + mobileItemsPerPage)
 })
 
 // 정기 휴무
@@ -455,6 +558,16 @@ onMounted(() => {
 
 <style scoped>
 .holiday-table :deep(tbody tr:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.04);
+}
+
+.holiday-mobile-card {
+  transition: all 0.2s ease;
+}
+
+.holiday-mobile-card:hover,
+.holiday-mobile-card:active {
+  border-color: rgb(var(--v-theme-primary));
   background-color: rgba(var(--v-theme-primary), 0.04);
 }
 </style>

@@ -82,20 +82,51 @@ watch([
           v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig"
         />
-        <IconBtn
-          id="tour-trigger-btn"
-          class="me-1"
-          aria-label="가이드 투어"
-          @click="handleTourClick"
-        >
-          <VTooltip activator="parent" location="bottom">
-            가이드 투어
-          </VTooltip>
-          <VIcon icon="ri-compass-discover-line" />
-        </IconBtn>
-        <TrialNavBadge class="me-1" />
-        <NavBarNotifications class="me-1" />
-        <UserProfile />
+
+        <!-- 상단 우측 액션 영역 -->
+        <div class="d-flex align-center navbar-actions">
+          <!-- 무료 체험기간 배지 -->
+          <TrialNavBadge />
+
+          <!-- 구분선 -->
+          <VDivider vertical class="mx-2 navbar-divider" />
+
+          <!-- 가이드 투어 버튼 (데스크톱: 텍스트+아이콘) -->
+          <VBtn
+            id="tour-trigger-btn"
+            variant="tonal"
+            color="primary"
+            size="small"
+            class="d-none d-sm-inline-flex"
+            aria-label="가이드 투어"
+            @click="handleTourClick"
+          >
+            <VIcon icon="ri-compass-discover-line" size="18" start />
+            가이드
+          </VBtn>
+          <!-- 가이드 투어 버튼 (모바일: 아이콘만) -->
+          <IconBtn
+            id="tour-trigger-btn-mobile"
+            class="d-sm-none"
+            color="primary"
+            aria-label="가이드 투어"
+            @click="handleTourClick"
+          >
+            <VTooltip activator="parent" location="bottom">
+              가이드 투어
+            </VTooltip>
+            <VIcon icon="ri-compass-discover-line" />
+          </IconBtn>
+
+          <!-- 구분선 -->
+          <VDivider vertical class="mx-2 navbar-divider" />
+
+          <!-- 알림(Notifications) -->
+          <NavBarNotifications />
+
+          <!-- 프로필 -->
+          <UserProfile class="ms-1" />
+        </div>
       </div>
     </template>
 
@@ -123,6 +154,16 @@ watch([
 @keyframes rotate-back-180 {
   from { transform: rotate(180deg); }
   to { transform: rotate(0deg); }
+}
+
+.navbar-actions {
+  gap: 4px;
+}
+
+.navbar-divider {
+  opacity: 0.3;
+  block-size: 24px;
+  align-self: center;
 }
 
 .layout-vertical-nav {

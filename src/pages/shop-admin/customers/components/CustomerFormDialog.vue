@@ -47,7 +47,7 @@
                 label="전화번호 *"
                 placeholder="010-1234-5678"
                 prepend-inner-icon="ri-phone-line"
-                :rules="[required, phoneRule]"
+                :rules="requiredPhoneRules"
                 required
               />
             </VCol>
@@ -155,6 +155,7 @@
 </template>
 
 <script setup>
+import { usePhoneValidation } from '@/composables/usePhoneValidation'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, ref, watch } from 'vue'
 
@@ -172,6 +173,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const customerStore = useCustomerStore()
+const { requiredPhoneRules } = usePhoneValidation()
 
 // Refs
 const formRef = ref(null)
@@ -219,12 +221,6 @@ watch(() => props.customer, (newCustomer) => {
 
 // Validation Rules
 const required = value => !!value || '필수 입력 항목입니다.'
-
-const phoneRule = value => {
-  if (!value) return '필수 입력 항목입니다.'
-  const pattern = /^010-\d{4}-\d{4}$/
-  return pattern.test(value) || '전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)'
-}
 
 const emailRule = value => {
   if (!value) return true

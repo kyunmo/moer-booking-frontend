@@ -231,8 +231,18 @@ body,
   align-items: center;
 }
 
+// 👉 Caption font size (a11y: 12px → 13px for readability)
+.text-caption {
+  font-size: 0.8125rem !important; // 13px
+}
+
 // 👉 Btn focus-visible style (a11y: keyboard focus ring restored)
 .v-btn:focus-visible::after {
+  opacity: var(--v-focus-opacity, 0.12) !important;
+}
+
+// 👉 List item focus-visible style (a11y: keyboard focus ring)
+.v-list-item:focus-visible > .v-list-item__overlay {
   opacity: var(--v-focus-opacity, 0.12) !important;
 }
 

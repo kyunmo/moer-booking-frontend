@@ -8,9 +8,12 @@ meta:
 </route>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
 
 const router = useRouter()
+const isInquiryOpen = ref(false)
 
 const contactChannels = [
   {
@@ -18,8 +21,8 @@ const contactChannels = [
     color: 'primary',
     title: '이메일 문의',
     description: '궁금하신 사항을 이메일로 보내주세요.\n평균 4시간 이내 답변드립니다.',
-    action: '이메일 보내기',
-    href: 'mailto:kkm@moer.io',
+    action: '문의하기',
+    onClick: true,
     info: 'kkm@moer.io',
   },
   {
@@ -115,6 +118,14 @@ function startFreeTrial() {
                     {{ channel.action }}
                   </VBtn>
                   <VBtn
+                    v-else-if="channel.onClick"
+                    :color="channel.color"
+                    variant="elevated"
+                    @click="isInquiryOpen = true"
+                  >
+                    {{ channel.action }}
+                  </VBtn>
+                  <VBtn
                     v-else
                     :color="channel.color"
                     variant="elevated"
@@ -200,6 +211,7 @@ function startFreeTrial() {
         </VRow>
       </VContainer>
     </section>
+    <InquiryFormDialog v-model="isInquiryOpen" />
   </div>
 </template>
 

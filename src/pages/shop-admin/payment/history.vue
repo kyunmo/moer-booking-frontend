@@ -65,7 +65,7 @@
 
     <!-- 결제 목록 -->
     <VCard>
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center pe-2" :class="{ 'flex-wrap ga-2': smAndDown }">
         <VIcon icon="ri-file-list-line" size="24" class="me-3" />
         <span>결제 내역</span>
 
@@ -77,9 +77,9 @@
           :items="statusOptions"
           placeholder="전체 상태"
           density="compact"
-          style="max-inline-size: 180px;"
-          class="me-3"
+          :style="smAndDown ? 'max-inline-size: 140px;' : 'max-inline-size: 180px;'"
           clearable
+          hide-details
         />
       </VCardTitle>
 
@@ -91,7 +91,128 @@
         </p>
       </div>
 
-      <!-- 결제 목록 테이블 -->
+      <!-- 모바일 카드 뷰 -->
+      <template v-else-if="smAndDown">
+        <!-- 데이터 없음 -->
+        <template v-if="filteredPayments.length === 0">
+          <div class="text-center pa-10">
+            <VIcon
+              icon="ri-file-list-line"
+              size="64"
+              class="mb-4 text-disabled"
+            />
+            <p class="text-h6 mb-2">결제 내역이 없습니다</p>
+            <p class="text-disabled mb-4">
+              플랜을 구매하여 서비스를 이용하세요
+            </p>
+            <VBtn
+              color="primary"
+              @click="router.push('/shop-admin/payment')"
+            >
+              <VIcon icon="ri-shopping-cart-line" class="me-2" />
+              플랜 구매하기
+            </VBtn>
+          </div>
+        </template>
+
+        <!-- 카드 리스트 -->
+        <div v-else class="pa-3 d-flex flex-column gap-3">
+          <VCard
+            v-for="item in paginatedPayments"
+            :key="item.id"
+            variant="outlined"
+            class="payment-mobile-card"
+            @click="viewDetail(item)"
+          >
+            <VCardText class="pa-3">
+              <!-- 상단: 결제일 + 상태 -->
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="text-body-2 text-disabled">
+                  {{ formatDate(item.createdAt) }}
+                </div>
+                <VChip
+                  :color="getStatusColor(item.status)"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ getStatusText(item.status) }}
+                </VChip>
+              </div>
+
+              <VDivider class="mb-2" />
+
+              <!-- 중단: 결제 정보 -->
+              <div class="d-flex flex-column gap-1">
+                <div class="d-flex align-center justify-space-between text-body-2">
+                  <div class="d-flex align-center">
+                    <VIcon icon="ri-money-dollar-circle-line" size="16" class="me-2 text-disabled" />
+                    <span>결제금액</span>
+                  </div>
+                  <span class="font-weight-bold text-primary">{{ formatCurrency(item.amount) }}</span>
+                </div>
+
+                <div class="d-flex align-center justify-space-between text-body-2">
+                  <div class="d-flex align-center">
+                    <VIcon :icon="getPaymentMethodIcon(item.paymentMethod)" size="16" class="me-2 text-disabled" />
+                    <span>결제수단</span>
+                  </div>
+                  <span>{{ getPaymentMethodName(item.paymentMethod) }}</span>
+                </div>
+
+                <div class="d-flex align-center justify-space-between text-body-2">
+                  <div class="d-flex align-center">
+                    <VIcon icon="ri-price-tag-3-line" size="16" class="me-2 text-disabled" />
+                    <span>플랜</span>
+                  </div>
+                  <VChip
+                    :color="getPlanColor(item.subscriptionPlan)"
+                    size="x-small"
+                  >
+                    {{ getPlanName(item.subscriptionPlan) }}
+                  </VChip>
+                </div>
+
+                <div class="d-flex align-center justify-space-between text-body-2">
+                  <div class="d-flex align-center">
+                    <VIcon icon="ri-hashtag" size="16" class="me-2 text-disabled" />
+                    <span>주문번호</span>
+                  </div>
+                  <span class="text-disabled">#{{ item.id }}</span>
+                </div>
+              </div>
+
+              <!-- 하단: 환불 버튼 (완료 상태일 때만) -->
+              <div v-if="item.status === 'COMPLETED'" class="mt-2 d-flex justify-end">
+                <VBtn
+                  variant="tonal"
+                  color="error"
+                  size="small"
+                  prepend-icon="ri-refund-line"
+                  @click.stop="openRefundDialog(item)"
+                >
+                  환불
+                </VBtn>
+              </div>
+            </VCardText>
+          </VCard>
+
+          <!-- 모바일 페이지네이션 -->
+          <div
+            v-if="mobileTotalPages > 1"
+            class="d-flex justify-center pt-2 pb-1"
+          >
+            <VPagination
+              v-model="mobilePage"
+              :length="mobileTotalPages"
+              :total-visible="5"
+              density="compact"
+              size="small"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- 데스크톱 결제 목록 테이블 -->
       <VDataTable
         v-else
         :headers="headers"
@@ -308,7 +429,7 @@
     <!-- 환불 다이얼로그 -->
     <VDialog
       v-model="isRefundDialogOpen"
-      max-width="500"
+      max-width="560"
     >
       <VCard>
         <VCardTitle class="d-flex align-center">
@@ -317,27 +438,95 @@
         </VCardTitle>
 
         <VCardText>
-          <p class="text-body-1 mb-4">
-            정말로 환불을 진행하시겠습니까?
-          </p>
+          <!-- 로딩 -->
+          <div v-if="refundLoading" class="text-center pa-4">
+            <VProgressCircular indeterminate color="primary" size="32" />
+            <p class="text-body-2 text-medium-emphasis mt-2">환불 정보를 계산하는 중...</p>
+          </div>
 
-          <VTextField
-            v-model="refundReason"
-            label="환불 사유 *"
-            placeholder="환불 사유를 입력하세요"
-            rows="3"
-            counter
-            maxlength="200"
-          />
+          <template v-else>
+            <!-- 1. 결제 정보 요약 -->
+            <VAlert type="info" variant="tonal" class="mb-4">
+              <div class="d-flex flex-column gap-1">
+                <div class="d-flex justify-space-between">
+                  <span>결제 금액</span>
+                  <strong>{{ formatCurrency(selectedPayment?.amount) }}</strong>
+                </div>
+                <div class="d-flex justify-space-between">
+                  <span>결제일</span>
+                  <span>{{ formatDate(selectedPayment?.createdAt) }}</span>
+                </div>
+                <div class="d-flex justify-space-between">
+                  <span>구독 기간</span>
+                  <span>{{ formatDate(selectedPayment?.billingStartDate) }} ~ {{ formatDate(selectedPayment?.billingEndDate) }}</span>
+                </div>
+              </div>
+            </VAlert>
 
-          <VAlert
-            type="warning"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            환불 후에는 서비스 이용이 제한될 수 있습니다.
-          </VAlert>
+            <!-- 2. 환불 예상 금액 -->
+            <VCard variant="outlined" class="mb-4">
+              <VCardText>
+                <p class="text-body-2 text-medium-emphasis mb-2">환불 예상 금액</p>
+
+                <!-- 사용/잔여 기간 -->
+                <div class="d-flex justify-space-between text-body-2 mb-1">
+                  <span>사용 {{ refundPreview?.usedDays || 0 }}일 / 잔여 {{ refundPreview?.remainingDays || 0 }}일</span>
+                  <span>총 {{ refundPreview?.totalDays || 0 }}일</span>
+                </div>
+                <VProgressLinear
+                  :model-value="refundPreview?.usagePercent || 0"
+                  color="primary"
+                  height="8"
+                  rounded
+                  class="mb-3"
+                />
+
+                <!-- 계산 수식 -->
+                <p v-if="refundPreview?.formula" class="text-caption text-medium-emphasis mb-3">
+                  {{ refundPreview.formula }}
+                </p>
+
+                <!-- 환불 금액 강조 -->
+                <div class="text-center pa-3 rounded" style="background: rgba(var(--v-theme-warning), 0.08);">
+                  <p class="text-body-2 text-medium-emphasis mb-1">예상 환불 금액</p>
+                  <p class="text-h4 font-weight-bold text-warning">
+                    {{ formatCurrency(refundPreview?.refundAmount || 0) }}
+                  </p>
+                  <VChip
+                    v-if="refundPreview?.isFullRefund"
+                    color="success"
+                    size="small"
+                    class="mt-1"
+                  >
+                    전액 환불
+                  </VChip>
+                </div>
+              </VCardText>
+            </VCard>
+
+            <!-- 3. 환불 사유 입력 -->
+            <VTextField
+              v-model="refundReason"
+              label="환불 사유 *"
+              placeholder="환불 사유를 입력하세요"
+              counter
+              maxlength="200"
+              class="mb-4"
+            />
+
+            <!-- 4. 경고 안내 -->
+            <VAlert
+              type="warning"
+              variant="tonal"
+              density="compact"
+            >
+              <ul class="text-caption ps-4 mb-0">
+                <li>환불 처리 후 구독이 무료 플랜으로 전환됩니다.</li>
+                <li>결제 후 7일 이내 전액 환불이 가능합니다.</li>
+                <li>환불 금액은 사용 기간에 따라 일할 계산됩니다.</li>
+              </ul>
+            </VAlert>
+          </template>
         </VCardText>
 
         <VCardActions>
@@ -351,11 +540,11 @@
           <VBtn
             color="warning"
             variant="elevated"
-            :disabled="!refundReason"
+            :disabled="!refundReason || refundLoading"
             :loading="loading"
             @click="handleRefund"
           >
-            환불 요청
+            {{ refundPreview?.refundAmount ? formatCurrency(refundPreview.refundAmount) + ' 환불' : '환불 요청' }}
           </VBtn>
         </VCardActions>
       </VCard>
@@ -365,14 +554,17 @@
 
 <script setup>
 import { usePaymentStore } from '@/stores/payment'
+import { calculateRefund } from '@/utils/refundCalculator'
 import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { useDisplay } from 'vuetify'
 
 const router = useRouter()
 const paymentStore = usePaymentStore()
 const { showSnackbar } = useSnackbar()
+const { smAndDown } = useDisplay()
 
 const {
   payments,
@@ -386,6 +578,12 @@ const isDetailDialogOpen = ref(false)
 const isRefundDialogOpen = ref(false)
 const selectedPayment = ref(null)
 const refundReason = ref('')
+const refundPreview = ref(null)
+const refundLoading = ref(false)
+
+// 모바일 페이지네이션
+const mobilePage = ref(1)
+const mobileItemsPerPage = 10
 
 // 테이블 헤더
 const headers = [
@@ -412,6 +610,17 @@ const filteredPayments = computed(() => {
   if (!statusFilter.value) return payments.value
 
   return payments.value.filter(p => p.status === statusFilter.value)
+})
+
+// 모바일 페이지네이션 총 페이지 수
+const mobileTotalPages = computed(() =>
+  Math.ceil(filteredPayments.value.length / mobileItemsPerPage),
+)
+
+// 페이지네이션된 결제 목록 (모바일)
+const paginatedPayments = computed(() => {
+  const start = (mobilePage.value - 1) * mobileItemsPerPage
+  return filteredPayments.value.slice(start, start + mobileItemsPerPage)
 })
 
 // 플랜 이름
@@ -505,10 +714,26 @@ function viewDetail(payment) {
 }
 
 // 환불 다이얼로그 열기
-function openRefundDialog(payment) {
+async function openRefundDialog(payment) {
   selectedPayment.value = payment
   refundReason.value = ''
+  refundPreview.value = null
+  refundLoading.value = true
   isRefundDialogOpen.value = true
+
+  // Try API first, fallback to local calculation
+  try {
+    const preview = await paymentStore.fetchRefundPreview(payment.id)
+    if (preview) {
+      refundPreview.value = preview
+    } else {
+      refundPreview.value = calculateRefund(payment)
+    }
+  } catch {
+    refundPreview.value = calculateRefund(payment)
+  } finally {
+    refundLoading.value = false
+  }
 }
 
 // 환불 처리
@@ -547,5 +772,16 @@ onMounted(async () => {
 <style scoped>
 .gap-2 {
   gap: 8px;
+}
+
+.payment-mobile-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-mobile-card:hover,
+.payment-mobile-card:active {
+  border-color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.04);
 }
 </style>

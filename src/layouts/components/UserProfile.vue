@@ -94,6 +94,7 @@ async function handleLogout() {
       class="cursor-pointer"
       size="38"
       :color="userAvatar ? undefined : 'primary'"
+      aria-label="사용자 메뉴"
     >
       <!-- 프로필 이미지가 있는 경우 -->
       <VImg v-if="userAvatar" :src="userAvatar" :alt="`${userName} 프로필 사진`" />

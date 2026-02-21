@@ -45,6 +45,7 @@
               v-model="dateFilter"
               type="date"
               label="예약 날짜"
+              prepend-inner-icon="ri-calendar-line"
               density="compact"
               clearable
               hide-details
@@ -56,6 +57,7 @@
               v-model="statusFilter"
               :items="statusOptions"
               placeholder="전체 상태"
+              aria-label="예약 상태 필터"
               density="compact"
               clearable
               hide-details
@@ -66,6 +68,7 @@
             <VTextField
               v-model="searchQuery"
               placeholder="고객명 또는 전화번호 검색"
+              aria-label="고객명 또는 전화번호 검색"
               prepend-inner-icon="ri-search-line"
               density="compact"
               clearable
@@ -165,6 +168,8 @@
             :key="item.id"
             variant="outlined"
             class="reservation-mobile-card"
+            :class="getReservationRowClass(item)"
+            :style="getReservationRowStyle(item)"
             @click="viewReservation(item)"
           >
             <VCardText class="pa-3">
@@ -292,6 +297,7 @@
         show-select
         item-value="id"
         return-object
+        :row-props="getRowProps"
       >
         <!-- 일괄 액션 바 -->
         <template #top>
@@ -334,6 +340,7 @@
                 icon
                 variant="text"
                 size="small"
+                aria-label="선택 해제"
                 @click="selectedReservations = []"
               >
                 <VIcon icon="ri-close-line" />
@@ -453,6 +460,7 @@
               icon
               variant="text"
               size="small"
+              aria-label="상세보기"
               @click="viewReservation(item)"
             >
               <VIcon icon="ri-eye-line" />
@@ -467,6 +475,7 @@
               variant="text"
               size="small"
               color="primary"
+              aria-label="수정"
               @click="editReservation(item)"
             >
               <VIcon icon="ri-edit-line" />
@@ -481,6 +490,7 @@
               variant="text"
               size="small"
               color="error"
+              aria-label="취소"
               @click="confirmCancel(item)"
             >
               <VIcon icon="ri-close-circle-line" />
@@ -634,6 +644,7 @@
 <script setup>
 import EmptyState from '@/components/EmptyState.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { getStatusColor, getStatusLabel } from '@/constants/reservation-status'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'
 import { formatTimeRange } from '@/utils/dateFormat'
@@ -757,28 +768,50 @@ function getServiceNames(serviceNames) {
   return `${serviceNames[0]} 외 ${serviceNames.length - 1}개`
 }
 
-// 상태 색상
-function getStatusColor(status) {
-  const colors = {
-    PENDING: 'warning',
-    CONFIRMED: 'primary',
-    COMPLETED: 'success',
-    CANCELLED: 'error',
-    NO_SHOW: 'secondary',
-  }
-  return colors[status] || 'default'
+// 상태 텍스트 (imported getStatusLabel을 getStatusText로 alias)
+const getStatusText = getStatusLabel
+
+// 과거/오늘 예약 판별 유틸
+const PAST_STATUSES = ['COMPLETED', 'CANCELLED', 'NO_SHOW']
+
+function isPastReservation(item) {
+  const today = new Date().toISOString().split('T')[0]
+  return PAST_STATUSES.includes(item.status) && item.reservationDate < today
 }
 
-// 상태 텍스트
-function getStatusText(status) {
-  const texts = {
-    PENDING: '대기',
-    CONFIRMED: '확정',
-    COMPLETED: '완료',
-    CANCELLED: '취소',
-    NO_SHOW: '노쇼',
+function isTodayReservation(item) {
+  const today = new Date().toISOString().split('T')[0]
+  return item.reservationDate === today
+}
+
+// 데스크톱 테이블 행 props
+function getRowProps({ item }) {
+  const classes = []
+  const style = {}
+
+  if (isPastReservation(item)) {
+    style.opacity = '0.6'
   }
-  return texts[status] || status
+  if (isTodayReservation(item)) {
+    classes.push('reservation-row-today')
+  }
+
+  return { class: classes, style }
+}
+
+// 모바일 카드 클래스
+function getReservationRowClass(item) {
+  return {
+    'reservation-card-today': isTodayReservation(item),
+  }
+}
+
+// 모바일 카드 스타일
+function getReservationRowStyle(item) {
+  if (isPastReservation(item)) {
+    return { opacity: '0.6' }
+  }
+  return {}
 }
 
 // 예약 상세보기
@@ -938,5 +971,14 @@ onMounted(async () => {
 .reservation-mobile-card:active {
   border-color: rgb(var(--v-theme-primary));
   background-color: rgba(var(--v-theme-primary), 0.04);
+}
+
+/* 오늘 예약 강조: 왼쪽 보더 */
+.reservation-card-today {
+  border-left: 3px solid rgb(var(--v-theme-primary)) !important;
+}
+
+.reservation-table :deep(.reservation-row-today) {
+  border-left: 3px solid rgb(var(--v-theme-primary));
 }
 </style>

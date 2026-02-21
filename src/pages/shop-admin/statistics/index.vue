@@ -1,76 +1,130 @@
 <template>
-  <div>
-    <VCard class="mb-6">
-      <VCardTitle class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center">
-          <VIcon icon="ri-bar-chart-box-line" class="me-2" />
-          통계 분석
-        </div>
-        <VBtn
-          color="success"
-          variant="outlined"
-          size="small"
-          :loading="csvExporting"
-          @click="exportCsv"
-        >
-          <VIcon icon="ri-download-2-line" class="me-1" />
-          CSV 다운로드
-        </VBtn>
-      </VCardTitle>
-    </VCard>
-
-    <!-- Filter Bar -->
-    <StatisticsFilterBar
-      v-model="filters"
-      :show-group-by="currentTabShowGroupBy"
-      @search="onSearch"
-    />
-
-    <!-- Tabs -->
-    <VCard>
-      <VTabs
-        v-model="activeTab"
-        show-arrows
-        class="v-tabs-pill"
+  <div class="position-relative">
+    <!-- Locked Overlay (FREE plan with expired trial) -->
+    <div
+      v-if="!canAccessStatistics"
+      class="statistics-locked-overlay"
+    >
+      <VCard
+        class="pa-8 text-center"
+        max-width="520"
+        elevation="12"
       >
-        <VTab v-for="(tab, index) in tabs" :key="index">
-          <VIcon :icon="tab.icon" class="me-1" />
-          {{ tab.label }}
-        </VTab>
-      </VTabs>
+        <VIcon
+          icon="ri-lock-line"
+          size="64"
+          color="warning"
+          class="mb-4"
+        />
 
-      <VDivider />
+        <h2 class="text-h5 mb-2">
+          무료 버전에서는 사용할 수 없는 기능입니다
+        </h2>
 
-      <VCardText>
-        <VWindow v-model="activeTab">
-          <VWindowItem>
-            <RevenueTab :filters="searchFilters" />
-          </VWindowItem>
+        <p class="text-body-1 text-medium-emphasis mb-6">
+          유료 플랜으로 업그레이드하면 매출 분석, 예약 통계 등 다양한 분석 기능을 이용할 수 있습니다.
+        </p>
 
-          <VWindowItem>
-            <ReservationTab :filters="searchFilters" />
-          </VWindowItem>
+        <VBtn
+          color="primary"
+          size="large"
+          @click="$router.push('/shop-admin/subscription')"
+        >
+          <VIcon icon="ri-vip-crown-line" class="me-1" />
+          업그레이드하기
+        </VBtn>
+      </VCard>
+    </div>
 
-          <VWindowItem>
-            <CustomerTab :filters="searchFilters" />
-          </VWindowItem>
+    <!-- Statistics Content (blurred when locked) -->
+    <div :class="{ 'statistics-blurred': !canAccessStatistics }">
+      <VCard class="mb-6">
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <VIcon icon="ri-bar-chart-box-line" class="me-2" />
+            통계 분석
+          </div>
+          <VBtn
+            color="success"
+            variant="outlined"
+            size="small"
+            :loading="csvExporting"
+            :disabled="!canAccessStatistics"
+            @click="exportCsv"
+          >
+            <VIcon icon="ri-download-2-line" class="me-1" />
+            CSV 다운로드
+          </VBtn>
+        </VCardTitle>
+      </VCard>
 
-          <VWindowItem>
-            <StaffTab :filters="searchFilters" />
-          </VWindowItem>
+      <!-- Filter Bar -->
+      <StatisticsFilterBar
+        v-model="filters"
+        :show-group-by="currentTabShowGroupBy"
+        @search="onSearch"
+      />
 
-          <VWindowItem>
-            <ServiceTab :filters="searchFilters" />
-          </VWindowItem>
-        </VWindow>
-      </VCardText>
-    </VCard>
+      <!-- Auto Refresh Toggle -->
+      <div class="d-flex align-center justify-end mb-4 px-2">
+        <VSwitch
+          v-model="autoRefresh"
+          label="자동 새로고침 (5분)"
+          density="compact"
+          hide-details
+          color="primary"
+          :disabled="!canAccessStatistics"
+          @update:model-value="toggleAutoRefresh"
+        />
+      </div>
+
+      <!-- Tabs -->
+      <VCard>
+        <VTabs
+          v-model="activeTab"
+          show-arrows
+          class="v-tabs-pill"
+        >
+          <VTab v-for="(tab, index) in tabs" :key="index">
+            <VIcon :icon="tab.icon" class="me-1" />
+            {{ tab.label }}
+          </VTab>
+        </VTabs>
+
+        <VDivider />
+
+        <VCardText>
+          <VWindow v-model="activeTab">
+            <VWindowItem>
+              <RevenueTab :filters="searchFilters" />
+            </VWindowItem>
+
+            <VWindowItem>
+              <ReservationTab :filters="searchFilters" />
+            </VWindowItem>
+
+            <VWindowItem>
+              <CustomerTab :filters="searchFilters" />
+            </VWindowItem>
+
+            <VWindowItem>
+              <StaffTab :filters="searchFilters" />
+            </VWindowItem>
+
+            <VWindowItem>
+              <ServiceTab :filters="searchFilters" />
+            </VWindowItem>
+          </VWindow>
+        </VCardText>
+      </VCard>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useStatisticsStore } from '@/stores/statistics'
+import { useSubscriptionStore } from '@/stores/subscription'
 import StatisticsFilterBar from './components/StatisticsFilterBar.vue'
 import CustomerTab from './components/CustomerTab.vue'
 import ReservationTab from './components/ReservationTab.vue'
@@ -79,11 +133,68 @@ import ServiceTab from './components/ServiceTab.vue'
 import StaffTab from './components/StaffTab.vue'
 
 const statisticsStore = useStatisticsStore()
+const subscriptionStore = useSubscriptionStore()
 
 const activeTab = ref(0)
 const filters = ref({})
 const searchFilters = ref({})
 const csvExporting = ref(false)
+
+// ==================== Auto Refresh ====================
+const autoRefresh = ref(false)
+let autoRefreshInterval = null
+const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000 // 5분
+
+function startAutoRefresh() {
+  stopAutoRefresh()
+  autoRefreshInterval = setInterval(() => {
+    onSearch()
+  }, AUTO_REFRESH_INTERVAL_MS)
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval)
+    autoRefreshInterval = null
+  }
+}
+
+function toggleAutoRefresh(value) {
+  if (value) {
+    startAutoRefresh()
+  } else {
+    stopAutoRefresh()
+  }
+}
+
+onUnmounted(() => {
+  stopAutoRefresh()
+})
+
+/**
+ * 통계 페이지 접근 가능 여부
+ * - PAID 플랜: 항상 접근 가능
+ * - TRIAL active/expiring: 접근 가능 (30일 무료 체험 중)
+ * - FREE + trial expired: 접근 불가 (업그레이드 필요)
+ */
+const canAccessStatistics = computed(() => {
+  const plan = subscriptionStore.currentPlan
+  const trialStatus = subscriptionStore.trialStatus
+
+  // PAID 플랜이면 항상 접근 가능
+  if (plan === 'PAID') return true
+
+  // Trial이 active 또는 expiring이면 접근 가능
+  if (trialStatus === 'active' || trialStatus === 'expiring') return true
+
+  // FREE 플랜이고 trial이 expired이면 접근 불가
+  if (plan === 'FREE' && subscriptionStore.isTrialExpired) return false
+
+  // 구독 정보가 아직 로드되지 않았으면 일단 접근 허용 (로딩 중)
+  if (!subscriptionStore.subscriptionInfo) return true
+
+  return false
+})
 
 const tabs = [
   { label: '매출 분석', icon: 'ri-money-dollar-circle-line', showGroupBy: true },
@@ -99,6 +210,19 @@ function onSearch() {
   // Copy filters to searchFilters only on explicit search click
   searchFilters.value = { ...filters.value }
 }
+
+onMounted(async () => {
+  // 구독 정보가 없으면 가져오기
+  if (!subscriptionStore.subscriptionInfo) {
+    try {
+      await subscriptionStore.fetchSubscriptionInfo()
+    }
+    catch (e) {
+      // 구독 정보 로드 실패 시 무시 (페이지 자체는 표시)
+      console.error('Failed to load subscription info:', e)
+    }
+  }
+})
 
 // ==================== CSV Export ====================
 
@@ -373,3 +497,23 @@ function exportCsv() {
   }
 }
 </script>
+
+<style scoped>
+.statistics-locked-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--v-theme-surface), 0.4);
+  backdrop-filter: blur(2px);
+  border-radius: 8px;
+}
+
+.statistics-blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+</style>

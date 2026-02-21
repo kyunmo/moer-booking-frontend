@@ -11,6 +11,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { getStatusColor, getStatusLabel, getStatusIcon } from '@/constants/reservation-status'
 import customerApi from '@/api/customer'
 import { formatTimeRange } from '@/utils/dateFormat'
 
@@ -41,15 +42,7 @@ const cancelTarget = ref(null)
 const cancelReason = ref('')
 const cancelLoading = ref(false)
 
-// --- Status Config ---
-const statusConfig = {
-  PENDING: { color: 'warning', label: '대기중', icon: 'ri-time-line' },
-  CONFIRMED: { color: 'info', label: '확정', icon: 'ri-check-line' },
-  COMPLETED: { color: 'success', label: '완료', icon: 'ri-check-double-line' },
-  CANCELLED: { color: 'error', label: '취소됨', icon: 'ri-close-circle-line' },
-  NO_SHOW: { color: 'grey', label: '노쇼', icon: 'ri-user-unfollow-line' },
-}
-
+// --- Status Config (from shared constants) ---
 const statusFilters = [
   { label: '전체', value: 'ALL' },
   { label: '대기중', value: 'PENDING' },
@@ -60,7 +53,11 @@ const statusFilters = [
 ]
 
 function getStatusConfig(status) {
-  return statusConfig[status] || { color: 'default', label: status, icon: 'ri-question-line' }
+  return {
+    color: getStatusColor(status),
+    label: getStatusLabel(status),
+    icon: getStatusIcon(status),
+  }
 }
 
 // --- Computed ---

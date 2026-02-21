@@ -382,6 +382,7 @@
 
 <script setup>
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { usePhoneValidation } from '@/composables/usePhoneValidation'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useCustomerStore } from '@/stores/customer'
 import { useReservationStore } from '@/stores/reservation'
@@ -404,6 +405,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const { serviceIcon, serviceIconLine } = useBusinessIcon()
+const { phoneRules } = usePhoneValidation()
 const { success: showSuccess } = useSnackbar()
 const reservationStore = useReservationStore()
 const customerStore = useCustomerStore()
@@ -633,12 +635,7 @@ const servicesRequired = value => {
   return true
 }
 
-const phoneRule = value => {
-  if (!value) return true
-  const pattern = /^010-\d{4}-\d{4}$/
-
-  return pattern.test(value) || '전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)'
-}
+const phoneRule = phoneRules[0]
 
 // 이니셜
 function getInitial(name) {

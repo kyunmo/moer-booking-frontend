@@ -133,6 +133,7 @@
 <script setup>
 import customerApi from '@/api/customers'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { getStatusColor, getStatusLabel } from '@/constants/reservation-status'
 import { useAuthStore } from '@/stores/auth'
 import { formatTimeRange } from '@/utils/dateFormat'
 import { ref, watch } from 'vue'
@@ -176,31 +177,7 @@ const headers = [
   { title: '상태', key: 'status', sortable: false, align: 'center' },
 ]
 
-// 상태별 색상
-function getStatusColor(status) {
-  const map = {
-    COMPLETED: 'success',
-    CANCELLED: 'error',
-    NO_SHOW: 'warning',
-    PENDING: 'info',
-    CONFIRMED: 'primary',
-  }
-
-  return map[status] || 'default'
-}
-
-// 상태 라벨
-function getStatusLabel(status) {
-  const map = {
-    COMPLETED: '완료',
-    CANCELLED: '취소',
-    NO_SHOW: '노쇼',
-    PENDING: '대기',
-    CONFIRMED: '확정',
-  }
-
-  return map[status] || status
-}
+// 상태 관련 함수 (imported from @/constants/reservation-status)
 
 // 날짜 포맷
 function formatDate(dateString) {

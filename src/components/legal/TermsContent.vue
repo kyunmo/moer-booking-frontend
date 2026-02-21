@@ -156,7 +156,7 @@
                 월 요금
               </td>
               <td>0원</td>
-              <td>22,000원/월 (VAT 포함)<br><span class="text-caption text-medium-emphasis">연간 결제: 220,000원/년 (VAT 포함, 2개월 무료)</span></td>
+              <td>19,800원/월 (VAT 포함)<br><span class="text-caption text-medium-emphasis">연간 결제: 198,000원/년 (VAT 포함, 2개월 무료)</span></td>
             </tr>
             <tr>
               <td class="font-weight-medium">

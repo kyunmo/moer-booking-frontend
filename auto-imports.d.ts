@@ -21,6 +21,7 @@ declare global {
   const avatarText: typeof import('./src/@core/utils/formatters.js')['avatarText']
   const betweenValidator: typeof import('./src/@core/utils/validators.js')['betweenValidator']
   const calculateEndTime: typeof import('./src/utils/dateFormat.js')['calculateEndTime']
+  const calculateRefund: typeof import('./src/utils/refundCalculator.js')['calculateRefund']
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
@@ -56,6 +57,7 @@ declare global {
   const formatDate: typeof import('./src/@core/utils/formatters.js')['formatDate']
   const formatDateToMonthShort: typeof import('./src/@core/utils/formatters.js')['formatDateToMonthShort']
   const formatDurationBreakdown: typeof import('./src/utils/dateFormat.js')['formatDurationBreakdown']
+  const formatRefundAmount: typeof import('./src/utils/refundCalculator.js')['formatRefundAmount']
   const formatTimeKR: typeof import('./src/utils/dateFormat.js')['formatTimeKR']
   const formatTimeRange: typeof import('./src/utils/dateFormat.js')['formatTimeRange']
   const getActivePinia: typeof import('pinia')['getActivePinia']
@@ -241,6 +243,7 @@ declare global {
   const useFloor: typeof import('@vueuse/math')['useFloor']
   const useFocus: typeof import('@vueuse/core')['useFocus']
   const useFocusWithin: typeof import('@vueuse/core')['useFocusWithin']
+  const useFormRules: typeof import('./src/composables/useFormRules.js')['useFormRules']
   const useFps: typeof import('@vueuse/core')['useFps']
   const useFullscreen: typeof import('@vueuse/core')['useFullscreen']
   const useGamepad: typeof import('@vueuse/core')['useGamepad']
@@ -283,6 +286,7 @@ declare global {
   const useParentElement: typeof import('@vueuse/core')['useParentElement']
   const usePerformanceObserver: typeof import('@vueuse/core')['usePerformanceObserver']
   const usePermission: typeof import('@vueuse/core')['usePermission']
+  const usePhoneValidation: typeof import('./src/composables/usePhoneValidation.js')['usePhoneValidation']
   const usePointer: typeof import('@vueuse/core')['usePointer']
   const usePointerLock: typeof import('@vueuse/core')['usePointerLock']
   const usePointerSwipe: typeof import('@vueuse/core')['usePointerSwipe']
@@ -399,6 +403,7 @@ declare module 'vue' {
     readonly avatarText: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['avatarText']>
     readonly betweenValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['betweenValidator']>
     readonly calculateEndTime: UnwrapRef<typeof import('./src/utils/dateFormat.js')['calculateEndTime']>
+    readonly calculateRefund: UnwrapRef<typeof import('./src/utils/refundCalculator.js')['calculateRefund']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -434,6 +439,7 @@ declare module 'vue' {
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDateToMonthShort']>
     readonly formatDurationBreakdown: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatDurationBreakdown']>
+    readonly formatRefundAmount: UnwrapRef<typeof import('./src/utils/refundCalculator.js')['formatRefundAmount']>
     readonly formatTimeKR: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatTimeKR']>
     readonly formatTimeRange: UnwrapRef<typeof import('./src/utils/dateFormat.js')['formatTimeRange']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
@@ -619,6 +625,7 @@ declare module 'vue' {
     readonly useFloor: UnwrapRef<typeof import('@vueuse/math')['useFloor']>
     readonly useFocus: UnwrapRef<typeof import('@vueuse/core')['useFocus']>
     readonly useFocusWithin: UnwrapRef<typeof import('@vueuse/core')['useFocusWithin']>
+    readonly useFormRules: UnwrapRef<typeof import('./src/composables/useFormRules.js')['useFormRules']>
     readonly useFps: UnwrapRef<typeof import('@vueuse/core')['useFps']>
     readonly useFullscreen: UnwrapRef<typeof import('@vueuse/core')['useFullscreen']>
     readonly useGamepad: UnwrapRef<typeof import('@vueuse/core')['useGamepad']>
@@ -661,6 +668,7 @@ declare module 'vue' {
     readonly useParentElement: UnwrapRef<typeof import('@vueuse/core')['useParentElement']>
     readonly usePerformanceObserver: UnwrapRef<typeof import('@vueuse/core')['usePerformanceObserver']>
     readonly usePermission: UnwrapRef<typeof import('@vueuse/core')['usePermission']>
+    readonly usePhoneValidation: UnwrapRef<typeof import('./src/composables/usePhoneValidation.js')['usePhoneValidation']>
     readonly usePointer: UnwrapRef<typeof import('@vueuse/core')['usePointer']>
     readonly usePointerLock: UnwrapRef<typeof import('@vueuse/core')['usePointerLock']>
     readonly usePointerSwipe: UnwrapRef<typeof import('@vueuse/core')['usePointerSwipe']>
