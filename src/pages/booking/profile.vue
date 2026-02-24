@@ -3,7 +3,7 @@ meta:
   layout: public
   public: true
   requiresCustomerAuth: true
-  title: 내 프로필 - YEMO
+  title: 내 프로필 - 모에르(MOER)
 </route>
 
 <script setup>

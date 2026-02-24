@@ -41,4 +41,34 @@ export default {
   createReview(slug, data) {
     return apiClient.post(`/customer/businesses/${slug}/reviews`, data)
   },
+
+  // 내 리뷰 목록 조회
+  getMyReviews(params = {}) {
+    return apiClient.get('/customer/reviews', { params })
+  },
+
+  // 리뷰 수정
+  updateReview(reviewId, data) {
+    return apiClient.put(`/customer/reviews/${reviewId}`, data)
+  },
+
+  // 리뷰 삭제
+  deleteReview(reviewId) {
+    return apiClient.delete(`/customer/reviews/${reviewId}`)
+  },
+
+  // 리뷰 이미지 업로드
+  uploadReviewImage(reviewId, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return apiClient.post(`/customer/reviews/${reviewId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  // 리뷰 이미지 삭제
+  deleteReviewImage(reviewId, imageId) {
+    return apiClient.delete(`/customer/reviews/${reviewId}/images/${imageId}`)
+  },
 }

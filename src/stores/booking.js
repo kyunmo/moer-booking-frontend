@@ -152,6 +152,27 @@ export const useBookingStore = defineStore('booking', {
       }
     },
 
+    async searchNearbyBusinesses(params = {}) {
+      this.searchLoading = true
+      this.searchParams = params
+      try {
+        const { data } = await publicBookingApi.searchNearbyBusinesses(params)
+        this.businesses = data.items || []
+        this.pageInfo = {
+          totalElements: data.total,
+          totalPages: Math.ceil((data.total || 0) / (params.size || 20)),
+          page: data.page || 1,
+        }
+        return data
+      }
+      catch (error) {
+        throw error
+      }
+      finally {
+        this.searchLoading = false
+      }
+    },
+
     // ===== 매장 상세 =====
 
     async fetchBusinessDetail(slug) {

@@ -495,7 +495,22 @@ function openPlanChangeDialog() {
 }
 
 // 플랜 변경 처리
-async function handlePlanChange(newPlan) {
+async function handlePlanChange(newPlan, billingCycle) {
+  const planOrder = ['FREE', 'PAID']
+  const currentIndex = planOrder.indexOf(currentPlan.value)
+  const selectedIndex = planOrder.indexOf(newPlan)
+  const isUpgrade = selectedIndex > currentIndex
+
+  if (isUpgrade) {
+    // 업그레이드: 결제 페이지로 리다이렉트
+    const query = { plan: newPlan }
+    if (billingCycle) query.billing = billingCycle
+    isPlanChangeDialogOpen.value = false
+    router.push({ path: '/shop-admin/payment', query })
+    return
+  }
+
+  // 다운그레이드: 기존 changePlan 호출
   try {
     await subscriptionStore.changePlan(newPlan)
     showSnackbar('플랜이 성공적으로 변경되었습니다.', 'success')
@@ -540,7 +555,14 @@ async function handleCancelSubscription() {
     isCancelDialogOpen.value = false
   }
   catch (error) {
-    showSnackbar(error.message || '구독 취소에 실패했습니다.', 'error')
+    const code = error.response?.data?.error?.code
+    if (code === 'PM001') {
+      showSnackbar('이미 취소된 결제입니다.', 'warning')
+    } else if (code === 'PM002') {
+      showSnackbar('취소할 수 없는 결제 상태입니다.', 'warning')
+    } else {
+      showSnackbar(error.response?.data?.error?.message || error.message || '구독 취소에 실패했습니다.', 'error')
+    }
   }
 }
 

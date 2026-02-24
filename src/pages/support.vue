@@ -2,8 +2,8 @@
 meta:
   layout: public
   public: true
-  title: 고객 지원 - YEMO
-  description: YEMO 고객 지원 센터. 이메일, 카카오톡으로 빠르고 친절하게 도와드립니다.
+  title: 고객 지원 - 모에르(MOER)
+  description: 모에르(MOER) 고객 지원 센터. 이메일, 카카오톡으로 빠르고 친절하게 도와드립니다.
   keywords: 고객 지원, 문의, 상담, 헬프 데스크
 </route>
 

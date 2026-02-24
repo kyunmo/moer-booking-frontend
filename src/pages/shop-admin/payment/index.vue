@@ -12,6 +12,22 @@
       </div>
     </div>
 
+    <!-- 구독 연장 안내 -->
+    <VAlert
+      v-if="isExtension"
+      type="info"
+      variant="tonal"
+      class="mb-6"
+    >
+      <div class="d-flex align-center">
+        <VIcon icon="ri-calendar-check-line" class="me-2" />
+        <div>
+          <strong>현재 활성 구독이 있습니다.</strong>
+          <p class="mb-0">추가 결제 시 구독 기간이 연장됩니다.</p>
+        </div>
+      </div>
+    </VAlert>
+
     <!-- 결제 성공 메시지 -->
     <VAlert
       v-if="paymentSuccess"
@@ -24,8 +40,11 @@
       <div class="d-flex align-center">
         <VIcon icon="ri-checkbox-circle-line" class="me-2" />
         <div>
-          <strong>결제가 완료되었습니다!</strong>
-          <p class="mb-0">구독이 활성화되었습니다.</p>
+          <strong>{{ paymentResult?.isExtension ? '구독 기간이 연장되었습니다!' : '결제가 완료되었습니다!' }}</strong>
+          <p v-if="paymentResult?.isExtension" class="mb-0">
+            구독 기간: {{ formatDateShort(paymentResult.billingPeriodStart) }} ~ {{ formatDateShort(paymentResult.billingPeriodEnd) }}
+          </p>
+          <p v-else class="mb-0">구독이 활성화되었습니다.</p>
         </div>
       </div>
     </VAlert>
@@ -344,10 +363,19 @@
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- PG 결제 데모 다이얼로그 -->
+    <PgPaymentDemo
+      v-model="isPgDemoOpen"
+      :amount="totalAmount"
+      :payment-method="selectedPaymentMethod"
+      @success="handlePgSuccess"
+    />
   </div>
 </template>
 
 <script setup>
+import PgPaymentDemo from '@/components/payment/PgPaymentDemo.vue'
 import { usePaymentStore } from '@/stores/payment'
 import { useSubscriptionStore } from '@/stores/subscription'
 import { useCouponStore } from '@/stores/coupon'
@@ -362,6 +390,15 @@ const subscriptionStore = useSubscriptionStore()
 const couponStore = useCouponStore()
 const { showSnackbar } = useSnackbar()
 
+// 구독 연장 여부 (현재 PAID + ACTIVE인 경우)
+const isExtension = computed(() => {
+  const sub = subscriptionStore.subscriptionInfo
+  if (!sub) return false
+  const plan = sub.plan || sub.subscriptionPlan
+  const status = sub.status
+  return (plan === 'PAID' || plan === 'BASIC') && status === 'ACTIVE'
+})
+
 const selectedPlan = ref(null)
 const selectedPaymentMethod = ref('CARD')
 const billingCycle = ref('monthly')
@@ -369,6 +406,8 @@ const loading = ref(false)
 const paymentSuccess = ref(false)
 const paymentFailed = ref(false)
 const failReason = ref('')
+const paymentResult = ref(null)
+const isPgDemoOpen = ref(false)
 
 // 쿠폰 관련 상태
 const couponCode = ref('')
@@ -479,6 +518,13 @@ function formatCurrency(value) {
   return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value)
 }
 
+// 날짜 간단 포맷팅
+function formatDateShort(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+}
+
 // 플랜 선택
 function selectPlan(plan) {
   selectedPlan.value = plan
@@ -529,16 +575,23 @@ function removeCoupon() {
   showSnackbar('쿠폰이 취소되었습니다.', 'info')
 }
 
-// 결제 처리
-async function handlePayment() {
+// 결제 처리 - PG 데모 다이얼로그를 먼저 표시
+function handlePayment() {
   if (!selectedPlan.value || !selectedPaymentMethod.value) {
     showSnackbar('플랜과 결제 수단을 선택해주세요.', 'warning')
     return
   }
 
-  loading.value = true
   paymentSuccess.value = false
   paymentFailed.value = false
+
+  // PG 데모 다이얼로그 열기
+  isPgDemoOpen.value = true
+}
+
+// PG 데모 결제 성공 후 실제 API 호출
+async function handlePgSuccess() {
+  loading.value = true
 
   try {
     const result = await paymentStore.createPayment(
@@ -551,7 +604,12 @@ async function handlePayment() {
     // 결제 성공/실패 확인
     if (result.status === 'COMPLETED') {
       paymentSuccess.value = true
-      showSnackbar('결제가 완료되었습니다!', 'success')
+      paymentResult.value = result
+
+      const successMsg = result.isExtension
+        ? `구독 기간이 연장되었습니다! (${formatDateShort(result.billingPeriodStart)} ~ ${formatDateShort(result.billingPeriodEnd)})`
+        : '결제가 완료되었습니다!'
+      showSnackbar(successMsg, 'success')
 
       // 구독 정보 갱신
       await subscriptionStore.fetchSubscriptionInfo()
@@ -582,7 +640,7 @@ async function handlePayment() {
 }
 
 // 초기화
-onMounted(() => {
+onMounted(async () => {
   // URL에서 플랜 파라미터 확인
   if (route.query.plan) {
     const plan = route.query.plan.toUpperCase()
@@ -597,6 +655,13 @@ onMounted(() => {
     if (['monthly', 'yearly'].includes(billing)) {
       billingCycle.value = billing
     }
+  }
+
+  // 구독 정보 조회 (구독 연장 안내용)
+  try {
+    await subscriptionStore.fetchSubscriptionInfo()
+  } catch {
+    // 구독 정보 조회 실패 시 무시
   }
 })
 </script>

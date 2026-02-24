@@ -150,7 +150,7 @@ export const useCustomerStore = defineStore('customer', {
     async fetchRegularCustomers() {
       const authStore = useAuthStore()
       const businessId = authStore.businessId
-      
+
       if (!businessId) {
 
         return
@@ -163,6 +163,29 @@ export const useCustomerStore = defineStore('customer', {
       }
       catch (error) {
 
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * 세그멘테이션별 고객 조회 (INACTIVE, BIRTHDAY, FREQUENT 등)
+     */
+    async fetchSegment(segmentType) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) return
+
+      this.loading = true
+      try {
+        const { data } = await customerApi.getCustomerSegments(businessId, segmentType)
+        this.customers = data.customers || []
+        return data
+      }
+      catch (error) {
         throw error
       }
       finally {

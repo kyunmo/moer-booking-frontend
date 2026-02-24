@@ -36,6 +36,11 @@ export default {
     return apiClient.get(`/businesses/${businessId}/customers/regular`)
   },
 
+  // 고객 세그멘테이션 조회
+  getCustomerSegments(businessId, type) {
+    return apiClient.get(`/businesses/${businessId}/customers/segments`, { params: { type } })
+  },
+
   // 고객 생성
   createCustomer(businessId, customerData) {
     return apiClient.post(`/businesses/${businessId}/customers`, customerData)

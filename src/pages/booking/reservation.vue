@@ -2,7 +2,7 @@
 meta:
   layout: public
   public: true
-  title: 예약 조회 - YEMO
+  title: 예약 조회 - 모에르(MOER)
 </route>
 
 <script setup>

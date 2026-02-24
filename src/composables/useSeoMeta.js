@@ -3,8 +3,8 @@
  * document.head의 meta 태그를 동적으로 관리합니다.
  */
 
-const SITE_NAME = 'YEMO'
-const DEFAULT_TITLE = 'YEMO - 예약 관리 자동화 솔루션'
+const SITE_NAME = '모에르(MOER)'
+const DEFAULT_TITLE = '모에르(MOER) - 예약 관리 솔루션'
 const DEFAULT_DESCRIPTION = '예약 관리, 이제 자동으로 해결하세요. 고객이 직접 예약하고 카카오톡으로 자동 알림. 5분이면 시작 가능.'
 const DEFAULT_IMAGE = '/og-image.png'
 

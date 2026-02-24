@@ -177,7 +177,7 @@ function viewPricing() {
                 style="background-color: rgb(var(--v-theme-success));"
               />
               <span class="text-caption text-medium-emphasis ms-2">
-                YEMO - 예약 관리 대시보드
+                모에르(MOER) - 예약 관리 대시보드
               </span>
             </div>
 

@@ -36,6 +36,13 @@ export const usePaymentStore = defineStore('payment', {
     },
 
     /**
+     * 취소된 결제 목록
+     */
+    cancelledPayments: state => {
+      return state.payments.filter(p => p.status === 'CANCELLED')
+    },
+
+    /**
      * 결제 상태별 개수
      */
     paymentCounts: state => {
@@ -44,6 +51,7 @@ export const usePaymentStore = defineStore('payment', {
         PENDING: 0,
         FAILED: 0,
         REFUNDED: 0,
+        CANCELLED: 0,
       }
       state.payments.forEach(p => {
         if (counts[p.status] !== undefined) {
@@ -56,15 +64,15 @@ export const usePaymentStore = defineStore('payment', {
     /**
      * 총 결제 금액 (완료된 결제만)
      */
-    totalPaymentAmount: state => {
-      return state.completedPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+    totalPaymentAmount() {
+      return this.completedPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
     },
 
     /**
      * 총 환불 금액
      */
-    totalRefundAmount: state => {
-      return state.refundedPayments.reduce((sum, p) => sum + (p.refundedAmount || 0), 0)
+    totalRefundAmount() {
+      return this.refundedPayments.reduce((sum, p) => sum + (p.refundedAmount || 0), 0)
     },
   },
 
@@ -224,6 +232,32 @@ export const usePaymentStore = defineStore('payment', {
         // API 미제공 시 null 반환 → 호출측에서 fallback 처리
         this.refundPreview = null
         return null
+      }
+    },
+
+    /**
+     * 결제 취소
+     */
+    async cancelPayment(paymentId, reason) {
+      this.loading = true
+      this.error = null
+      try {
+        const { data } = await paymentApi.cancelPayment(paymentId, reason)
+
+        // 목록에서 해당 결제 업데이트
+        const index = this.payments.findIndex(p => p.id === paymentId)
+        if (index !== -1) {
+          this.payments[index] = data
+        }
+
+        return data
+      }
+      catch (error) {
+        this.error = error.message || '결제 취소에 실패했습니다.'
+        throw error
+      }
+      finally {
+        this.loading = false
       }
     },
 

@@ -2,7 +2,7 @@
   <div class="text-body-1 privacy-content">
     <!-- 전문 -->
     <p class="mb-4">
-      [상호명](이하 "회사")은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
+      모에르(MOER)(이하 "회사")은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
     </p>
 
     <VAlert
@@ -11,7 +11,7 @@
       class="mb-6"
     >
       <div class="text-body-2">
-        본 서비스는 <strong>B2B2C(기업 간 거래 및 소비자 대상) 플랫폼</strong>으로, 회사(YEMO)가 매장 관리자에게 서비스를 제공하고, 매장 관리자가 고객에게 예약 서비스를 제공하는 구조입니다. 이에 따라 개인정보 처리 주체와 범위가 구분됩니다.
+        본 서비스는 <strong>B2B2C(기업 간 거래 및 소비자 대상) 플랫폼</strong>으로, 회사(모에르)가 매장 관리자에게 서비스를 제공하고, 매장 관리자가 고객에게 예약 서비스를 제공하는 구조입니다. 이에 따라 개인정보 처리 주체와 범위가 구분됩니다.
       </div>
     </VAlert>
 
@@ -374,7 +374,7 @@
       <VCardText>
         <div class="d-flex flex-column ga-1">
           <div>
-            <strong>개인정보 보호책임자:</strong> [대표자명]
+            <strong>개인정보 보호책임자:</strong> 구균모
           </div>
           <div>
             <strong>직위:</strong> 대표
@@ -383,7 +383,7 @@
             <strong>이메일:</strong> kkm@moer.io
           </div>
           <div>
-            <strong>전화:</strong> [전화번호]
+            <strong>전화:</strong> 미정
           </div>
         </div>
       </VCardText>
@@ -461,16 +461,16 @@
     <div class="text-body-2 text-medium-emphasis mb-4">
       <div class="d-flex flex-column ga-1">
         <div>
-          <strong>상호:</strong> [상호명]
+          <strong>상호:</strong> 모에르(MOER)
         </div>
         <div>
-          <strong>대표자:</strong> [대표자명]
+          <strong>대표자:</strong> 구균모
         </div>
         <div>
-          <strong>사업자등록번호:</strong> [000-00-00000]
+          <strong>사업자등록번호:</strong> 744-02-03358
         </div>
         <div>
-          <strong>주소:</strong> [사업장 주소]
+          <strong>주소:</strong> 경기도 의왕시 백운중앙로 46
         </div>
         <div>
           <strong>이메일:</strong> kkm@moer.io

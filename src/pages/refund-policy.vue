@@ -2,8 +2,8 @@
 meta:
   layout: public
   public: true
-  title: 환불 정책 - YEMO
-  description: YEMO 서비스의 유료 구독 환불 정책입니다. 공정하고 투명한 환불 기준을 안내합니다.
+  title: 환불 정책 - 모에르(MOER)
+  description: 모에르(MOER) 서비스의 유료 구독 환불 정책입니다. 공정하고 투명한 환불 기준을 안내합니다.
   keywords: 환불 정책, 구독 환불, 해지, 환불 기준
 </route>
 
@@ -24,7 +24,7 @@ meta:
       <VCardText class="pa-6">
         <div class="text-body-1">
           <p class="mb-6">
-            [상호명](이하 "회사")은 YEMO(예모) 서비스의 유료 구독과 관련하여 공정하고 투명한 환불 정책을 운영합니다.
+            모에르(MOER)(이하 "회사")은 모에르(MOER) 서비스의 유료 구독과 관련하여 공정하고 투명한 환불 정책을 운영합니다.
             본 정책은 「전자상거래 등에서의 소비자보호에 관한 법률」 및 「콘텐츠산업 진흥법」에 따릅니다.
           </p>
 
@@ -241,7 +241,7 @@ meta:
           </p>
           <ul class="mb-6">
             <li>이메일: kkm@moer.io</li>
-            <li>전화: [전화번호]</li>
+            <li>전화: 미정</li>
             <li>운영 시간: 평일 10:00 ~ 18:00 (공휴일 제외)</li>
           </ul>
 
@@ -262,7 +262,7 @@ meta:
 
           <div class="text-body-2 text-medium-emphasis">
             <p class="mb-1">
-              [상호명] | 이메일: kkm@moer.io | 전화: [전화번호]
+              모에르(MOER) | 사업자등록번호: 744-02-03358 | 이메일: kkm@moer.io | 전화: 미정
             </p>
             <p>
               <RouterLink

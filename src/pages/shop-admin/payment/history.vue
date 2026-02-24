@@ -51,12 +51,12 @@
       </VCol>
 
       <VCol cols="12" sm="6" md="3">
-        <VCard variant="tonal" color="primary">
+        <VCard variant="tonal" color="default">
           <VCardText class="d-flex align-center">
-            <VIcon icon="ri-money-dollar-circle-line" size="32" class="me-3" />
+            <VIcon icon="ri-forbid-line" size="32" class="me-3" />
             <div>
-              <p class="text-xs mb-1">총 결제 금액</p>
-              <h6 class="text-h6">{{ formatCurrency(totalPaymentAmount) }}</h6>
+              <p class="text-xs mb-1">취소된 결제</p>
+              <h6 class="text-h6">{{ paymentCounts.CANCELLED }}건</h6>
             </div>
           </VCardText>
         </VCard>
@@ -70,6 +70,28 @@
         <span>결제 내역</span>
 
         <VSpacer />
+
+        <!-- 날짜 필터 -->
+        <VTextField
+          v-model="dateFrom"
+          type="date"
+          label="시작일"
+          density="compact"
+          hide-details
+          clearable
+          :style="smAndDown ? 'max-inline-size: 130px;' : 'max-inline-size: 160px;'"
+          class="me-2"
+        />
+        <VTextField
+          v-model="dateTo"
+          type="date"
+          label="종료일"
+          density="compact"
+          hide-details
+          clearable
+          :style="smAndDown ? 'max-inline-size: 130px;' : 'max-inline-size: 160px;'"
+          class="me-2"
+        />
 
         <!-- 상태 필터 -->
         <VSelect
@@ -130,13 +152,23 @@
                 <div class="text-body-2 text-disabled">
                   {{ formatDate(item.createdAt) }}
                 </div>
-                <VChip
-                  :color="getStatusColor(item.status)"
-                  size="small"
-                  variant="tonal"
-                >
-                  {{ getStatusText(item.status) }}
-                </VChip>
+                <div class="d-flex align-center gap-1">
+                  <VChip
+                    v-if="item.isExtension"
+                    color="info"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    연장
+                  </VChip>
+                  <VChip
+                    :color="getStatusColor(item.status)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    {{ getStatusText(item.status) }}
+                  </VChip>
+                </div>
               </div>
 
               <VDivider class="mb-2" />
@@ -181,9 +213,20 @@
                 </div>
               </div>
 
-              <!-- 하단: 환불 버튼 (완료 상태일 때만) -->
-              <div v-if="item.status === 'COMPLETED'" class="mt-2 d-flex justify-end">
+              <!-- 하단: 액션 버튼 -->
+              <div v-if="item.status === 'COMPLETED' || item.status === 'PENDING'" class="mt-2 d-flex justify-end gap-2">
                 <VBtn
+                  v-if="item.status === 'COMPLETED' || item.status === 'PENDING'"
+                  variant="tonal"
+                  color="default"
+                  size="small"
+                  prepend-icon="ri-forbid-line"
+                  @click.stop="openCancelDialog(item)"
+                >
+                  취소
+                </VBtn>
+                <VBtn
+                  v-if="item.status === 'COMPLETED'"
                   variant="tonal"
                   color="error"
                   size="small"
@@ -228,12 +271,22 @@
 
         <!-- 플랜 -->
         <template #item.subscriptionPlan="{ item }">
-          <VChip
-            :color="getPlanColor(item.subscriptionPlan)"
-            size="small"
-          >
-            {{ getPlanName(item.subscriptionPlan) }}
-          </VChip>
+          <div class="d-flex align-center gap-1">
+            <VChip
+              :color="getPlanColor(item.subscriptionPlan)"
+              size="small"
+            >
+              {{ getPlanName(item.subscriptionPlan) }}
+            </VChip>
+            <VChip
+              v-if="item.isExtension"
+              color="info"
+              size="x-small"
+              variant="tonal"
+            >
+              연장
+            </VChip>
+          </div>
         </template>
 
         <!-- 금액 -->
@@ -278,6 +331,19 @@
               <VIcon icon="ri-eye-line" />
               <VTooltip activator="parent" location="top">
                 상세보기
+              </VTooltip>
+            </VBtn>
+
+            <VBtn
+              v-if="item.status === 'COMPLETED' || item.status === 'PENDING'"
+              icon
+              variant="text"
+              size="small"
+              @click="openCancelDialog(item)"
+            >
+              <VIcon icon="ri-forbid-line" />
+              <VTooltip activator="parent" location="top">
+                취소
               </VTooltip>
             </VBtn>
 
@@ -406,10 +472,34 @@
               </p>
             </VCol>
 
+            <!-- 기간 연장 여부 -->
+            <VCol v-if="selectedPayment.isExtension" cols="12">
+              <VAlert type="info" variant="tonal" density="compact">
+                <div class="d-flex align-center mb-1">
+                  <VIcon icon="ri-calendar-check-line" size="18" class="me-2" />
+                  <strong>기간 연장 결제</strong>
+                </div>
+                <p class="mb-0">
+                  기존 종료일 {{ formatDate(selectedPayment.previousBillingEndDate) }} 에서 연장되었습니다.
+                </p>
+              </VAlert>
+            </VCol>
+
             <!-- 실패 사유 -->
             <VCol v-if="selectedPayment.failReason" cols="12">
               <VAlert type="error" variant="tonal" density="compact">
                 <strong>실패 사유:</strong> {{ selectedPayment.failReason }}
+              </VAlert>
+            </VCol>
+
+            <!-- 취소 정보 -->
+            <VCol v-if="selectedPayment.status === 'CANCELLED'" cols="12">
+              <VAlert type="default" variant="tonal" density="compact">
+                <p class="mb-1"><strong>취소 사유:</strong> {{ selectedPayment.cancelReason || '-' }}</p>
+                <p class="mb-1"><strong>취소일:</strong> {{ formatDate(selectedPayment.cancelledAt) }}</p>
+                <p v-if="selectedPayment.refundAmount" class="mb-0">
+                  <strong>환불 금액:</strong> {{ formatCurrency(selectedPayment.refundAmount) }}
+                </p>
               </VAlert>
             </VCol>
 
@@ -423,6 +513,80 @@
             </VCol>
           </VRow>
         </VCardText>
+      </VCard>
+    </VDialog>
+
+    <!-- 결제 취소 다이얼로그 -->
+    <VDialog
+      v-model="isCancelDialogOpen"
+      max-width="480"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center">
+          <VIcon icon="ri-forbid-line" color="error" class="me-2" />
+          결제 취소
+        </VCardTitle>
+
+        <VCardText>
+          <VAlert type="info" variant="tonal" class="mb-4">
+            <div class="d-flex flex-column gap-1">
+              <div class="d-flex justify-space-between">
+                <span>결제 금액</span>
+                <strong>{{ formatCurrency(selectedCancelPayment?.amount) }}</strong>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>결제일</span>
+                <span>{{ formatDate(selectedCancelPayment?.createdAt) }}</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>현재 상태</span>
+                <VChip :color="getStatusColor(selectedCancelPayment?.status)" size="x-small">
+                  {{ getStatusText(selectedCancelPayment?.status) }}
+                </VChip>
+              </div>
+            </div>
+          </VAlert>
+
+          <VTextField
+            v-model="cancelReason"
+            label="취소 사유 *"
+            placeholder="취소 사유를 입력하세요"
+            counter
+            maxlength="200"
+            class="mb-4"
+          />
+
+          <VAlert
+            type="warning"
+            variant="tonal"
+            density="compact"
+          >
+            <ul class="text-caption ps-4 mb-0">
+              <li>대기 상태 결제는 즉시 취소됩니다.</li>
+              <li>완료 상태 결제는 취소 후 자동 환불 처리됩니다.</li>
+              <li>취소 후에는 되돌릴 수 없습니다.</li>
+            </ul>
+          </VAlert>
+        </VCardText>
+
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            variant="text"
+            @click="isCancelDialogOpen = false"
+          >
+            닫기
+          </VBtn>
+          <VBtn
+            color="error"
+            variant="elevated"
+            :disabled="!cancelReason"
+            :loading="cancelSubmitting"
+            @click="handleCancel"
+          >
+            결제 취소
+          </VBtn>
+        </VCardActions>
       </VCard>
     </VDialog>
 
@@ -541,7 +705,7 @@
             color="warning"
             variant="elevated"
             :disabled="!refundReason || refundLoading"
-            :loading="loading"
+            :loading="refundSubmitting"
             @click="handleRefund"
           >
             {{ refundPreview?.refundAmount ? formatCurrency(refundPreview.refundAmount) + ' 환불' : '환불 요청' }}
@@ -556,7 +720,7 @@
 import { usePaymentStore } from '@/stores/payment'
 import { calculateRefund } from '@/utils/refundCalculator'
 import { storeToRefs } from 'pinia'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useDisplay } from 'vuetify'
@@ -570,16 +734,22 @@ const {
   payments,
   loading,
   paymentCounts,
-  totalPaymentAmount,
 } = storeToRefs(paymentStore)
 
 const statusFilter = ref(null)
+const dateFrom = ref(null)
+const dateTo = ref(null)
 const isDetailDialogOpen = ref(false)
 const isRefundDialogOpen = ref(false)
+const isCancelDialogOpen = ref(false)
 const selectedPayment = ref(null)
+const selectedCancelPayment = ref(null)
 const refundReason = ref('')
+const cancelReason = ref('')
 const refundPreview = ref(null)
 const refundLoading = ref(false)
+const refundSubmitting = ref(false)
+const cancelSubmitting = ref(false)
 
 // 모바일 페이지네이션
 const mobilePage = ref(1)
@@ -602,15 +772,31 @@ const statusOptions = [
   { title: '완료', value: 'COMPLETED' },
   { title: '실패', value: 'FAILED' },
   { title: '환불', value: 'REFUNDED' },
+  { title: '취소', value: 'CANCELLED' },
   { title: '대기', value: 'PENDING' },
 ]
 
-// 필터링된 결제 목록
-const filteredPayments = computed(() => {
-  if (!statusFilter.value) return payments.value
+// 서버사이드 필터 파라미터를 구성하여 결제 목록 조회
+async function loadPayments() {
+  const params = {}
+  if (statusFilter.value) params.status = statusFilter.value
+  if (dateFrom.value) params.startDate = dateFrom.value
+  if (dateTo.value) params.endDate = dateTo.value
 
-  return payments.value.filter(p => p.status === statusFilter.value)
+  try {
+    await paymentStore.fetchPayments(params)
+  } catch {
+    // 조회 실패
+  }
+}
+
+// 필터 변경 감시 → 서버사이드 필터 재조회
+watch([statusFilter, dateFrom, dateTo], () => {
+  loadPayments()
 })
+
+// 필터링된 결제 목록 (서버사이드 필터 적용 후 그대로 사용)
+const filteredPayments = computed(() => payments.value)
 
 // 모바일 페이지네이션 총 페이지 수
 const mobileTotalPages = computed(() =>
@@ -638,6 +824,7 @@ function getPlanColor(plan) {
   const colors = {
     FREE: 'default',
     BASIC: 'success',
+    PAID: 'primary',
     PRO: 'primary',
     ENTERPRISE: 'secondary',
   }
@@ -673,6 +860,7 @@ function getStatusText(status) {
     COMPLETED: '완료',
     FAILED: '실패',
     REFUNDED: '환불',
+    CANCELLED: '취소',
   }
   return texts[status] || status
 }
@@ -684,6 +872,7 @@ function getStatusColor(status) {
     COMPLETED: 'success',
     FAILED: 'error',
     REFUNDED: 'secondary',
+    CANCELLED: 'default',
   }
   return colors[status] || 'default'
 }
@@ -743,6 +932,7 @@ async function handleRefund() {
     return
   }
 
+  refundSubmitting.value = true
   try {
     await paymentStore.refundPayment(selectedPayment.value.id, refundReason.value)
     showSnackbar('환불이 완료되었습니다.', 'success')
@@ -751,21 +941,62 @@ async function handleRefund() {
     refundReason.value = ''
 
     // 목록 새로고침
-    await paymentStore.fetchPayments()
+    await loadPayments()
   }
   catch (error) {
     showSnackbar(error.message || '환불 처리에 실패했습니다.', 'error')
   }
+  finally {
+    refundSubmitting.value = false
+  }
+}
+
+// 결제 취소 다이얼로그 열기
+function openCancelDialog(payment) {
+  selectedCancelPayment.value = payment
+  cancelReason.value = ''
+  isCancelDialogOpen.value = true
+}
+
+// 결제 취소 처리
+async function handleCancel() {
+  if (!cancelReason.value) {
+    showSnackbar('취소 사유를 입력해주세요.', 'warning')
+    return
+  }
+
+  cancelSubmitting.value = true
+  try {
+    const result = await paymentStore.cancelPayment(selectedCancelPayment.value.id, cancelReason.value)
+    const msg = result?.refundAmount
+      ? `결제가 취소되었습니다. (환불 금액: ${formatCurrency(result.refundAmount)})`
+      : '결제가 취소되었습니다.'
+    showSnackbar(msg, 'success')
+    isCancelDialogOpen.value = false
+    selectedCancelPayment.value = null
+    cancelReason.value = ''
+
+    // 목록 새로고침
+    await loadPayments()
+  }
+  catch (error) {
+    const code = error.response?.data?.error?.code
+    if (code === 'PM001') {
+      showSnackbar('이미 취소된 결제입니다.', 'warning')
+    } else if (code === 'PM002') {
+      showSnackbar('취소할 수 없는 결제 상태입니다.', 'warning')
+    } else {
+      showSnackbar(error.response?.data?.error?.message || error.message || '결제 취소에 실패했습니다.', 'error')
+    }
+  }
+  finally {
+    cancelSubmitting.value = false
+  }
 }
 
 // 초기화
-onMounted(async () => {
-  try {
-    await paymentStore.fetchPayments()
-  }
-  catch (error) {
-    // 결제 내역 조회 실패
-  }
+onMounted(() => {
+  loadPayments()
 })
 </script>
 

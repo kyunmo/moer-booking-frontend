@@ -14,3 +14,10 @@ registerPlugins(app)
 
 // Mount vue app
 app.mount('#app')
+
+// PWA Service Worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}

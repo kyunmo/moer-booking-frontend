@@ -2,8 +2,8 @@
 meta:
   layout: blank
   public: true
-  title: 로그인 - YEMO
-  description: YEMO 관리자 로그인 페이지입니다.
+  title: 로그인 - 모에르(MOER)
+  description: 모에르(MOER) 관리자 로그인 페이지입니다.
 </route>
 
 <script setup>

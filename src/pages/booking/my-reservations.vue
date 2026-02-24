@@ -3,7 +3,7 @@ meta:
   layout: public
   public: true
   requiresCustomerAuth: true
-  title: 내 예약 - YEMO
+  title: 내 예약 - 모에르(MOER)
 </route>
 
 <script setup>
@@ -472,9 +472,9 @@ function formatPrice(price) {
               <VBtn
                 v-if="reservation.status === 'COMPLETED' && reservation.hasReview"
                 color="success"
-                variant="text"
+                variant="tonal"
                 size="small"
-                disabled
+                @click.stop="router.push('/booking/my-reviews')"
               >
                 <VIcon
                   start

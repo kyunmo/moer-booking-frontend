@@ -15,4 +15,9 @@ export default {
   markAllAsRead() {
     return apiClient.patch('/notifications/read-all')
   },
+
+  // 수신 공지 조회
+  getBroadcasts(params = {}) {
+    return apiClient.get('/notifications/broadcasts', { params })
+  },
 }

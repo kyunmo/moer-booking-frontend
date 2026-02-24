@@ -211,6 +211,11 @@ function handleProviderLogin(provider) {
                   title="내 예약"
                   @click="customerMenu = false; navigateTo('/booking/my-reservations')"
                 />
+                <VListItem
+                  prepend-icon="ri-chat-3-line"
+                  title="내 리뷰"
+                  @click="customerMenu = false; navigateTo('/booking/my-reviews')"
+                />
                 <VDivider class="my-1" />
                 <VListItem
                   prepend-icon="ri-logout-box-r-line"
@@ -437,6 +442,14 @@ function handleProviderLogin(provider) {
               @click="navigateTo('/booking/my-reservations')"
             >
               내 예약
+            </VBtn>
+            <VBtn
+              block
+              variant="outlined"
+              prepend-icon="ri-chat-3-line"
+              @click="navigateTo('/booking/my-reviews')"
+            >
+              내 리뷰
             </VBtn>
 
             <!-- Admin shortcut if also admin-logged-in -->

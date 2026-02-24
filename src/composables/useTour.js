@@ -123,8 +123,8 @@ export function useTour() {
         id: 'welcome',
         title: '환영합니다!',
         text: mobile
-          ? 'YEMO 관리자에 오신 것을 환영합니다.'
-          : 'YEMO 관리자 화면에 오신 것을 환영합니다.<br>주요 기능을 빠르게 안내해드릴게요.',
+          ? '모에르(MOER) 관리자에 오신 것을 환영합니다.'
+          : '모에르(MOER) 관리자 화면에 오신 것을 환영합니다.<br>주요 기능을 빠르게 안내해드릴게요.',
         arrow: true,
         attachTo: { element: navbar, on: 'bottom' },
         buttons: makeButtons(tour, { isFirst: true }),

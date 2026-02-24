@@ -477,9 +477,9 @@ function exportCsv() {
     const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
 
-    // Generate filename: YEMO_통계_매출_2026-02-20.csv
+    // Generate filename: MOER_통계_매출_2026-02-20.csv
     const today = new Date().toISOString().split('T')[0]
-    const filename = `YEMO_통계_${tabName}_${today}.csv`
+    const filename = `MOER_통계_${tabName}_${today}.csv`
 
     // Trigger download
     const link = document.createElement('a')

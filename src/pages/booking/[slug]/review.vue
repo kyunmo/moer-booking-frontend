@@ -3,7 +3,7 @@ meta:
   layout: public
   public: true
   requiresCustomerAuth: true
-  title: 리뷰 작성 - YEMO
+  title: 리뷰 작성 - 모에르(MOER)
 </route>
 
 <script setup>

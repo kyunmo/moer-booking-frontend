@@ -45,7 +45,7 @@
 meta:
   layout: blank
   public: true
-  title: 로그인 처리 중 - YEMO
+  title: 로그인 처리 중 - 모에르(MOER)
 </route>
 
 <script setup>

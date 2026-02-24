@@ -76,5 +76,19 @@ export const useNotificationStore = defineStore('notification', {
         this._pollingTimer = null
       }
     },
+
+    /**
+     * SSE로 실시간 알림 수신 시 호출
+     */
+    addRealtimeNotification(notification) {
+      // 중복 방지
+      if (this.notifications.some(n => n.id === notification.id)) return
+
+      this.notifications.unshift(notification)
+      if (!notification.read) {
+        this.unreadCount++
+      }
+      this.totalCount++
+    },
   },
 })

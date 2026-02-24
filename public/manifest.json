@@ -1,0 +1,19 @@
+{
+  "name": "모에르(MOER) - 예약 관리 솔루션",
+  "short_name": "모에르",
+  "description": "소상공인을 위한 올인원 예약 관리 솔루션",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7367F0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "ko"
+}

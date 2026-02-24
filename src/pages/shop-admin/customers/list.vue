@@ -43,6 +43,12 @@
               <VBtn value="new" size="small">
                 신규
               </VBtn>
+              <VBtn value="inactive" size="small">
+                미방문
+              </VBtn>
+              <VBtn value="birthday" size="small">
+                생일
+              </VBtn>
             </VBtnToggle>
           </VCol>
 
@@ -96,6 +102,15 @@
           :value="`${customerStore.newCustomers.length}명`"
           icon="ri-user-add-line"
           color="info"
+        />
+      </VCol>
+
+      <VCol cols="12" sm="6" md="3">
+        <StatisticsCard
+          title="미방문 고객"
+          :value="`${inactiveCount}명`"
+          icon="ri-user-unfollow-line"
+          color="error"
         />
       </VCol>
     </VRow>
@@ -396,10 +411,12 @@
 </template>
 
 <script setup>
+import customerApi from '@/api/customers'
 import EmptyState from '@/components/EmptyState.vue'
 import StatisticsCard from '@/components/StatisticsCard.vue'
 import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { useAuthStore } from '@/stores/auth'
 import { useCustomerStore } from '@/stores/customer'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
@@ -409,6 +426,10 @@ import CustomerFormDialog from './components/CustomerFormDialog.vue'
 const { smAndDown } = useDisplay()
 const { error: showError } = useSnackbar()
 const customerStore = useCustomerStore()
+const authStore = useAuthStore()
+
+// 미방문 고객 수
+const inactiveCount = ref(0)
 
 // Refs
 const searchQuery = ref('')
@@ -478,12 +499,15 @@ const paginatedCustomers = computed(() => {
 
 // 필터 변경 시 목록 새로고침
 watch(filterType, async (newType) => {
+  mobileCustomerPage.value = 1
   if (newType === 'vip') {
     await customerStore.fetchVipCustomers()
   } else if (newType === 'regular') {
     await customerStore.fetchRegularCustomers()
   } else if (newType === 'new') {
     await customerStore.fetchNewCustomers()
+  } else if (newType === 'inactive' || newType === 'birthday') {
+    await customerStore.fetchSegment(newType.toUpperCase())
   } else {
     await customerStore.fetchCustomers()
   }
@@ -594,6 +618,13 @@ async function handleCustomerSaved() {
 // 컴포넌트 마운트 시
 onMounted(() => {
   customerStore.fetchCustomers()
+
+  // 미방문 고객 수 로드
+  if (authStore.businessId) {
+    customerApi.getCustomerSegments(authStore.businessId, 'INACTIVE').then(({ data }) => {
+      inactiveCount.value = data.count || 0
+    }).catch(() => {})
+  }
 })
 </script>
 

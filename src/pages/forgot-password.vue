@@ -2,7 +2,7 @@
 meta:
   layout: blank
   public: true
-  title: 비밀번호 찾기 - YEMO
+  title: 비밀번호 찾기 - 모에르(MOER)
 </route>
 
 <script setup>

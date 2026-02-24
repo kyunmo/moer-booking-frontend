@@ -68,4 +68,9 @@ export default {
   getPublicReviews(slug, params = {}) {
     return apiClient.get(`/public/businesses/${slug}/reviews`, { params })
   },
+
+  // 주변 매장 검색 (위치 기반)
+  searchNearbyBusinesses(params = {}) {
+    return apiClient.get('/public/businesses/nearby', { params })
+  },
 }

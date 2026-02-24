@@ -78,7 +78,7 @@ const pairs = [
         </h2>
 
         <p class="text-body-1 text-medium-emphasis">
-          YEMO가 모든 문제를 해결해드립니다
+          모에르(MOER)가 모든 문제를 해결해드립니다
         </p>
       </div>
 

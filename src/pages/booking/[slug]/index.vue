@@ -2,8 +2,8 @@
 meta:
   layout: public
   public: true
-  title: 매장 정보 - YEMO
-  description: YEMO에서 매장 정보를 확인하고 간편하게 예약하세요.
+  title: 매장 정보 - 모에르(MOER)
+  description: 모에르(MOER)에서 매장 정보를 확인하고 간편하게 예약하세요.
 </route>
 
 <script setup>
@@ -327,7 +327,7 @@ watchEffect(() => {
     const name = business.value.name
     const desc = business.value.description || `${name} 온라인 예약`
 
-    document.title = `${name} - 예약 | YEMO`
+    document.title = `${name} - 예약 | 모에르(MOER)`
     setMetaTag('og:title', `${name} - 온라인 예약`)
     setMetaTag('og:description', desc)
     setMetaTag('og:type', 'website')

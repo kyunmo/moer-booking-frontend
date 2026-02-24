@@ -470,6 +470,46 @@
               <VTooltip activator="parent">URL 복사</VTooltip>
             </VBtn>
           </div>
+
+          <!-- QR 코드 & 미리보기 -->
+          <div v-if="currentSlug" class="mt-6">
+            <p class="text-body-2 text-medium-emphasis mb-3">QR 코드</p>
+            <div class="d-flex align-start gap-4">
+              <VCard variant="outlined" class="pa-3">
+                <img
+                  :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bookingUrl)}`"
+                  :alt="`${currentSlug} 예약 페이지 QR 코드`"
+                  width="160"
+                  height="160"
+                  class="d-block"
+                />
+              </VCard>
+              <div class="d-flex flex-column gap-2">
+                <VBtn
+                  color="primary"
+                  variant="tonal"
+                  size="small"
+                  prepend-icon="ri-download-line"
+                  @click="downloadQrCode"
+                >
+                  QR 코드 다운로드
+                </VBtn>
+                <VBtn
+                  color="info"
+                  variant="tonal"
+                  size="small"
+                  prepend-icon="ri-external-link-line"
+                  :href="bookingUrl"
+                  target="_blank"
+                >
+                  예약 페이지 열기
+                </VBtn>
+                <p class="text-caption text-medium-emphasis">
+                  QR 코드를 매장에 게시하여<br>고객이 쉽게 예약할 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <VDivider v-if="currentSlug" class="mb-4" />
@@ -888,6 +928,23 @@ async function handleSlugSubmit() {
 function copyBookingUrl() {
   navigator.clipboard.writeText(bookingUrl.value)
   success('예약 URL이 복사되었습니다.')
+}
+
+async function downloadQrCode() {
+  try {
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(bookingUrl.value)}`
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `${currentSlug.value}-qr-code.png`
+    link.click()
+    URL.revokeObjectURL(link.href)
+    success('QR 코드가 다운로드되었습니다.')
+  }
+  catch {
+    showError('QR 코드 다운로드에 실패했습니다.')
+  }
 }
 
 // ===== 고객 등급 설정 =====

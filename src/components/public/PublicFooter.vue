@@ -1,10 +1,6 @@
 <script setup>
-import { ref } from 'vue'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
-
-const isInquiryOpen = ref(false)
 
 // Service links
 const serviceLinks = [
@@ -28,7 +24,7 @@ const companyLinks = [
 
 // Social links
 const socialLinks = [
-  { icon: 'ri-instagram-line', href: '#', label: 'Instagram' },
+  { icon: 'ri-instagram-line', href: 'https://instagram.com/moer.io.dev', label: 'Instagram' },
   { icon: 'ri-youtube-line', href: '#', label: 'YouTube' },
 ]
 </script>
@@ -51,7 +47,7 @@ const socialLinks = [
               <div class="d-flex align-center gap-2 mb-6">
                 <VNodeRenderer :nodes="themeConfig.app.logo" />
                 <h1 class="footer-title">
-                  YEMO
+                  모에르(MOER)
                 </h1>
               </div>
 
@@ -163,19 +159,11 @@ const socialLinks = [
 
               <div class="mt-6">
                 <div class="text-body-2 footer-text mb-1">
-                  대표 구균모
+                  사업자등록번호 744-02-03358
                 </div>
-                <div class="text-body-2 footer-text mb-2">
-                  kkm@moer.io
+                <div class="text-body-2 footer-text">
+                  경기도 의왕시 백운중앙로 46
                 </div>
-                <VBtn
-                  size="small"
-                  variant="tonal"
-                  color="primary"
-                  @click="isInquiryOpen = true"
-                >
-                  문의하기
-                </VBtn>
               </div>
             </div>
           </VCol>
@@ -183,17 +171,15 @@ const socialLinks = [
       </VContainer>
     </VSheet>
 
-    <InquiryFormDialog v-model="isInquiryOpen" />
-
     <!-- Footer Bottom -->
     <div class="footer-bottom">
       <VContainer>
         <div class="d-flex justify-center align-center py-4">
           <span
             class="text-body-2"
-            style="color: rgba(255, 255, 255, 0.6);"
+            style="color: rgba(255, 255, 255, 0.7);"
           >
-            &copy; {{ new Date().getFullYear() }} YEMO. All rights reserved.
+            &copy; {{ new Date().getFullYear() }} 모에르(MOER). All rights reserved.
           </span>
         </div>
       </VContainer>
@@ -216,7 +202,7 @@ const socialLinks = [
 }
 
 .footer-text {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .footer-title {
@@ -233,7 +219,7 @@ const socialLinks = [
 }
 
 .footer-link {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: color 0.2s ease;
 
@@ -247,7 +233,7 @@ const socialLinks = [
 }
 
 .yemo-footer {
-  color: rgba(255, 255, 255, 70%);
+  color: rgba(255, 255, 255, 0.8);
 }
 </style>
 

@@ -382,6 +382,7 @@
     "useFormRules": true,
     "usePhoneValidation": true,
     "calculateRefund": true,
-    "formatRefundAmount": true
+    "formatRefundAmount": true,
+    "useSseNotifications": true
   }
 }

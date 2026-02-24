@@ -1,10 +1,12 @@
 <script setup>
+import { useSseNotifications } from '@/composables/useSseNotifications'
 import { useNotificationStore } from '@/stores/notification'
 import { useRouter } from 'vue-router'
 import { onMounted, onUnmounted, computed } from 'vue'
 
 const notificationStore = useNotificationStore()
 const router = useRouter()
+const { connected, connect, disconnect } = useSseNotifications()
 
 // Map notification type to icon and color
 function getNotificationIcon(type) {
@@ -79,10 +81,21 @@ const handleRemove = () => {
 }
 
 onMounted(() => {
-  notificationStore.startPolling()
+  // Try SSE first, fall back to polling
+  const token = localStorage.getItem('accessToken')
+  if (token) {
+    connect()
+    // Still do initial fetch for existing notifications
+    notificationStore.fetchNotifications({ page: 1, size: 10 }).catch(() => {})
+    // Use slower polling as fallback (60s instead of 30s since SSE handles real-time)
+    notificationStore.startPolling(60000)
+  } else {
+    notificationStore.startPolling()
+  }
 })
 
 onUnmounted(() => {
+  disconnect()
   notificationStore.stopPolling()
 })
 </script>

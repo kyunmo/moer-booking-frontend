@@ -1,8 +1,4 @@
 <script setup>
-import { ref } from 'vue'
-import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
-
-const isInquiryOpen = ref(false)
 </script>
 
 <template>
@@ -46,15 +42,6 @@ const isInquiryOpen = ref(false)
       >
         고객지원
       </RouterLink>
-      <a
-        href="#"
-        class="text-primary text-decoration-none"
-        @click.prevent="isInquiryOpen = true"
-      >
-        문의하기
-      </a>
     </span>
-
-    <InquiryFormDialog v-model="isInquiryOpen" />
   </div>
 </template>

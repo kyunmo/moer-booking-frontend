@@ -49,6 +49,7 @@ declare module 'vue' {
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     Notifications: typeof import('./src/@core/components/Notifications.vue')['default']
     OnboardingWizard: typeof import('./src/components/OnboardingWizard.vue')['default']
+    PgPaymentDemo: typeof import('./src/components/payment/PgPaymentDemo.vue')['default']
     PlanChangeDialog: typeof import('./src/components/subscription/PlanChangeDialog.vue')['default']
     PricingCard: typeof import('./src/components/pricing/PricingCard.vue')['default']
     PricingPreviewSection: typeof import('./src/components/public/landing/PricingPreviewSection.vue')['default']

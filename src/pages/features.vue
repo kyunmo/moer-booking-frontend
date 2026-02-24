@@ -2,8 +2,8 @@
 meta:
   layout: public
   public: true
-  title: 기능 소개 - YEMO
-  description: YEMO의 강력한 기능을 확인하세요. 24시간 자동 예약, 카카오톡 알림, 스마트 고객 관리, 실시간 통계까지.
+  title: 기능 소개 - 모에르(MOER)
+  description: 모에르(MOER)의 강력한 기능을 확인하세요. 24시간 자동 예약, 카카오톡 알림, 스마트 고객 관리, 실시간 통계까지.
   keywords: 예약 관리 기능, 자동 예약, 카카오톡 알림, 고객 관리, 예약 통계
 </route>
 
@@ -225,7 +225,7 @@ function startFreeTrial() {
       <VContainer>
         <div class="text-center">
           <h1 class="text-h2 text-md-h1 font-weight-bold mb-4">
-            YEMO의 모든 기능을 한눈에
+            모에르(MOER)의 모든 기능을 한눈에
           </h1>
           <p class="text-h6 text-medium-emphasis">
             전화 예약부터 고객 관리까지<br>
@@ -406,6 +406,6 @@ function startFreeTrial() {
 }
 
 .final-cta-section {
-  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(99, 102, 241, 0.8) 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
 }
 </style>

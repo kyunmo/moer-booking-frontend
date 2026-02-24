@@ -145,7 +145,7 @@ watch(() => props.modelValue, () => {
 
   p.is-editor-empty:first-child::before {
     block-size: 0;
-    color: #adb5bd;
+    color: rgba(var(--v-theme-on-surface), 0.4);
     content: attr(data-placeholder);
     float: inline-start;
     pointer-events: none;

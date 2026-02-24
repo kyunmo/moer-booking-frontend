@@ -2,7 +2,7 @@
 meta:
   layout: public
   public: true
-  title: 요금제 - YEMO
+  title: 요금제 - 모에르(MOER)
   description: 무료로 시작하고 필요할 때 업그레이드. 월 19,800원(VAT 포함)으로 모든 기능을 사용하세요.
   keywords: 예약 시스템 가격, 요금제, 무료 체험, 월 결제, 연간 결제
 </route>
@@ -459,6 +459,6 @@ function startWithPlan(plan) {
 }
 
 .final-cta-section {
-  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(99, 102, 241, 0.8) 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
 }
 </style>

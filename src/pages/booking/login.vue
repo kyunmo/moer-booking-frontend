@@ -2,7 +2,7 @@
 meta:
   layout: public
   public: true
-  title: 로그인 - YEMO
+  title: 로그인 - 모에르(MOER)
 </route>
 
 <script setup>
@@ -82,7 +82,7 @@ function goToSearch() {
               </VAvatar>
 
               <h1 class="text-h5 font-weight-bold mb-2">
-                YEMO
+                모에르
               </h1>
 
               <p class="text-body-1 text-medium-emphasis mb-0">
@@ -203,6 +203,7 @@ function goToSearch() {
   letter-spacing: -0.02em;
   border-radius: 8px !important;
   text-transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
   &:hover {
     background-color: #F5DC00 !important;
@@ -217,6 +218,7 @@ function goToSearch() {
   letter-spacing: -0.02em;
   border-radius: 8px !important;
   text-transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
   &:hover {
     background-color: #02B550 !important;
@@ -232,6 +234,7 @@ function goToSearch() {
   border-radius: 8px !important;
   text-transform: none;
   border: 1px solid #dadce0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
   &:hover {
     background-color: #F7F8F8 !important;

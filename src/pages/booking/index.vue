@@ -2,19 +2,25 @@
 meta:
   layout: public
   public: true
-  title: 매장 검색 - YEMO
+  title: 매장 검색 - 모에르(MOER)
 </route>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
+import { useBookmarkStore } from '@/stores/bookmark'
+import { useCustomerAuthStore } from '@/stores/customer-auth'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { BUSINESS_TYPE_OPTIONS, getBusinessTypeLabel } from '@/constants/businessTypes'
 
 const router = useRouter()
 const bookingStore = useBookingStore()
+const bookmarkStore = useBookmarkStore()
+const customerAuthStore = useCustomerAuthStore()
 const { error: showError } = useSnackbar()
+
+const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
 
 // Search form state
 const keyword = ref('')
@@ -22,6 +28,18 @@ const businessType = ref('')
 const sortBy = ref('rating')
 const page = ref(1)
 const pageSize = 12
+
+// Location-based search
+const nearbyMode = ref(false)
+const userLocation = ref(null)
+const searchRadius = ref(5)
+const locationLoading = ref(false)
+const radiusOptions = [
+  { title: '3km', value: 3 },
+  { title: '5km', value: 5 },
+  { title: '10km', value: 10 },
+  { title: '20km', value: 20 },
+]
 
 // Business type options with "전체" at start
 const typeOptions = computed(() => [
@@ -35,8 +53,78 @@ const loading = computed(() => bookingStore.searchLoading)
 const pageInfo = computed(() => bookingStore.pageInfo)
 const totalPages = computed(() => pageInfo.value?.totalPages || 0)
 
+// Get user's current location
+async function getUserLocation() {
+  if (!navigator.geolocation) {
+    showError('이 브라우저에서는 위치 서비스를 지원하지 않습니다')
+    return null
+  }
+
+  locationLoading.value = true
+  try {
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      })
+    })
+    userLocation.value = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    }
+    return userLocation.value
+  }
+  catch (err) {
+    if (err.code === 1) {
+      showError('위치 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요')
+    } else {
+      showError('현재 위치를 가져올 수 없습니다')
+    }
+    nearbyMode.value = false
+    return null
+  }
+  finally {
+    locationLoading.value = false
+  }
+}
+
+// Nearby search function
+async function searchNearby() {
+  if (!userLocation.value) {
+    const loc = await getUserLocation()
+    if (!loc) return
+  }
+
+  const params = {
+    lat: userLocation.value.lat,
+    lng: userLocation.value.lng,
+    radius: searchRadius.value,
+    page: page.value,
+    size: pageSize,
+  }
+
+  if (keyword.value.trim()) {
+    params.keyword = keyword.value.trim()
+  }
+  if (businessType.value) {
+    params.type = businessType.value
+  }
+
+  try {
+    await bookingStore.searchNearbyBusinesses(params)
+  }
+  catch (err) {
+    showError('주변 매장 검색 중 오류가 발생했습니다')
+  }
+}
+
 // Search function
 async function search() {
+  if (nearbyMode.value) {
+    return searchNearby()
+  }
+
   const params = {
     page: page.value,
     size: pageSize,
@@ -111,12 +199,57 @@ watch(page, () => {
   search()
 })
 
+// Toggle nearby mode
+async function toggleNearbyMode() {
+  nearbyMode.value = !nearbyMode.value
+  page.value = 1
+  if (nearbyMode.value) {
+    await searchNearby()
+  } else {
+    search()
+  }
+}
+
+// Watch radius change
+watch(searchRadius, () => {
+  if (nearbyMode.value) {
+    page.value = 1
+    searchNearby()
+  }
+})
+
 // Placeholder image for businesses without profile image
 const placeholderImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22200%22%20viewBox%3D%220%200%20400%20200%22%3E%3Crect%20fill%3D%22%23E0E0E0%22%20width%3D%22400%22%20height%3D%22200%22%2F%3E%3Ctext%20fill%3D%22%239E9E9E%22%20font-family%3D%22Arial%22%20font-size%3D%2220%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'
+
+// Bookmark toggle
+async function handleBookmarkToggle(business) {
+  if (!customerAuthStore.isAuthenticated) {
+    router.push('/booking/login?redirect=/booking')
+
+    return
+  }
+  try {
+    await bookmarkStore.toggleBookmark(business.id)
+  }
+  catch (err) {
+    const code = err.code
+    if (code === 'BM002') {
+      // Already bookmarked, ignore
+    }
+    else {
+      showError('즐겨찾기 처리에 실패했습니다')
+    }
+  }
+}
 
 // Initial load
 onMounted(() => {
   search()
+
+  // Load bookmarks if customer is logged in
+  if (customerAuthStore.isAuthenticated) {
+    bookmarkStore.fetchBookmarks().catch(() => {})
+  }
 })
 </script>
 
@@ -165,6 +298,35 @@ onMounted(() => {
               </VRow>
             </VCard>
 
+            <!-- Location Controls -->
+            <div class="d-flex align-center ga-2 mt-3 flex-wrap">
+              <VBtn
+                :color="nearbyMode ? 'primary' : 'default'"
+                :variant="nearbyMode ? 'elevated' : 'outlined'"
+                :loading="locationLoading"
+                class="text-white-btn"
+                @click="toggleNearbyMode"
+              >
+                <VIcon start>
+                  ri-map-pin-line
+                </VIcon>
+                내 주변
+              </VBtn>
+
+              <VSelect
+                v-if="nearbyMode"
+                v-model="searchRadius"
+                :items="radiusOptions"
+                item-title="title"
+                item-value="value"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="max-inline-size: 110px"
+                bg-color="white"
+              />
+            </div>
+
             <!-- Business Type Tabs -->
             <div class="business-type-tabs mt-4">
               <div class="d-flex ga-2 overflow-x-auto pb-2">
@@ -204,6 +366,12 @@ onMounted(() => {
             rounded="lg"
             class="sort-toggle"
           >
+            <VBtn v-if="nearbyMode" value="distance" size="small" variant="text">
+              <VIcon start size="16">
+                ri-map-pin-line
+              </VIcon>
+              거리순
+            </VBtn>
             <VBtn value="rating" size="small" variant="text">
               <VIcon start size="16">
                 ri-star-line
@@ -275,8 +443,21 @@ onMounted(() => {
                 cover
                 class="bg-grey-lighten-3"
               >
-                <!-- Open/Closed Badge -->
-                <div class="pa-3 d-flex justify-end">
+                <div class="pa-3 d-flex justify-space-between">
+                  <!-- Bookmark Button -->
+                  <VBtn
+                    v-if="isCustomerLoggedIn"
+                    icon
+                    variant="text"
+                    size="small"
+                    :color="bookmarkStore.isBookmarked(business.id) ? 'error' : 'white'"
+                    @click.stop="handleBookmarkToggle(business)"
+                  >
+                    <VIcon>{{ bookmarkStore.isBookmarked(business.id) ? 'ri-heart-fill' : 'ri-heart-line' }}</VIcon>
+                  </VBtn>
+                  <VSpacer v-else />
+
+                  <!-- Open/Closed Badge -->
                   <VChip
                     :color="business.isOpen ? 'success' : 'grey'"
                     size="small"
@@ -311,6 +492,17 @@ onMounted(() => {
                     ri-map-pin-line
                   </VIcon>
                   <span class="text-truncate">{{ business.address }}</span>
+                </div>
+
+                <!-- Distance (nearby mode) -->
+                <div
+                  v-if="business.distance !== undefined && business.distance !== null"
+                  class="d-flex align-center text-body-2 mb-2"
+                >
+                  <VIcon size="16" class="me-1" color="primary">
+                    ri-map-pin-range-line
+                  </VIcon>
+                  <span class="font-weight-medium text-primary">{{ business.distance }}km</span>
                 </div>
 
                 <!-- Rating -->
@@ -443,7 +635,14 @@ onMounted(() => {
 
   &.v-chip--variant-outlined {
     color: white !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+  }
+}
+
+.text-white-btn {
+  &.v-btn--variant-outlined {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
   }
 }
 </style>

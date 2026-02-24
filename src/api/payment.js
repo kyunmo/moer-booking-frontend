@@ -24,6 +24,16 @@ const paymentApi = {
   },
 
   /**
+   * 결제 취소
+   * POST /api/payments/{paymentId}/cancel
+   * @param {number} paymentId - 결제 ID
+   * @param {string} reason - 취소 사유
+   */
+  cancelPayment(paymentId, reason) {
+    return apiClient.post(`/payments/${paymentId}/cancel`, { reason })
+  },
+
+  /**
    * 결제 단건 조회
    * GET /api/payments/{paymentId}
    * @param {number} paymentId - 결제 ID
@@ -35,7 +45,12 @@ const paymentApi = {
   /**
    * 결제 목록 조회
    * GET /api/payments
-   * @param {Object} params - { status, page, size }
+   * @param {Object} params - { status, page, size, startDate, endDate }
+   * @param {string} [params.status] - 결제 상태 필터 (PENDING, COMPLETED, FAILED, REFUNDED, CANCELLED)
+   * @param {number} [params.page] - 페이지 번호 (기본 1)
+   * @param {number} [params.size] - 페이지 크기 (기본 20)
+   * @param {string} [params.startDate] - 조회 시작일 (yyyy-MM-dd)
+   * @param {string} [params.endDate] - 조회 종료일 (yyyy-MM-dd)
    */
   getPaymentList(params = {}) {
     return apiClient.get('/payments', { params })

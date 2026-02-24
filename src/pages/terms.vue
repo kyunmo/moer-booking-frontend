@@ -2,8 +2,8 @@
 meta:
   layout: public
   public: true
-  title: 이용약관 - YEMO
-  description: YEMO 서비스 이용약관입니다. 서비스 이용 전 반드시 확인해주세요.
+  title: 이용약관 - 모에르(MOER)
+  description: 모에르(MOER) 서비스 이용약관입니다. 서비스 이용 전 반드시 확인해주세요.
   keywords: 이용약관, 서비스 약관, 이용 조건
 </route>
 
@@ -11,7 +11,7 @@ meta:
   <div>
     <VCard>
       <VCardTitle class="text-h4 pa-6 d-flex align-center flex-wrap ga-3">
-        YEMO(예모) 서비스 이용약관
+        모에르(MOER) 서비스 이용약관
         <VChip
           color="primary"
           variant="tonal"

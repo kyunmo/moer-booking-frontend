@@ -18,7 +18,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const title = computed(() => {
-  return props.type === 'terms' ? 'YEMO(예모) 서비스 이용약관' : 'YEMO(예모) 개인정보처리방침'
+  return props.type === 'terms' ? '모에르(MOER) 서비스 이용약관' : '모에르(MOER) 개인정보처리방침'
 })
 
 const contentComponent = computed(() => {

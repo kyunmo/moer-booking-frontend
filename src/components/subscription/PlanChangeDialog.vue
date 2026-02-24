@@ -128,6 +128,42 @@
           </div>
         </VAlert>
 
+        <!-- 업그레이드 시 결제주기 선택 -->
+        <VCard
+          v-if="isUpgrade && selectedPlan && selectedPlan !== currentPlan"
+          variant="outlined"
+          class="mt-4"
+        >
+          <VCardText>
+            <p class="text-body-1 font-weight-medium mb-3">결제 주기 선택</p>
+            <VRadioGroup v-model="selectedBillingCycle" class="mt-0">
+              <VRadio value="monthly">
+                <template #label>
+                  <div>
+                    <span class="font-weight-bold">월 결제</span>
+                    <span class="text-body-2 ms-2">19,800원/월 (VAT 포함)</span>
+                  </div>
+                </template>
+              </VRadio>
+              <VRadio value="yearly">
+                <template #label>
+                  <div class="d-flex align-center">
+                    <span class="font-weight-bold">연간 결제</span>
+                    <span class="text-body-2 ms-2">198,000원/년 (VAT 포함)</span>
+                    <VChip color="success" size="x-small" class="ms-2">
+                      2개월 무료
+                    </VChip>
+                  </div>
+                </template>
+              </VRadio>
+            </VRadioGroup>
+
+            <VAlert type="info" variant="tonal" density="compact" class="mt-3">
+              <span class="text-caption">결제 페이지에서 결제를 진행합니다.</span>
+            </VAlert>
+          </VCardText>
+        </VCard>
+
         <!-- 다운그레이드 환불 안내 -->
         <VCard
           v-if="downgradeRefundInfo && !isUpgrade"
@@ -184,7 +220,7 @@
           :disabled="!selectedPlan || selectedPlan === currentPlan"
           @click="confirm"
         >
-          플랜 변경
+          {{ isUpgrade ? '결제 페이지로 이동' : '플랜 변경' }}
         </VBtn>
       </VCardActions>
     </VCard>
@@ -221,6 +257,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const selectedPlan = ref(null)
+const selectedBillingCycle = ref('monthly')
 
 // 플랜 제한 정보 (2티어: 무료 + 유료)
 const planLimits = {
@@ -325,7 +362,7 @@ function selectPlan(planValue) {
 // 확인
 function confirm() {
   if (selectedPlan.value && selectedPlan.value !== props.currentPlan) {
-    emit('confirm', selectedPlan.value)
+    emit('confirm', selectedPlan.value, selectedBillingCycle.value)
   }
 }
 
@@ -338,6 +375,7 @@ function close() {
 watch(() => props.modelValue, (newValue) => {
   if (newValue) {
     selectedPlan.value = props.currentPlan
+    selectedBillingCycle.value = 'monthly'
   }
 })
 </script>
