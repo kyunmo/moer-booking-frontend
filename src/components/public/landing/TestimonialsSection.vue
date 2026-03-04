@@ -13,7 +13,7 @@ const testimonials = [
     role: '필라테스 강사',
     avatar: '박',
     color: 'success',
-    rating: 5,
+    rating: 4.5,
     text: '카카오톡 자동 알림 덕분에 노쇼가 30% 줄었어요. 매달 수십만원 절약하고 있습니다.',
   },
   {
@@ -29,8 +29,8 @@ const testimonials = [
     role: '네일샵 디자이너',
     avatar: '최',
     color: 'info',
-    rating: 5,
-    text: '고객 관리가 체계적으로 되니 재방문율이 눈에 띄게 올랐어요.',
+    rating: 4.5,
+    text: '고객 관리가 체계적으로 되니 재방문율이 눈에 띄게 올랐어요. UI가 직관적이라 배우기 쉽습니다.',
   },
 ]
 </script>
@@ -88,9 +88,12 @@ const testimonials = [
               color="warning"
               density="compact"
               size="small"
+              half-increments
               readonly
               class="mb-4"
+              aria-hidden="true"
             />
+            <span class="d-sr-only">평점 {{ testimonial.rating }}점</span>
 
             <VDivider class="mb-4" />
 
@@ -124,18 +127,14 @@ const testimonials = [
 </template>
 
 <style lang="scss" scoped>
+@use "@styles/mixins" as *;
 .testimonials-section {
   padding-block: 5rem;
   background-color: rgb(var(--v-theme-background));
 }
 
 .testimonial-card {
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
-  }
+  @include card-hover-lift;
 }
 
 .testimonial-text {

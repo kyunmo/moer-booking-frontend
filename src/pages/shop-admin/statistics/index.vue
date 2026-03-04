@@ -1,43 +1,102 @@
 <template>
   <div class="position-relative">
-    <!-- Locked Overlay (FREE plan with expired trial) -->
-    <div
-      v-if="!canAccessStatistics"
-      class="statistics-locked-overlay"
-    >
-      <VCard
-        class="pa-8 text-center"
-        max-width="520"
-        elevation="12"
-      >
-        <VIcon
-          icon="ri-lock-line"
-          size="64"
-          color="warning"
-          class="mb-4"
-        />
+    <!-- FREE plan: Basic Statistics (Today/This Week) - visible without blur -->
+    <div v-if="!canAccessStatistics" class="mb-6">
+      <VCard class="mb-6">
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <VIcon icon="ri-bar-chart-box-line" class="me-2" />
+            기본 통계
+          </div>
+          <VChip color="info" size="small" variant="tonal">
+            무료 플랜
+          </VChip>
+        </VCardTitle>
+      </VCard>
 
-        <h2 class="text-h5 mb-2">
-          무료 버전에서는 사용할 수 없는 기능입니다
-        </h2>
+      <!-- Today / This Week Summary Cards -->
+      <VRow class="mb-6">
+        <VCol cols="12" sm="6" md="3">
+          <VCard>
+            <VCardText class="d-flex align-center">
+              <VAvatar color="primary" variant="tonal" size="44" class="me-3">
+                <VIcon icon="ri-calendar-check-line" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-xs text-medium-emphasis mb-0">오늘 예약</p>
+                <h5 class="text-h5 font-weight-bold">{{ basicStats.todayReservations }}</h5>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
+          <VCard>
+            <VCardText class="d-flex align-center">
+              <VAvatar color="success" variant="tonal" size="44" class="me-3">
+                <VIcon icon="ri-money-dollar-circle-line" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-xs text-medium-emphasis mb-0">오늘 매출</p>
+                <h5 class="text-h5 font-weight-bold">{{ basicStats.todayRevenue.toLocaleString() }}원</h5>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
+          <VCard>
+            <VCardText class="d-flex align-center">
+              <VAvatar color="info" variant="tonal" size="44" class="me-3">
+                <VIcon icon="ri-calendar-line" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-xs text-medium-emphasis mb-0">이번주 예약</p>
+                <h5 class="text-h5 font-weight-bold">{{ basicStats.weekReservations }}</h5>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+        <VCol cols="12" sm="6" md="3">
+          <VCard>
+            <VCardText class="d-flex align-center">
+              <VAvatar color="warning" variant="tonal" size="44" class="me-3">
+                <VIcon icon="ri-wallet-line" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-xs text-medium-emphasis mb-0">이번주 매출</p>
+                <h5 class="text-h5 font-weight-bold">{{ basicStats.weekRevenue.toLocaleString() }}원</h5>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VRow>
 
-        <p class="text-body-1 text-medium-emphasis mb-6">
-          유료 플랜으로 업그레이드하면 매출 분석, 예약 통계 등 다양한 분석 기능을 이용할 수 있습니다.
-        </p>
-
-        <VBtn
-          color="primary"
-          size="large"
-          @click="$router.push('/shop-admin/subscription')"
-        >
-          <VIcon icon="ri-vip-crown-line" class="me-1" />
-          업그레이드하기
-        </VBtn>
+      <!-- Upgrade CTA -->
+      <VCard class="mb-6">
+        <VCardText class="text-center pa-8">
+          <VIcon icon="ri-bar-chart-grouped-line" size="48" color="primary" class="mb-3" />
+          <h3 class="text-h6 font-weight-bold mb-2">
+            더 자세한 통계를 보려면 업그레이드하세요
+          </h3>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            월간 매출 분석, 직원별 성과, 서비스별 통계, CSV 다운로드 등 심층 분석 기능을 이용할 수 있습니다.
+          </p>
+          <VBtn
+            color="primary"
+            size="large"
+            @click="$router.push('/shop-admin/subscription')"
+          >
+            <VIcon icon="ri-vip-crown-line" class="me-1" />
+            플랜 업그레이드
+          </VBtn>
+          <p class="text-caption text-medium-emphasis mt-3 mb-0">
+            월 19,800원으로 모든 기능을 이용하세요
+          </p>
+        </VCardText>
       </VCard>
     </div>
 
-    <!-- Statistics Content (blurred when locked) -->
-    <div :class="{ 'statistics-blurred': !canAccessStatistics }">
+    <!-- Full Statistics Content (for PAID / Active trial) -->
+    <div v-if="canAccessStatistics">
       <VCard class="mb-6">
         <VCardTitle class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -49,7 +108,6 @@
             variant="outlined"
             size="small"
             :loading="csvExporting"
-            :disabled="!canAccessStatistics"
             @click="exportCsv"
           >
             <VIcon icon="ri-download-2-line" class="me-1" />
@@ -73,7 +131,6 @@
           density="compact"
           hide-details
           color="primary"
-          :disabled="!canAccessStatistics"
           @update:model-value="toggleAutoRefresh"
         />
       </div>
@@ -139,6 +196,14 @@ const activeTab = ref(0)
 const filters = ref({})
 const searchFilters = ref({})
 const csvExporting = ref(false)
+
+// Basic stats for FREE plan users (today/this week)
+const basicStats = ref({
+  todayReservations: 0,
+  todayRevenue: 0,
+  weekReservations: 0,
+  weekRevenue: 0,
+})
 
 // ==================== Auto Refresh ====================
 const autoRefresh = ref(false)
@@ -211,6 +276,40 @@ function onSearch() {
   searchFilters.value = { ...filters.value }
 }
 
+// Fetch basic stats for FREE plan users
+async function fetchBasicStats() {
+  try {
+    // Use today's date range for today stats
+    const today = new Date().toISOString().split('T')[0]
+    await statisticsStore.fetchRevenue({ startDate: today, endDate: today })
+    const todayData = statisticsStore.revenueData
+    if (todayData) {
+      basicStats.value.todayReservations = todayData.summary?.totalReservations ?? 0
+      basicStats.value.todayRevenue = todayData.summary?.totalRevenue ?? 0
+    }
+
+    // This week range (Monday to Sunday)
+    const now = new Date()
+    const dayOfWeek = now.getDay()
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+
+    const weekStart = monday.toISOString().split('T')[0]
+    const weekEnd = sunday.toISOString().split('T')[0]
+    await statisticsStore.fetchRevenue({ startDate: weekStart, endDate: weekEnd })
+    const weekData = statisticsStore.revenueData
+    if (weekData) {
+      basicStats.value.weekReservations = weekData.summary?.totalReservations ?? 0
+      basicStats.value.weekRevenue = weekData.summary?.totalRevenue ?? 0
+    }
+  }
+  catch {
+    // 기본 통계 조회 실패 시 0으로 유지
+  }
+}
+
 onMounted(async () => {
   // 구독 정보가 없으면 가져오기
   if (!subscriptionStore.subscriptionInfo) {
@@ -221,6 +320,11 @@ onMounted(async () => {
       // 구독 정보 로드 실패 시 무시 (페이지 자체는 표시)
       console.error('Failed to load subscription info:', e)
     }
+  }
+
+  // FREE 플랜 사용자는 기본 통계만 로드
+  if (!canAccessStatistics.value) {
+    fetchBasicStats()
   }
 })
 
@@ -498,22 +602,4 @@ function exportCsv() {
 }
 </script>
 
-<style scoped>
-.statistics-locked-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(var(--v-theme-surface), 0.4);
-  backdrop-filter: blur(2px);
-  border-radius: 8px;
-}
-
-.statistics-blurred {
-  filter: blur(3px);
-  pointer-events: none;
-  user-select: none;
-}
-</style>
+<!-- No scoped styles needed - overlay/blur pattern removed in favor of basic stats display -->

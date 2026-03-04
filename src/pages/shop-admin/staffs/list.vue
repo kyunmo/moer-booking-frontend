@@ -5,6 +5,14 @@
       <VCardTitle class="d-flex align-center pe-2">
         <VIcon icon="ri-team-line" size="24" class="me-3" />
         <span>스태프 관리</span>
+        <VTooltip location="bottom" max-width="300">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1">
+              <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+            </VBtn>
+          </template>
+          <span>{{ getHelpText('staff.create') }}</span>
+        </VTooltip>
 
         <VSpacer />
 
@@ -371,6 +379,7 @@
 <script setup>
 import EmptyState from '@/components/EmptyState.vue'
 import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
+import { useHelpTooltip } from '@/composables/useHelpTooltip'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useStaffStore } from '@/stores/staff'
 import { useStaffPositionStore } from '@/stores/staff-position'
@@ -383,6 +392,7 @@ import StaffDetailDialog from './components/StaffDetailDialog.vue'
 import StaffFormDialog from './components/StaffFormDialog.vue'
 
 const { error: showError } = useSnackbar()
+const { getHelpText, helpIcon } = useHelpTooltip()
 const staffStore = useStaffStore()
 const staffPositionStore = useStaffPositionStore()
 const subscriptionStore = useSubscriptionStore()
@@ -571,14 +581,12 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.staff-card {
-  block-size: 100%;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+<style lang="scss" scoped>
+@use "@styles/mixins" as *;
 
-.staff-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 10%);
-  transform: translateY(-4px);
+.staff-card {
+  @include card-hover-lift($shadow: 0 4px 12px rgba(0, 0, 0, 0.1));
+
+  block-size: 100%;
 }
 </style>

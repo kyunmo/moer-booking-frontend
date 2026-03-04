@@ -8,6 +8,28 @@
 
         <VSpacer />
 
+        <!-- 알림 발송 -->
+        <VBtn
+          variant="outlined"
+          prepend-icon="ri-notification-line"
+          :size="smAndDown ? 'small' : 'default'"
+          class="me-2"
+          @click="isNotificationDialogVisible = true"
+        >
+          알림 발송
+        </VBtn>
+
+        <!-- CSV 내보내기 -->
+        <VBtn
+          variant="outlined"
+          prepend-icon="ri-download-line"
+          :size="smAndDown ? 'small' : 'default'"
+          class="me-2"
+          @click="exportCsv"
+        >
+          CSV
+        </VBtn>
+
         <!-- 새 고객 등록 -->
         <VBtn
           id="customer-create-btn"
@@ -64,6 +86,29 @@
             />
           </VCol>
         </VRow>
+
+        <!-- 태그 필터 -->
+        <div v-if="availableTags.length > 0" class="d-flex flex-wrap align-center gap-2 mt-3">
+          <VIcon icon="ri-price-tag-3-line" size="18" class="text-medium-emphasis" />
+          <VChip
+            :color="selectedTagFilter.length === 0 ? 'primary' : 'default'"
+            :variant="selectedTagFilter.length === 0 ? 'elevated' : 'outlined'"
+            size="small"
+            @click="selectedTagFilter = []"
+          >
+            전체
+          </VChip>
+          <VChip
+            v-for="tag in availableTags"
+            :key="tag"
+            :color="selectedTagFilter.includes(tag) ? 'primary' : 'default'"
+            :variant="selectedTagFilter.includes(tag) ? 'elevated' : 'outlined'"
+            size="small"
+            @click="toggleTagFilter(tag)"
+          >
+            {{ tag }}
+          </VChip>
+        </div>
       </VCardText>
     </VCard>
 
@@ -117,15 +162,14 @@
 
     <!-- 고객 테이블 -->
     <VCard id="customer-table">
-      <!-- 로딩 -->
-      <div v-if="customerStore.loading" class="text-center pa-10">
-        <VProgressCircular indeterminate color="primary" />
-      </div>
-
       <!-- 모바일 카드 뷰 -->
-      <template v-else-if="smAndDown">
-        <!-- 데이터 없음 -->
-        <template v-if="filteredCustomers.length === 0">
+      <MobileListView
+        v-if="smAndDown"
+        v-model:page="mobileCustomerPage"
+        :items="paginatedCustomers"
+        :total-pages="mobileCustomerTotalPages"
+      >
+        <template #empty>
           <EmptyState
             icon="ri-user-line"
             title="등록된 고객이 없습니다"
@@ -136,11 +180,8 @@
           />
         </template>
 
-        <!-- 카드 리스트 -->
-        <div v-else class="pa-3 d-flex flex-column gap-3">
+        <template #item="{ item }">
           <VCard
-            v-for="item in paginatedCustomers"
-            :key="item.id"
             variant="outlined"
             class="customer-mobile-card"
             @click="viewCustomer(item)"
@@ -219,22 +260,8 @@
               </div>
             </VCardText>
           </VCard>
-
-          <!-- 모바일 페이지네이션 -->
-          <div
-            v-if="mobileCustomerTotalPages > 1"
-            class="d-flex justify-center pt-2 pb-1"
-          >
-            <VPagination
-              v-model="mobileCustomerPage"
-              :length="mobileCustomerTotalPages"
-              :total-visible="5"
-              density="compact"
-              size="small"
-            />
-          </div>
-        </div>
-      </template>
+        </template>
+      </MobileListView>
 
       <!-- 데스크톱 테이블 -->
       <VDataTable
@@ -243,6 +270,7 @@
         :items="filteredCustomers"
         :search="searchQuery"
         :items-per-page="10"
+        :loading="customerStore.loading"
         class="customer-table"
       >
         <!-- 이름 -->
@@ -399,6 +427,13 @@
       @saved="handleCustomerSaved"
     />
 
+    <!-- 알림 발송 다이얼로그 -->
+    <NotificationSendDialog
+      v-model="isNotificationDialogVisible"
+      :selected-customers="[]"
+      :total-customer-count="customerStore.customers.length"
+    />
+
     <!-- 삭제 확인 다이얼로그 -->
     <ConfirmDeleteDialog
       v-model="isDeleteDialogVisible"
@@ -422,6 +457,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import CustomerDetailDialog from './components/CustomerDetailDialog.vue'
 import CustomerFormDialog from './components/CustomerFormDialog.vue'
+import NotificationSendDialog from './components/NotificationSendDialog.vue'
 
 const { smAndDown } = useDisplay()
 const { error: showError } = useSnackbar()
@@ -439,6 +475,51 @@ const isFormDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
 const selectedCustomer = ref(null)
 const customerToEdit = ref(null)
+
+// 알림 발송
+const isNotificationDialogVisible = ref(false)
+
+// 태그 필터
+const selectedTagFilter = ref([])
+const availableTags = computed(() => {
+  const tagSet = new Set()
+  customerStore.customers.forEach(c => {
+    if (c.tags) {
+      c.tags.forEach(t => tagSet.add(t))
+    }
+  })
+  return [...tagSet].sort()
+})
+
+// CSV 내보내기
+function exportCsv() {
+  const customers = filteredCustomers.value
+  if (customers.length === 0) return
+
+  const headers = ['이름', '전화번호', '이메일', '성별', '생년월일', '방문횟수', '총결제액', '최근방문일', '태그', '메모']
+  const rows = customers.map(c => [
+    c.name || '',
+    c.phone || '',
+    c.email || '',
+    c.gender === 'MALE' ? '남성' : c.gender === 'FEMALE' ? '여성' : '',
+    c.birthDate || '',
+    c.visitCount || 0,
+    c.totalSpent || 0,
+    c.lastVisitDate || '',
+    (c.tags || []).join(', '),
+    (c.memo || '').replace(/\n/g, ' '),
+  ])
+
+  const bom = '\uFEFF'
+  const csvContent = bom + [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `customers_${new Date().toISOString().split('T')[0]}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
 
 // 모바일 페이지네이션
 const mobileCustomerPage = ref(1)
@@ -471,6 +552,13 @@ const filteredCustomers = computed(() => {
       break
     default:
       result = customerStore.customers
+  }
+
+  // 태그 필터 적용
+  if (selectedTagFilter.value.length > 0) {
+    result = result.filter(c =>
+      c.tags && selectedTagFilter.value.some(tag => c.tags.includes(tag)),
+    )
   }
 
   return result
@@ -512,6 +600,16 @@ watch(filterType, async (newType) => {
     await customerStore.fetchCustomers()
   }
 })
+
+// 태그 필터 토글
+function toggleTagFilter(tag) {
+  const index = selectedTagFilter.value.indexOf(tag)
+  if (index > -1) {
+    selectedTagFilter.value.splice(index, 1)
+  } else {
+    selectedTagFilter.value.push(tag)
+  }
+}
 
 // 이니셜
 function getInitial(name) {

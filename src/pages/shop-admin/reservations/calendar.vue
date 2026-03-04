@@ -192,7 +192,16 @@
 
         <!-- 👉 메인 캘린더 -->
         <VMain>
-          <VCard flat>
+          <VCard flat style="position: relative;">
+            <VOverlay
+              :model-value="calendarLoading"
+              contained
+              persistent
+              class="align-center justify-center"
+            >
+              <VProgressCircular indeterminate color="primary" size="48" />
+            </VOverlay>
+
             <!-- 모바일 메뉴 버튼 -->
             <VCardTitle
               v-if="$vuetify.display.mdAndDown"
@@ -236,6 +245,68 @@
       :reservation="reservationToEdit"
       @saved="handleReservationSaved"
     />
+
+    <!-- 드래그앤드롭 시간 변경 확인 다이얼로그 -->
+    <VDialog
+      v-model="isRescheduleDialogVisible"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center">
+          <VIcon icon="ri-drag-move-line" size="24" class="me-3" color="warning" />
+          <span>예약 시간 변경</span>
+        </VCardTitle>
+
+        <VDivider />
+
+        <VCardText>
+          <p class="mb-4">
+            <strong>{{ rescheduleInfo.customerName }}</strong>님의 예약 시간을 변경하시겠습니까?
+          </p>
+
+          <VAlert
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex align-center gap-2">
+                <VIcon icon="ri-time-line" size="18" />
+                <span><strong>변경 전:</strong> {{ rescheduleInfo.oldDate }} {{ rescheduleInfo.oldStart }} ~ {{ rescheduleInfo.oldEnd }}</span>
+              </div>
+              <div class="d-flex align-center gap-2">
+                <VIcon icon="ri-arrow-right-line" size="18" />
+                <span><strong>변경 후:</strong> {{ rescheduleInfo.newDate }} {{ rescheduleInfo.newStart }} ~ {{ rescheduleInfo.newEnd }}</span>
+              </div>
+            </div>
+          </VAlert>
+
+          <VAlert
+            type="warning"
+            variant="tonal"
+          >
+            변경된 예약 시간은 고객에게 알림이 발송됩니다.
+          </VAlert>
+        </VCardText>
+
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            variant="outlined"
+            @click="cancelReschedule"
+          >
+            취소
+          </VBtn>
+          <VBtn
+            color="primary"
+            :loading="rescheduleLoading"
+            @click="confirmReschedule"
+          >
+            변경 확인
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- 취소 확인 다이얼로그 -->
     <VDialog
@@ -303,7 +374,7 @@ import StatisticsCard from '@/components/StatisticsCard.vue'
 import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
-const { error: showError } = useSnackbar()
+const { success: showSuccess, error: showError } = useSnackbar()
 const businessSettingsStore = useBusinessSettingsStore()
 const reservationStore = useReservationStore()
 const staffStore = useStaffStore()
@@ -415,6 +486,21 @@ const isCancelDialogVisible = ref(false)
 const selectedReservation = ref(null)
 const reservationToEdit = ref(null)
 const cancelReason = ref('')
+const calendarLoading = ref(false)
+
+// 드래그앤드롭 시간 변경
+const isRescheduleDialogVisible = ref(false)
+const rescheduleLoading = ref(false)
+const pendingRescheduleEvent = ref(null)
+const rescheduleInfo = ref({
+  customerName: '',
+  oldDate: '',
+  oldStart: '',
+  oldEnd: '',
+  newDate: '',
+  newStart: '',
+  newEnd: '',
+})
 const selectedDate = ref(new Date())
 
 // Flatpickr용 날짜 문자열
@@ -541,10 +627,17 @@ const calendarOptions = computed(() => ({
   events: filteredEvents.value,
   eventClick: handleEventClick,
   dateClick: handleDateClick,
-  editable: false,
+  editable: true,
+  eventDrop: handleEventDrop,
+  eventResize: handleEventResize,
   selectable: true,
   allDaySlot: false,
   nowIndicator: true,
+  datesSet: (dateInfo) => {
+    const start = dateInfo.startStr.split('T')[0]
+    const end = dateInfo.endStr.split('T')[0]
+    loadReservations(start, end)
+  },
   eventTimeFormat: {
     hour: '2-digit',
     minute: '2-digit',
@@ -646,15 +739,110 @@ async function handleReservationSaved() {
 }
 
 // 예약 목록 로드
-async function loadReservations() {
-  const today = new Date()
-  const startDate = new Date(today.getFullYear(), today.getMonth(), 1)
-  const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+async function loadReservations(startStr, endStr) {
+  calendarLoading.value = true
+  try {
+    let startDate, endDate
+    if (startStr && endStr) {
+      startDate = startStr
+      endDate = endStr
+    } else {
+      const today = new Date()
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0]
+    }
+    await reservationStore.fetchReservationsByDateRange(startDate, endDate)
+  } finally {
+    calendarLoading.value = false
+  }
+}
 
-  await reservationStore.fetchReservationsByDateRange(
-    startDate.toISOString().split('T')[0],
-    endDate.toISOString().split('T')[0],
-  )
+// --- 드래그앤드롭 핸들러 ---
+
+function formatEventDateTime(dateObj) {
+  const date = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  const time = dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return { date, time }
+}
+
+function handleEventDrop(info) {
+  showRescheduleConfirm(info)
+}
+
+function handleEventResize(info) {
+  showRescheduleConfirm(info)
+}
+
+function showRescheduleConfirm(info) {
+  const reservation = info.event.extendedProps.reservation
+  const oldStart = info.oldEvent.start
+  const oldEnd = info.oldEvent.end
+  const newStart = info.event.start
+  const newEnd = info.event.end
+
+  const oldStartFmt = formatEventDateTime(oldStart)
+  const oldEndFmt = formatEventDateTime(oldEnd)
+  const newStartFmt = formatEventDateTime(newStart)
+  const newEndFmt = formatEventDateTime(newEnd)
+
+  rescheduleInfo.value = {
+    customerName: reservation.customerName || '고객',
+    oldDate: oldStartFmt.date,
+    oldStart: oldStartFmt.time,
+    oldEnd: oldEndFmt.time,
+    newDate: newStartFmt.date,
+    newStart: newStartFmt.time,
+    newEnd: newEndFmt.time,
+  }
+
+  pendingRescheduleEvent.value = info
+  isRescheduleDialogVisible.value = true
+}
+
+async function confirmReschedule() {
+  if (!pendingRescheduleEvent.value) return
+
+  const info = pendingRescheduleEvent.value
+  const reservation = info.event.extendedProps.reservation
+  const newStart = info.event.start
+  const newEnd = info.event.end
+
+  const newDate = newStart.toISOString().split('T')[0]
+  const newStartTime = newStart.toTimeString().substring(0, 5)
+  const newEndTime = newEnd.toTimeString().substring(0, 5)
+
+  rescheduleLoading.value = true
+  try {
+    // TODO: 백엔드에 PATCH /api/businesses/{businessId}/reservations/{id}/reschedule 엔드포인트가 구현되면 전용 API 호출로 변경
+    await reservationStore.updateReservation(reservation.id, {
+      ...reservation,
+      reservationDate: newDate,
+      startTime: newStartTime,
+      endTime: newEndTime,
+    })
+
+    isRescheduleDialogVisible.value = false
+    pendingRescheduleEvent.value = null
+    await loadReservations()
+  }
+  catch (error) {
+    // 실패 시 원래 위치로 복원
+    info.revert()
+    showError(error.message || '예약 시간 변경에 실패했습니다.')
+    isRescheduleDialogVisible.value = false
+    pendingRescheduleEvent.value = null
+  }
+  finally {
+    rescheduleLoading.value = false
+  }
+}
+
+function cancelReschedule() {
+  if (pendingRescheduleEvent.value) {
+    pendingRescheduleEvent.value.revert()
+  }
+  isRescheduleDialogVisible.value = false
+  pendingRescheduleEvent.value = null
 }
 
 // 반응형 처리

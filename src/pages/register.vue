@@ -15,8 +15,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import authV1RegisterMaskDark from '@images/pages/auth-v1-register-mask-dark.png'
 import authV1RegisterMaskLight from '@images/pages/auth-v1-register-mask-light.png'
-import PricingCard from '@/components/pricing/PricingCard.vue'
 import LegalDialog from '@/components/legal/LegalDialog.vue'
+import { OAUTH_BASE_URL } from '@/utils/oauth'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -36,7 +36,6 @@ const form = ref({
   password: '',
   passwordConfirm: '',
   businessType: 'BEAUTY_SHOP',
-  selectedPlan: 'PAID', // 기본값: PAID 플랜
   agreeTerms: false,
 })
 
@@ -58,6 +57,11 @@ const passwordMatchRule = value => {
   return value === form.value.password || '비밀번호가 일치하지 않습니다.'
 }
 
+// SNS 로그인 (카카오)
+function handleKakaoRegister() {
+  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorize/kakao?loginType=admin`
+}
+
 // 회원가입 처리
 async function handleRegister() {
   const { valid } = await formRef.value.validate()
@@ -73,7 +77,6 @@ async function handleRegister() {
       phone: form.value.phone,
       password: form.value.password,
       businessType: form.value.businessType,
-      selectedPlan: form.value.selectedPlan, // 선택한 플랜 전송
     })
 
     // 회원가입 성공 시 대시보드로 이동
@@ -113,61 +116,42 @@ async function handleRegister() {
         </p>
       </VCardText>
 
-      <!-- 30일 체험판 안내 -->
+      <!-- 30일 무료 체험 배지 -->
       <VCardText class="pt-0">
-        <VAlert
-          type="success"
+        <VCard
+          color="primary"
           variant="tonal"
-          density="compact"
-          class="mb-0"
+          class="pa-4"
         >
-          <div class="d-flex align-center">
-            <VIcon icon="ri-gift-line" class="me-2" />
-            <span class="text-body-2">
-              <strong>30일 무료 체험!</strong> 회원가입 즉시 유료 플랜의 모든 기능을 무료로 체험할 수 있습니다.
-            </span>
+          <div class="d-flex align-center justify-center mb-2">
+            <VAvatar color="primary" variant="flat" size="40" class="me-3">
+              <VIcon icon="ri-gift-2-line" size="24" />
+            </VAvatar>
+            <div>
+              <h5 class="text-h6 font-weight-bold">
+                30일 무료 체험
+              </h5>
+            </div>
           </div>
-        </VAlert>
-      </VCardText>
-
-      <!-- 플랜 선택 -->
-      <VCardText>
-        <h5 class="text-h6 mb-2">
-          플랜 선택
-        </h5>
-        <p class="text-body-2 text-medium-emphasis mb-4">
-          나에게 맞는 플랜을 선택하세요. 언제든지 변경 가능합니다.
-        </p>
-
-        <VRow>
-          <VCol
-            cols="12"
-            md="6"
-            v-for="plan in ['FREE', 'PAID']"
-            :key="plan"
-          >
-            <PricingCard
-              :plan="plan"
-              :selected="form.selectedPlan === plan"
-              compact
-              @select="form.selectedPlan = $event"
-            />
-          </VCol>
-
-        </VRow>
-
-        <VAlert
-          v-if="form.selectedPlan !== 'FREE'"
-          type="info"
-          variant="tonal"
-          density="compact"
-          class="mt-4"
-        >
-          <div class="text-body-2">
-            <VIcon icon="ri-information-line" class="me-2" />
-            유료 플랜의 모든 기능을 <strong>30일간 무료</strong>로 체험합니다. 체험 종료 후 무료 플랜으로 자동 전환되며, 결제 페이지에서 유료 플랜을 구독할 수 있습니다.
+          <p class="text-body-2 text-center mb-0">
+            회원가입 즉시 <strong>모든 유료 기능</strong>을 30일간 무료로 체험할 수 있습니다.
+            체험 종료 후 무료 플랜으로 자동 전환되며, 별도 결제 없이 안심하고 시작하세요.
+          </p>
+          <div class="d-flex justify-center ga-4 mt-3">
+            <VChip color="primary" size="small" variant="flat">
+              <VIcon icon="ri-bar-chart-box-line" size="14" start />
+              통계 분석
+            </VChip>
+            <VChip color="primary" size="small" variant="flat">
+              <VIcon icon="ri-team-line" size="14" start />
+              직원 관리
+            </VChip>
+            <VChip color="primary" size="small" variant="flat">
+              <VIcon icon="ri-calendar-check-line" size="14" start />
+              예약 관리
+            </VChip>
           </div>
-        </VAlert>
+        </VCard>
       </VCardText>
 
       <!-- 회원가입 폼 -->
@@ -295,6 +279,27 @@ async function handleRegister() {
                 :loading="authStore.loading"
               >
                 회원가입
+              </VBtn>
+            </VCol>
+
+            <!-- 구분선 -->
+            <VCol cols="12" class="d-flex align-center">
+              <VDivider />
+              <span class="mx-4 text-high-emphasis text-no-wrap">or</span>
+              <VDivider />
+            </VCol>
+
+            <!-- 카카오 소셜 로그인 -->
+            <VCol cols="12">
+              <VBtn
+                variant="outlined"
+                color="warning"
+                size="large"
+                block
+                @click="handleKakaoRegister"
+              >
+                <VIcon icon="ri-kakao-talk-fill" class="me-2" />
+                카카오로 간편 가입
               </VBtn>
             </VCol>
 

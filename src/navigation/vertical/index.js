@@ -51,23 +51,12 @@ export default [
   },
   {
     title: '예약 관리',
+    to: { name: 'shop-admin-reservations-list' },
     icon: { icon: 'ri-calendar-line' },
     get disabled() {
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
-    children: [
-      {
-        title: '예약 캘린더',
-        to: { name: 'shop-admin-reservations-calendar' },
-        icon: { icon: 'ri-calendar-event-line' },
-      },
-      {
-        title: '예약 목록',
-        to: { name: 'shop-admin-reservations-list' },
-        icon: { icon: 'ri-list-check' },
-      },
-    ],
   },
   {
     title: '고객 관리',
@@ -167,24 +156,13 @@ export default [
     heading: '구독 · 결제',
   },
   {
-    title: '구독 & 결제',
+    title: '구독 관리',
+    to: { name: 'shop-admin-subscription' },
     icon: { icon: 'ri-vip-crown-line' },
     get disabled() {
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
-    children: [
-      {
-        title: '구독 관리',
-        to: { name: 'shop-admin-subscription' },
-        icon: { icon: 'ri-vip-crown-line' },
-      },
-      {
-        title: '결제 내역',
-        to: { name: 'shop-admin-payment-history' },
-        icon: { icon: 'ri-file-list-line' },
-      },
-    ],
   },
   {
     title: '알림 이력',
@@ -194,5 +172,15 @@ export default [
       const authStore = useAuthStore()
       return authStore.isSuperAdmin && !authStore.hasSelectedBusiness
     },
+  },
+
+  // ── 도움말 ──
+  {
+    heading: '지원',
+  },
+  {
+    title: '도움말 / FAQ',
+    to: { path: '/support' },
+    icon: { icon: 'ri-question-line' },
   },
 ]

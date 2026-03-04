@@ -24,6 +24,22 @@ input[type="time"] {
     min-width: 44px;
     min-height: 44px;
   }
+
+  // Ensure chips used as buttons have minimum touch target
+  .v-chip.cursor-pointer,
+  .v-chip[role="button"] {
+    min-height: 36px;
+  }
+
+  // Ensure list items used as buttons have minimum touch target
+  .v-list-item--link {
+    min-height: 48px;
+  }
+
+  // Increase tap target for VSwitch on mobile
+  .v-switch .v-selection-control {
+    min-height: 44px;
+  }
 }
 
 // Skip Navigation Link (accessibility)
@@ -55,4 +71,54 @@ input[type="time"] {
     outline: 2px solid rgb(var(--v-theme-primary));
     outline-offset: 2px;
   }
+}
+
+// ============================================
+// WCAG 2.1 AA Accessibility Enhancements
+// ============================================
+
+// 1. Reduced Motion Support
+// Respects user's OS-level "reduce motion" preference
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// 2. Focus-Visible Styles (keyboard navigation)
+// Enhanced focus ring for interactive elements beyond Vuetify defaults
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
+}
+
+// Remove default focus ring for mouse users
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// 3. Screen reader only utility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

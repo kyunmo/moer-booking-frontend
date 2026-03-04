@@ -7,6 +7,7 @@ import {
   useConfigStore,
 } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
+import OfflineBanner from '@/components/common/OfflineBanner.vue'
 import FeatureLockedDialog from '@/components/trial/FeatureLockedDialog.vue'
 import TrialExpiredDialog from '@/components/trial/TrialExpiredDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
@@ -27,6 +28,7 @@ const { trialExpiredDialog, featureLockedDialog, featureLockedInfo } = useTrialG
   <VLocaleProvider :rtl="configStore.isAppRTL">
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
+      <OfflineBanner />
       <RouterView />
 
       <ScrollToTop />
@@ -36,8 +38,9 @@ const { trialExpiredDialog, featureLockedDialog, featureLockedInfo } = useTrialG
         v-model="snackbar.show"
         :color="snackbar.color"
         :timeout="snackbar.timeout"
-        location="top right"
+        :location="snackbar.location"
       >
+        <VIcon v-if="snackbar.icon" :icon="snackbar.icon" class="me-2" />
         {{ snackbar.message }}
       </VSnackbar>
 

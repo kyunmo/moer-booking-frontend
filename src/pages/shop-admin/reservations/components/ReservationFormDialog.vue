@@ -7,21 +7,12 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <VCard>
+      <DialogCloseBtn @click="handleClose" />
+
       <!-- 헤더 -->
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-calendar-check-line" size="24" class="me-3" />
         <span>{{ isEditMode ? '예약 수정' : '예약 등록' }}</span>
-
-        <VSpacer />
-
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="handleClose"
-        >
-          <VIcon icon="ri-close-line" />
-        </VBtn>
       </VCardTitle>
 
       <VDivider />
@@ -125,13 +116,28 @@
 
               <VRow dense>
                 <VCol cols="12" sm="6">
-                  <VTextField
-                    v-model="form.reservationDate"
-                    label="예약 날짜 *"
-                    type="date"
-                    prepend-inner-icon="ri-calendar-event-line"
-                    :rules="[required]"
-                  />
+                  <VMenu
+                    v-model="dateMenuOpen"
+                    :close-on-content-click="false"
+                    location="bottom start"
+                  >
+                    <template #activator="{ props: menuProps }">
+                      <VTextField
+                        v-bind="menuProps"
+                        :model-value="form.reservationDate"
+                        label="예약 날짜 *"
+                        prepend-inner-icon="ri-calendar-event-line"
+                        :rules="[required]"
+                        readonly
+                        placeholder="날짜를 선택하세요"
+                      />
+                    </template>
+                    <VDatePicker
+                      :model-value="reservationDateModel"
+                      color="primary"
+                      @update:model-value="handleDatePickerUpdate"
+                    />
+                  </VMenu>
                 </VCol>
                 <VCol cols="12" sm="6">
                   <VTextField
@@ -419,6 +425,21 @@ const errorMessage = ref('')
 const customerType = ref('existing')
 const availabilityChecking = ref(false)
 const conflictWarning = ref(null)
+const dateMenuOpen = ref(false)
+
+// VDatePicker model (Date object <-> string)
+const reservationDateModel = computed(() => {
+  if (!form.value.reservationDate) return null
+  return new Date(form.value.reservationDate + 'T00:00:00')
+})
+
+function handleDatePickerUpdate(val) {
+  if (val) {
+    const d = new Date(val)
+    form.value.reservationDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  dateMenuOpen.value = false
+}
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.reservation?.id)

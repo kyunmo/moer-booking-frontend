@@ -6,21 +6,12 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <VCard>
+      <DialogCloseBtn @click="handleClose" />
+
       <!-- 헤더 -->
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-add-line" size="24" class="me-3" />
         <span>{{ isEditMode ? '서비스 수정' : '서비스 등록' }}</span>
-        
-        <VSpacer />
-        
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="handleClose"
-        >
-          <VIcon icon="ri-close-line" />
-        </VBtn>
       </VCardTitle>
 
       <VDivider />
@@ -122,6 +113,100 @@
               />
             </VCol>
 
+            <!-- 서비스 이미지 (최대 3장) -->
+            <VCol cols="12">
+              <div class="text-subtitle-2 mb-2">
+                서비스 이미지 (최대 3장)
+              </div>
+
+              <!-- 기존 이미지 미리보기 -->
+              <div v-if="existingImages.length > 0 || imagePreviewUrls.length > 0" class="d-flex flex-wrap ga-3 mb-3">
+                <!-- 기존 이미지 (수정 모드) -->
+                <div
+                  v-for="(img, idx) in existingImages"
+                  :key="'existing-' + idx"
+                  class="position-relative"
+                  style="inline-size: 120px; block-size: 120px;"
+                >
+                  <VImg
+                    :src="img.thumbnailUrl || img.imageUrl"
+                    width="120"
+                    height="120"
+                    cover
+                    rounded="lg"
+                    style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+                  />
+                  <VBtn
+                    icon
+                    size="x-small"
+                    color="error"
+                    variant="elevated"
+                    class="position-absolute"
+                    style="inset-block-start: -8px; inset-inline-end: -8px;"
+                    @click="removeExistingImage(idx)"
+                  >
+                    <VIcon icon="ri-close-line" size="14" />
+                  </VBtn>
+                </div>
+
+                <!-- 새로 추가된 이미지 미리보기 -->
+                <div
+                  v-for="(url, idx) in imagePreviewUrls"
+                  :key="'new-' + idx"
+                  class="position-relative"
+                  style="inline-size: 120px; block-size: 120px;"
+                >
+                  <VImg
+                    :src="url"
+                    width="120"
+                    height="120"
+                    cover
+                    rounded="lg"
+                    style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+                  />
+                  <VBtn
+                    icon
+                    size="x-small"
+                    color="error"
+                    variant="elevated"
+                    class="position-absolute"
+                    style="inset-block-start: -8px; inset-inline-end: -8px;"
+                    @click="removeNewImage(idx)"
+                  >
+                    <VIcon icon="ri-close-line" size="14" />
+                  </VBtn>
+                </div>
+              </div>
+
+              <!-- 이미지 추가 버튼 -->
+              <VBtn
+                v-if="totalImageCount < 3"
+                variant="outlined"
+                color="secondary"
+                size="small"
+                @click="triggerImageInput"
+              >
+                <VIcon icon="ri-image-add-line" class="me-1" />
+                이미지 추가 ({{ totalImageCount }}/3)
+              </VBtn>
+
+              <p v-else class="text-caption text-medium-emphasis mt-1">
+                최대 3장까지 등록할 수 있습니다
+              </p>
+
+              <input
+                ref="imageInputRef"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                @change="handleImageSelect"
+              >
+
+              <p class="text-caption text-medium-emphasis mt-1">
+                JPG, PNG, WebP / 파일당 최대 5MB
+              </p>
+            </VCol>
+
             <!-- 에러 메시지 -->
             <VCol v-if="errorMessage" cols="12">
               <VAlert
@@ -169,7 +254,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
 import { useStaffStore } from '@/stores/staff'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -196,6 +281,15 @@ const loading = ref(false)
 const errorMessage = ref('')
 const nameChecking = ref(false)
 const nameDuplicate = ref(false)
+
+// Image upload refs
+const imageInputRef = ref(null)
+const newImageFiles = ref([])
+const imagePreviewUrls = ref([])
+const existingImages = ref([])
+const removedImageIds = ref([])
+
+const totalImageCount = computed(() => existingImages.value.length + newImageFiles.value.length)
 
 // 수정 모드 여부
 const isEditMode = computed(() => !!props.service)
@@ -266,6 +360,12 @@ watch(() => props.service, (newService) => {
       staffIds: newService.staffIds || [],
       description: newService.description || '',
     }
+    // 기존 이미지 로드
+    existingImages.value = Array.isArray(newService.images) ? [...newService.images] : []
+    newImageFiles.value = []
+    imagePreviewUrls.value.forEach(url => URL.revokeObjectURL(url))
+    imagePreviewUrls.value = []
+    removedImageIds.value = []
   } else {
     // 등록 모드: 초기화
     resetForm()
@@ -280,6 +380,65 @@ const minValueRule = value => {
   return value > 0 || '0보다 큰 숫자를 입력하세요'
 }
 
+// Image upload handlers
+function triggerImageInput() {
+  imageInputRef.value?.click()
+}
+
+function handleImageSelect(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    errorMessage.value = '이미지 크기는 5MB 이하만 가능합니다'
+    event.target.value = ''
+    return
+  }
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowed.includes(file.type)) {
+    errorMessage.value = 'JPG, PNG, WebP 형식만 지원합니다'
+    event.target.value = ''
+    return
+  }
+
+  if (totalImageCount.value >= 3) {
+    errorMessage.value = '이미지는 최대 3장까지 등록할 수 있습니다'
+    event.target.value = ''
+    return
+  }
+
+  newImageFiles.value.push(file)
+  imagePreviewUrls.value.push(URL.createObjectURL(file))
+  event.target.value = ''
+}
+
+function removeNewImage(index) {
+  URL.revokeObjectURL(imagePreviewUrls.value[index])
+  newImageFiles.value.splice(index, 1)
+  imagePreviewUrls.value.splice(index, 1)
+}
+
+function removeExistingImage(index) {
+  const removed = existingImages.value.splice(index, 1)
+  if (removed[0]?.id) {
+    removedImageIds.value.push(removed[0].id)
+  }
+}
+
+function cleanupImagePreviews() {
+  imagePreviewUrls.value.forEach(url => URL.revokeObjectURL(url))
+  imagePreviewUrls.value = []
+  newImageFiles.value = []
+  existingImages.value = []
+  removedImageIds.value = []
+}
+
+onBeforeUnmount(() => {
+  cleanupImagePreviews()
+})
+
 // 폼 초기화
 function resetForm() {
   form.value = {
@@ -292,6 +451,7 @@ function resetForm() {
   }
   errorMessage.value = ''
   nameDuplicate.value = false
+  cleanupImagePreviews()
   if (formRef.value) {
     formRef.value.resetValidation()
   }
@@ -322,13 +482,27 @@ async function handleSubmit() {
       description: form.value.description || null,
     }
 
+    let savedService
     if (isEditMode.value) {
       // 수정
-      await serviceStore.updateService(props.service.id, serviceData)
+      savedService = await serviceStore.updateService(props.service.id, serviceData)
     } else {
       // 등록
-      await serviceStore.createService(serviceData)
+      savedService = await serviceStore.createService(serviceData)
     }
+
+    // TODO: 백엔드 이미지 업로드 API 구현 후 활성화
+    // const serviceId = savedService?.id || props.service?.id
+    // if (serviceId) {
+    //   // 삭제된 기존 이미지 처리
+    //   for (const imageId of removedImageIds.value) {
+    //     await serviceApi.deleteServiceImage(authStore.businessId, serviceId, imageId)
+    //   }
+    //   // 새 이미지 업로드
+    //   for (const file of newImageFiles.value) {
+    //     await serviceApi.uploadServiceImage(authStore.businessId, serviceId, file)
+    //   }
+    // }
 
     emit('saved')
     handleClose()

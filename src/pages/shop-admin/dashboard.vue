@@ -10,53 +10,6 @@
 
     <!-- 대시보드 본문 -->
     <template v-else>
-      <!-- 환영 배너 -->
-      <VCard class="mb-6 welcome-banner" color="primary">
-        <VCardText class="d-flex align-center justify-space-between pa-6">
-          <div>
-            <p class="text-body-2 text-white text-opacity-80 mb-1">{{ todayText }}</p>
-            <h4 class="text-h4 font-weight-bold text-white mb-2">
-              안녕하세요, {{ businessName }} 님!
-            </h4>
-          </div>
-          <VIcon
-            icon="ri-store-3-line"
-            size="80"
-            class="text-white opacity-20 d-none d-md-block"
-          />
-        </VCardText>
-      </VCard>
-
-      <!-- 퀵 액션 -->
-      <VRow id="dashboard-quick-actions" class="mb-6">
-        <VCol
-          v-for="action in quickActions"
-          :key="action.title"
-          cols="6"
-          md="3"
-        >
-          <VCard
-            :to="action.to"
-            class="text-center pa-4 quick-action-card"
-            variant="tonal"
-            :color="action.color"
-          >
-            <VAvatar :color="action.color" variant="tonal" size="48" class="mb-3">
-              <VIcon :icon="action.icon" size="24" />
-            </VAvatar>
-            <h6 class="text-subtitle-1 font-weight-medium mb-1">{{ action.title }}</h6>
-            <p class="text-caption text-medium-emphasis mb-0">{{ action.description }}</p>
-          </VCard>
-        </VCol>
-      </VRow>
-
-      <!-- Trial / 사용량 배너 -->
-      <TrialBanner />
-      <ReservationUsageBanner />
-
-      <!-- 알림 영역 -->
-      <UnassignedReservationAlert class="mb-4" />
-
       <!-- 로딩 -->
       <div v-if="dashboardStore.loading" class="text-center pa-10">
         <VProgressCircular indeterminate color="primary" size="64" />
@@ -67,7 +20,7 @@
         <VAlertTitle>오류</VAlertTitle>
         {{ dashboardStore.error }}
         <template #append>
-          <VBtn size="small" @click="dashboardStore.fetchDashboard()">
+          <VBtn size="small" aria-label="대시보드 재시도" @click="dashboardStore.fetchDashboard()">
             재시도
           </VBtn>
         </template>
@@ -78,20 +31,129 @@
         <VAlertTitle>데이터 없음</VAlertTitle>
         대시보드 데이터를 불러올 수 없습니다.
         <template #append>
-          <VBtn size="small" @click="dashboardStore.fetchDashboard()">
+          <VBtn size="small" aria-label="대시보드 새로고침" @click="dashboardStore.fetchDashboard()">
             새로고침
           </VBtn>
         </template>
       </VAlert>
 
       <template v-else>
-        <!-- 실시간 액션 알림 (VTimeline) -->
+        <!-- 빈 상태: 서비스/스태프 미등록 -->
+        <VCard v-if="isBusinessEmpty" class="mb-6 text-center pa-8">
+          <VIcon icon="ri-inbox-unarchive-line" size="64" color="primary" class="mb-4" />
+          <h3 class="text-h5 font-weight-bold mb-2">아직 예약 데이터가 없습니다</h3>
+          <p class="text-body-1 text-medium-emphasis mb-6">
+            서비스와 스태프를 등록하면 예약을 받을 수 있어요
+          </p>
+          <div class="d-flex flex-wrap justify-center gap-3">
+            <VBtn
+              color="primary"
+              variant="elevated"
+              prepend-icon="ri-scissors-line"
+              :to="{ name: 'shop-admin-services-list' }"
+            >
+              서비스 등록하기
+            </VBtn>
+            <VBtn
+              variant="outlined"
+              prepend-icon="ri-team-line"
+              :to="{ name: 'shop-admin-staffs-list' }"
+            >
+              스태프 등록하기
+            </VBtn>
+          </div>
+        </VCard>
+
+        <!-- 1. 오늘의 예약 (운영 핵심 - 최상단) -->
+        <VCard class="mb-6">
+          <VCardTitle class="d-flex align-center">
+            <VIcon icon="ri-calendar-event-line" class="me-2" />
+            오늘의 예약
+            <VTooltip location="bottom">
+              <template #activator="{ props: tooltipProps }">
+                <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+                  <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+                </VBtn>
+              </template>
+              <span>{{ getHelpText('dashboard.todayReservations') }}</span>
+            </VTooltip>
+
+            <VSpacer />
+
+            <VBtn
+              size="small"
+              variant="text"
+              :to="{ name: 'shop-admin-reservations-list' }"
+              aria-label="예약 전체 보기"
+            >
+              전체 보기
+              <VIcon icon="ri-arrow-right-line" class="ms-1" />
+            </VBtn>
+          </VCardTitle>
+
+          <VDivider />
+
+          <VCardText>
+            <VList v-if="stats?.recentReservations && stats.recentReservations.length > 0">
+              <VListItem
+                v-for="reservation in stats.recentReservations"
+                :key="reservation.id"
+              >
+                <template #prepend>
+                  <VAvatar
+                    :color="getStatusColor(reservation.status)"
+                    size="40"
+                  >
+                    <VIcon :icon="getStatusIcon(reservation.status)" />
+                  </VAvatar>
+                </template>
+
+                <VListItemTitle>{{ reservation.customerName }}</VListItemTitle>
+                <VListItemSubtitle>
+                  {{ formatTimeRange(reservation.startTime, reservation.endTime) }}
+                  <template v-if="reservation.services?.length || reservation.serviceName">
+                    &middot; {{ reservation.services?.join(', ') || reservation.serviceName }}
+                  </template>
+                  <template v-if="reservation.staffName">
+                    &middot; {{ reservation.staffName }}
+                  </template>
+                </VListItemSubtitle>
+
+                <template #append>
+                  <VChip
+                    :color="getStatusColor(reservation.status)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    {{ getStatusText(reservation.status) }}
+                  </VChip>
+                </template>
+              </VListItem>
+            </VList>
+
+            <VAlert v-else type="info" variant="tonal">
+              오늘 예약이 없습니다
+            </VAlert>
+          </VCardText>
+        </VCard>
+
+        <!-- 2. 처리 필요 알림 (미할당 예약, 미답변 리뷰) -->
+        <UnassignedReservationAlert class="mb-4" />
+
         <VCard v-if="hasActionAlerts" class="mb-6">
           <VCardTitle class="d-flex align-center py-4">
             <VBadge :content="totalAlerts" color="error" inline>
               <VIcon icon="ri-alarm-warning-line" size="24" color="warning" />
             </VBadge>
             <span class="ms-3 text-subtitle-1 font-weight-bold">처리가 필요한 항목</span>
+            <VTooltip location="bottom">
+              <template #activator="{ props: tooltipProps }">
+                <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+                  <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+                </VBtn>
+              </template>
+              <span>{{ getHelpText('dashboard.actionAlerts') }}</span>
+            </VTooltip>
           </VCardTitle>
 
           <VDivider />
@@ -165,7 +227,7 @@
           </VCardText>
         </VCard>
 
-        <!-- 오늘 통계 -->
+        <!-- 3. 오늘 통계 카드 4개 -->
         <VRow id="dashboard-stats" class="mb-4">
           <VCol cols="12" sm="6" md="3">
             <StatisticsCard
@@ -205,7 +267,7 @@
           </VCol>
         </VRow>
 
-        <!-- 주간 예약 차트 & 이번 달 통계 -->
+        <!-- 4. 주간 차트 + 이달 요약 -->
         <VRow class="mb-6">
           <!-- 주간 예약 차트 -->
           <VCol cols="12" md="8">
@@ -213,6 +275,14 @@
               <VCardTitle>
                 <VIcon icon="ri-bar-chart-line" class="me-2" />
                 이번 주 예약 현황
+                <VTooltip location="bottom">
+                  <template #activator="{ props: tooltipProps }">
+                    <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+                      <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+                    </VBtn>
+                  </template>
+                  <span>{{ getHelpText('dashboard.weeklyChart') }}</span>
+                </VTooltip>
               </VCardTitle>
               <VCardText>
                 <VueApexCharts
@@ -236,6 +306,14 @@
               <VCardTitle>
                 <VIcon icon="ri-calendar-line" class="me-2" />
                 이번 달 요약
+                <VTooltip location="bottom">
+                  <template #activator="{ props: tooltipProps }">
+                    <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+                      <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+                    </VBtn>
+                  </template>
+                  <span>{{ getHelpText('dashboard.monthSummary') }}</span>
+                </VTooltip>
               </VCardTitle>
               <VCardText>
                 <VList>
@@ -274,125 +352,124 @@
           </VCol>
         </VRow>
 
-        <!-- 오늘의 예약 & 최근 신규 고객 -->
-        <VRow>
-          <!-- 오늘의 예약 -->
-          <VCol cols="12" md="7">
-            <VCard>
-              <VCardTitle class="d-flex align-center">
-                <VIcon icon="ri-calendar-event-line" class="me-2" />
-                오늘의 예약
-
-                <VSpacer />
-
-                <VBtn
-                  size="small"
-                  variant="text"
-                  :to="{ name: 'shop-admin-reservations-calendar' }"
-                >
-                  전체 보기
-                  <VIcon icon="ri-arrow-right-line" class="ms-1" />
-                </VBtn>
-              </VCardTitle>
-
-              <VDivider />
-
-              <VCardText>
-                <VList v-if="stats?.recentReservations && stats.recentReservations.length > 0">
-                  <VListItem
-                    v-for="reservation in stats.recentReservations"
-                    :key="reservation.id"
-                  >
-                    <template #prepend>
-                      <VAvatar
-                        :color="getStatusColor(reservation.status)"
-                        size="40"
-                      >
-                        <VIcon :icon="getStatusIcon(reservation.status)" />
-                      </VAvatar>
-                    </template>
-
-                    <VListItemTitle>{{ reservation.customerName }}</VListItemTitle>
-                    <VListItemSubtitle>
-                      {{ formatTimeRange(reservation.startTime, reservation.endTime) }}
-                      <template v-if="reservation.services?.length || reservation.serviceName">
-                        &middot; {{ reservation.services?.join(', ') || reservation.serviceName }}
-                      </template>
-                      <template v-if="reservation.staffName">
-                        &middot; {{ reservation.staffName }}
-                      </template>
-                    </VListItemSubtitle>
-
-                    <template #append>
-                      <VChip
-                        :color="getStatusColor(reservation.status)"
-                        size="small"
-                        variant="tonal"
-                      >
-                        {{ getStatusText(reservation.status) }}
-                      </VChip>
-                    </template>
-                  </VListItem>
-                </VList>
-
-                <VAlert v-else type="info" variant="tonal">
-                  오늘 예약이 없습니다
-                </VAlert>
-              </VCardText>
-            </VCard>
-          </VCol>
-
-          <!-- 최근 신규 고객 -->
-          <VCol cols="12" md="5">
-            <VCard>
-              <VCardTitle class="d-flex align-center">
-                <VIcon icon="ri-user-add-line" class="me-2" />
-                최근 신규 고객
-
-                <VSpacer />
-
-                <VBtn
-                  size="small"
-                  variant="text"
-                  :to="{ name: 'shop-admin-customers-list' }"
-                >
-                  전체 보기
-                  <VIcon icon="ri-arrow-right-line" class="ms-1" />
-                </VBtn>
-              </VCardTitle>
-
-              <VDivider />
-
-              <VCardText>
-                <VList v-if="stats?.recentCustomers && stats.recentCustomers.length > 0">
-                  <VListItem
-                    v-for="customer in stats.recentCustomers"
-                    :key="customer.id"
-                  >
-                    <template #prepend>
-                      <VAvatar color="primary" size="40">
-                        {{ getInitial(customer.name) }}
-                      </VAvatar>
-                    </template>
-
-                    <VListItemTitle>{{ customer.name }}</VListItemTitle>
-                    <VListItemSubtitle>{{ customer.phone }}</VListItemSubtitle>
-
-                    <template #append>
-                      <VChip size="small" variant="tonal" color="success">
-                        방문 {{ customer.visitCount }}회
-                      </VChip>
-                    </template>
-                  </VListItem>
-                </VList>
-
-                <VAlert v-else type="info" variant="tonal">
-                  최근 신규 고객이 없습니다
-                </VAlert>
-              </VCardText>
+        <!-- 5. 퀵 액션 4개 -->
+        <VRow id="dashboard-quick-actions" class="mb-6">
+          <VCol
+            v-for="action in quickActions"
+            :key="action.title"
+            cols="6"
+            md="3"
+          >
+            <VCard
+              :to="action.to"
+              class="text-center pa-4 quick-action-card"
+              variant="tonal"
+              :color="action.color"
+            >
+              <VAvatar :color="action.color" variant="tonal" size="48" class="mb-3">
+                <VIcon :icon="action.icon" size="24" />
+              </VAvatar>
+              <h6 class="text-subtitle-1 font-weight-medium mb-1">{{ action.title }}</h6>
+              <p class="text-caption text-medium-emphasis mb-0">{{ action.description }}</p>
             </VCard>
           </VCol>
         </VRow>
+
+        <!-- 6. 신규 고객 목록 -->
+        <VCard class="mb-6">
+          <VCardTitle class="d-flex align-center">
+            <VIcon icon="ri-user-add-line" class="me-2" />
+            최근 신규 고객
+
+            <VSpacer />
+
+            <VBtn
+              size="small"
+              variant="text"
+              :to="{ name: 'shop-admin-customers-list' }"
+              aria-label="고객 전체 보기"
+            >
+              전체 보기
+              <VIcon icon="ri-arrow-right-line" class="ms-1" />
+            </VBtn>
+          </VCardTitle>
+
+          <VDivider />
+
+          <VCardText>
+            <VList v-if="stats?.recentCustomers && stats.recentCustomers.length > 0">
+              <VListItem
+                v-for="customer in stats.recentCustomers"
+                :key="customer.id"
+              >
+                <template #prepend>
+                  <VAvatar color="primary" size="40">
+                    {{ getInitial(customer.name) }}
+                  </VAvatar>
+                </template>
+
+                <VListItemTitle>{{ customer.name }}</VListItemTitle>
+                <VListItemSubtitle>{{ customer.phone }}</VListItemSubtitle>
+
+                <template #append>
+                  <VChip size="small" variant="tonal" color="success">
+                    방문 {{ customer.visitCount }}회
+                  </VChip>
+                </template>
+              </VListItem>
+            </VList>
+
+            <VAlert v-else type="info" variant="tonal">
+              최근 신규 고객이 없습니다
+            </VAlert>
+          </VCardText>
+        </VCard>
+
+        <!-- 7. 환영 배너 / 트라이얼 배너 (접히는 형태) -->
+        <VCard class="mb-6 welcome-banner" color="primary">
+          <VCardText class="d-flex align-center justify-space-between pa-4">
+            <div class="d-flex align-center" style="cursor: pointer;" @click="showWelcomeBanner = !showWelcomeBanner">
+              <VIcon
+                :icon="showWelcomeBanner ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'"
+                size="20"
+                class="text-white me-2"
+              />
+              <p class="text-body-2 text-white mb-0">
+                {{ todayText }} &mdash; 안녕하세요, {{ businessName }} 님!
+              </p>
+            </div>
+            <VBtn
+              icon
+              size="x-small"
+              variant="text"
+              class="text-white"
+              aria-label="환영 배너 닫기"
+              @click="showWelcomeBanner = false"
+            >
+              <VIcon icon="ri-close-line" size="18" />
+            </VBtn>
+          </VCardText>
+          <VExpandTransition>
+            <div v-show="showWelcomeBanner">
+              <VDivider class="border-opacity-25" />
+              <VCardText class="d-flex align-center justify-space-between pa-6 pt-4">
+                <div>
+                  <h4 class="text-h4 font-weight-bold text-white mb-2">
+                    안녕하세요, {{ businessName }} 님!
+                  </h4>
+                </div>
+                <VIcon
+                  icon="ri-store-3-line"
+                  size="80"
+                  class="text-white text-disabled d-none d-md-block"
+                />
+              </VCardText>
+            </div>
+          </VExpandTransition>
+        </VCard>
+
+        <TrialBanner />
+        <ReservationUsageBanner />
 
       </template>
     </template>
@@ -406,6 +483,7 @@ import ReservationUsageBanner from '@/components/trial/ReservationUsageBanner.vu
 import TrialBanner from '@/components/trial/TrialBanner.vue'
 import UnassignedReservationAlert from '@/components/UnassignedReservationAlert.vue'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useHelpTooltip } from '@/composables/useHelpTooltip'
 import { getStatusColor, getStatusLabel, getStatusIcon } from '@/constants/reservation-status'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
@@ -418,6 +496,7 @@ import VueApexCharts from 'vue3-apexcharts'
 import { useTheme } from 'vuetify'
 
 const { serviceIconLine } = useBusinessIcon()
+const { getHelpText, helpIcon } = useHelpTooltip()
 const theme = useTheme()
 
 const dashboardStore = useDashboardStore()
@@ -428,6 +507,7 @@ const subscriptionStore = useSubscriptionStore()
 const chartKey = ref(0)
 const chartReady = ref(false)
 const showOnboarding = ref(false)
+const showWelcomeBanner = ref(false)
 
 const { startDashboardTour, isTourCompleted } = useTour()
 
@@ -439,7 +519,7 @@ const quickActions = [
     description: '새 예약을 추가합니다',
     icon: 'ri-add-line',
     color: 'primary',
-    to: { name: 'shop-admin-reservations-calendar' },
+    to: { name: 'shop-admin-reservations-list' },
   },
   {
     title: '고객 등록',
@@ -516,6 +596,14 @@ const totalAlerts = computed(() => {
 })
 
 const hasActionAlerts = computed(() => totalAlerts.value > 0)
+
+const isBusinessEmpty = computed(() => {
+  const s = stats.value
+  if (!s?.todayStats) return false
+  return s.todayStats.totalReservations === 0
+    && s.monthStats?.totalReservations === 0
+    && s.monthStats?.newCustomers === 0
+})
 
 // 차트 데이터
 const chartSeries = computed(() => {
@@ -610,26 +698,16 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@styles/mixins" as *;
+
 .welcome-banner {
   background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-info)) 100%) !important;
 }
 
 .quick-action-card {
+  @include card-hover-lift($shadow: 0 4px 16px rgba(var(--v-theme-on-surface), 0.12));
+
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.quick-action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(var(--v-theme-on-surface), 0.12);
-}
-
-.opacity-20 {
-  opacity: 0.3;
-}
-
-.text-opacity-80 {
-  opacity: 0.8;
 }
 </style>

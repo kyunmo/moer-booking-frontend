@@ -108,10 +108,65 @@ export function useSseNotifications() {
       }
 
       store.addRealtimeNotification(notification)
+
+      // Browser Notification API
+      showBrowserNotification(notification)
     }
     catch {
       // ignore parse errors
     }
+  }
+
+  /**
+   * 브라우저 Notification API를 이용한 알림 표시
+   */
+  function showBrowserNotification(notification) {
+    if (!('Notification' in window)) return
+
+    if (Notification.permission === 'granted') {
+      createBrowserNotification(notification)
+    }
+    else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          createBrowserNotification(notification)
+        }
+      })
+    }
+  }
+
+  function createBrowserNotification(notification) {
+    try {
+      const n = new Notification(notification.title, {
+        body: notification.message,
+        icon: '/favicon.ico',
+        tag: notification.id || notification.type,
+        requireInteraction: false,
+      })
+
+      n.onclick = () => {
+        window.focus()
+        if (notification.link) {
+          window.location.hash = notification.link
+        }
+        n.close()
+      }
+
+      // 자동 닫기 (5초 후)
+      setTimeout(() => n.close(), 5000)
+    }
+    catch {
+      // Service Worker 환경이 아닌 경우 등 무시
+    }
+  }
+
+  /**
+   * 브라우저 알림 권한 요청
+   */
+  function requestNotificationPermission() {
+    if (!('Notification' in window)) return Promise.resolve('denied')
+    if (Notification.permission === 'granted') return Promise.resolve('granted')
+    return Notification.requestPermission()
   }
 
   function getEventTitle(eventType) {
@@ -171,5 +226,6 @@ export function useSseNotifications() {
     connecting,
     connect,
     disconnect,
+    requestNotificationPermission,
   }
 }

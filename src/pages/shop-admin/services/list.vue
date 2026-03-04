@@ -5,33 +5,16 @@
       <VCardTitle class="d-flex align-center pe-2">
         <VIcon :icon="serviceIcon" size="24" class="me-3" />
         <span>서비스 관리</span>
+        <VTooltip location="bottom" max-width="300">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+              <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+            </VBtn>
+          </template>
+          <span>{{ getHelpText('service.create') }}</span>
+        </VTooltip>
 
         <VSpacer />
-
-        <!-- 카테고리 필터 -->
-        <VSelect
-          id="service-category-filter"
-          v-model="selectedCategory"
-          :items="categoryFilterOptions"
-          placeholder="전체 카테고리"
-          aria-label="카테고리 필터"
-          density="compact"
-          style="max-inline-size: 200px;"
-          class="me-3"
-          clearable
-        />
-
-        <!-- 검색 -->
-        <VTextField
-          v-model="searchQuery"
-          placeholder="서비스명 검색"
-          aria-label="서비스명 검색"
-          prepend-inner-icon="ri-search-line"
-          density="compact"
-          style="max-inline-size: 250px;"
-          class="me-3"
-          clearable
-        />
 
         <!-- 카테고리 관리 -->
         <VBtn
@@ -39,6 +22,7 @@
           variant="outlined"
           prepend-icon="ri-folder-settings-line"
           class="me-3"
+          aria-label="카테고리 관리 열기"
           @click="isCategoryDialogVisible = true"
         >
           카테고리 관리
@@ -49,11 +33,43 @@
           id="service-create-btn"
           color="primary"
           prepend-icon="ri-add-line"
+          aria-label="새 서비스 등록"
           @click="openCreateDialog"
         >
           서비스 등록
         </VBtn>
       </VCardTitle>
+
+      <VDivider />
+
+      <!-- 필터 영역 -->
+      <VCardText>
+        <VRow>
+          <VCol cols="12" sm="6" md="4">
+            <VSelect
+              id="service-category-filter"
+              v-model="selectedCategory"
+              :items="categoryFilterOptions"
+              placeholder="전체 카테고리"
+              aria-label="카테고리 필터"
+              density="compact"
+              clearable
+              hide-details
+            />
+          </VCol>
+          <VCol cols="12" sm="6" md="4">
+            <VTextField
+              v-model="searchQuery"
+              placeholder="서비스명 검색"
+              aria-label="서비스명 검색"
+              prepend-inner-icon="ri-search-line"
+              density="compact"
+              clearable
+              hide-details
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
     </VCard>
 
     <!-- 통계 카드 -->
@@ -124,6 +140,17 @@
           lg="3"
         >
           <VCard class="service-card">
+            <!-- 서비스 대표 이미지 썸네일 -->
+            <div v-if="service.images && service.images.length > 0" class="service-thumbnail">
+              <VImg
+                :src="service.images[0].thumbnailUrl || service.images[0].imageUrl"
+                :lazy-src="`${service.images[0].thumbnailUrl || service.images[0].imageUrl}?w=40&q=10`"
+                height="140"
+                cover
+                :alt="`${service.name} 이미지`"
+              />
+            </div>
+
             <!-- 헤더 -->
             <VCardTitle class="d-flex align-center">
               <VIcon
@@ -133,9 +160,9 @@
                 :color="getCategoryColor(service.categoryName || service.category)"
               />
               <span class="text-truncate">{{ service.name }}</span>
-              
+
               <VSpacer />
-              
+
               <VChip
                 :color="service.isActive !== false ? 'success' : 'error'"
                 size="small"
@@ -205,6 +232,7 @@
                 variant="text"
                 size="small"
                 color="primary"
+                :aria-label="`${service.name} 서비스 수정`"
                 @click="editService(service)"
               >
                 <VIcon icon="ri-edit-line" class="me-1" />
@@ -275,6 +303,7 @@
 import EmptyState from '@/components/EmptyState.vue'
 import ConfirmDeleteDialog from '@/components/dialogs/ConfirmDeleteDialog.vue'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
+import { useHelpTooltip } from '@/composables/useHelpTooltip'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { useServiceCategoryStore } from '@/stores/service-category'
 import { useServiceStore } from '@/stores/service'
@@ -284,6 +313,7 @@ import ServiceDetailDialog from './components/ServiceDetailDialog.vue'
 import ServiceFormDialog from './components/ServiceFormDialog.vue'
 
 const { serviceIcon, serviceIconLine, getCategoryIcon, getCategoryColor } = useBusinessIcon()
+const { getHelpText, helpIcon } = useHelpTooltip()
 const { error: showError } = useSnackbar()
 
 const serviceStore = useServiceStore()
@@ -422,14 +452,12 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.service-card {
-  block-size: 100%;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+<style lang="scss" scoped>
+@use "@styles/mixins" as *;
 
-.service-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 10%);
-  transform: translateY(-4px);
+.service-card {
+  @include card-hover-lift($shadow: 0 4px 12px rgba(0, 0, 0, 0.1));
+
+  block-size: 100%;
 }
 </style>

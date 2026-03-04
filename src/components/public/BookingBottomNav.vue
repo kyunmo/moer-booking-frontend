@@ -23,7 +23,7 @@ const showBottomNav = computed(() => isBookingPage.value && !isHiddenPage.value)
 const activeTab = computed(() => {
   const path = route.path
   if (path === '/booking/my-reservations') return 'my-reservations'
-  if (path === '/booking/reservation') return 'reservation-lookup'
+  if (path === '/booking/bookmarks') return 'bookmarks'
   if (path === '/booking/profile') return 'profile'
 
   // /booking 또는 /booking/[slug] 등은 검색 탭으로
@@ -35,7 +35,7 @@ const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
 
 // 탭 클릭 핸들러 - 보호된 페이지는 로그인 체크
 function handleTabClick(tabPath) {
-  const protectedPaths = ['/booking/my-reservations', '/booking/profile']
+  const protectedPaths = ['/booking/my-reservations', '/booking/bookmarks', '/booking/profile']
   if (protectedPaths.includes(tabPath) && !isCustomerLoggedIn.value) {
     router.push(`/booking/login?redirect=${encodeURIComponent(tabPath)}`)
   } else {
@@ -62,24 +62,20 @@ function handleTabClick(tabPath) {
       <span>검색</span>
     </VBtn>
 
-    <!-- 로그인 상태: 내 예약 -->
     <VBtn
-      v-if="isCustomerLoggedIn"
       value="my-reservations"
       @click="handleTabClick('/booking/my-reservations')"
     >
-      <VIcon>ri-calendar-line</VIcon>
+      <VIcon>ri-calendar-check-line</VIcon>
       <span>내 예약</span>
     </VBtn>
 
-    <!-- 비로그인 상태: 예약 확인 (전화번호 조회) -->
     <VBtn
-      v-else
-      value="reservation-lookup"
-      @click="handleTabClick('/booking/reservation')"
+      value="bookmarks"
+      @click="handleTabClick('/booking/bookmarks')"
     >
-      <VIcon>ri-calendar-check-line</VIcon>
-      <span>예약확인</span>
+      <VIcon>ri-heart-line</VIcon>
+      <span>북마크</span>
     </VBtn>
 
     <VBtn

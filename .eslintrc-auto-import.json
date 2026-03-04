@@ -383,6 +383,7 @@
     "usePhoneValidation": true,
     "calculateRefund": true,
     "formatRefundAmount": true,
-    "useSseNotifications": true
+    "useSseNotifications": true,
+    "useHelpTooltip": true
   }
 }

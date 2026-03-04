@@ -1,16 +1,17 @@
 <template>
   <div>
     <!-- 페이지 헤더 -->
-    <div class="d-flex justify-space-between align-center mb-6">
-      <div>
-        <h2 class="text-h4 mb-1">
-          결제
-        </h2>
-        <p class="text-body-1 text-medium-emphasis">
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center">
+        <VIcon icon="ri-bank-card-line" size="24" class="me-3" />
+        <span>결제</span>
+      </VCardTitle>
+      <VCardText class="pt-0">
+        <p class="text-body-1 text-medium-emphasis mb-0">
           플랜을 선택하고 결제를 진행하세요
         </p>
-      </div>
-    </div>
+      </VCardText>
+    </VCard>
 
     <!-- 구독 연장 안내 -->
     <VAlert
@@ -46,6 +47,19 @@
           </p>
           <p v-else class="mb-0">구독이 활성화되었습니다.</p>
         </div>
+      </div>
+    </VAlert>
+
+    <!-- 구독 상태 동기화 중 -->
+    <VAlert
+      v-if="syncingSubscription"
+      type="info"
+      variant="tonal"
+      class="mb-6"
+    >
+      <div class="d-flex align-center">
+        <VProgressCircular indeterminate size="20" width="2" color="info" class="me-3" />
+        <span>결제 처리 중... 구독 상태를 확인하고 있습니다.</span>
       </div>
     </VAlert>
 
@@ -408,6 +422,7 @@ const paymentFailed = ref(false)
 const failReason = ref('')
 const paymentResult = ref(null)
 const isPgDemoOpen = ref(false)
+const syncingSubscription = ref(false)
 
 // 쿠폰 관련 상태
 const couponCode = ref('')
@@ -611,18 +626,25 @@ async function handlePgSuccess() {
         : '결제가 완료되었습니다!'
       showSnackbar(successMsg, 'success')
 
-      // 구독 정보 갱신
-      await subscriptionStore.fetchSubscriptionInfo()
-
       // 쿠폰 상태 초기화
       appliedCoupon.value = null
       couponCode.value = ''
       couponStore.clearValidatedCoupon()
 
-      // 3초 후 구독 관리 페이지로 이동
+      // 구독 상태 동기화 (현재 FakePG 동기 처리 → 1회 조회로 즉시 반영)
+      // 프로덕션 PG 연동 시 비동기 처리로 전환되면 폴링/WebSocket 방식 재검토 예정
+      syncingSubscription.value = true
+      try {
+        await subscriptionStore.fetchSubscriptionInfo()
+      } catch {
+        showSnackbar('구독 상태 반영에 시간이 걸릴 수 있습니다.', 'info')
+      }
+      syncingSubscription.value = false
+
+      // 구독 관리 페이지로 이동
       setTimeout(() => {
         router.push('/shop-admin/subscription')
-      }, 3000)
+      }, 1500)
     } else if (result.status === 'FAILED') {
       paymentFailed.value = true
       failReason.value = result.failReason || '결제 처리 중 오류가 발생했습니다.'
@@ -666,14 +688,13 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.cursor-pointer {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
+<style lang="scss" scoped>
+@use "@styles/mixins" as *;
 
-.cursor-pointer:hover {
-  transform: translateY(-4px);
+.cursor-pointer {
+  @include card-hover-lift($shadow: none);
+
+  cursor: pointer;
 }
 
 .sticky-top {

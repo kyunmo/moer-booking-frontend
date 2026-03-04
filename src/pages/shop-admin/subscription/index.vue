@@ -1,17 +1,60 @@
 <template>
   <div>
     <!-- 페이지 헤더 -->
-    <div class="d-flex justify-space-between align-center mb-6">
-      <div>
-        <h2 class="text-h4 mb-1">
-          구독 관리
-        </h2>
-        <p class="text-body-1 text-medium-emphasis">
-          플랜 및 사용량을 관리하세요
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center">
+        <VIcon icon="ri-vip-crown-line" size="24" class="me-3" />
+        <span>구독 관리</span>
+      </VCardTitle>
+      <VCardText class="pt-0">
+        <p class="text-body-1 text-medium-emphasis mb-0">
+          플랜, 결제 및 사용량을 관리하세요
         </p>
-      </div>
-    </div>
+      </VCardText>
+    </VCard>
 
+    <!-- 탭 네비게이션 -->
+    <VTabs v-model="activeTab" class="mb-6">
+      <VTab value="plan">
+        <VIcon icon="ri-vip-crown-line" class="me-2" />
+        현재 플랜
+      </VTab>
+      <VTab value="payment">
+        <VIcon icon="ri-bank-card-line" class="me-2" />
+        결제
+      </VTab>
+      <VTab value="history">
+        <VIcon icon="ri-file-list-line" class="me-2" />
+        결제 이력
+      </VTab>
+    </VTabs>
+
+    <!-- 결제 탭 (lazy load) -->
+    <template v-if="activeTab === 'payment'">
+      <Suspense>
+        <PaymentView />
+        <template #fallback>
+          <div class="text-center pa-10">
+            <VProgressCircular indeterminate color="primary" size="48" />
+          </div>
+        </template>
+      </Suspense>
+    </template>
+
+    <!-- 결제 이력 탭 (lazy load) -->
+    <template v-if="activeTab === 'history'">
+      <Suspense>
+        <PaymentHistoryView />
+        <template #fallback>
+          <div class="text-center pa-10">
+            <VProgressCircular indeterminate color="primary" size="48" />
+          </div>
+        </template>
+      </Suspense>
+    </template>
+
+    <!-- 현재 플랜 탭 -->
+    <template v-if="activeTab === 'plan'">
     <!-- 로딩 상태 -->
     <div v-if="loading && !subscriptionInfo" class="text-center py-16">
       <VProgressCircular
@@ -63,8 +106,8 @@
                   <p class="text-h4 font-weight-bold text-primary">
                     {{ formattedPrice }}
                   </p>
-                  <p class="text-body-2 text-medium-emphasis">
-                    / 월
+                  <p v-if="priceSubText" class="text-body-2 text-medium-emphasis">
+                    {{ priceSubText }}
                   </p>
                 </div>
               </div>
@@ -108,7 +151,7 @@
                 <VBtn
                   color="success"
                   variant="outlined"
-                  @click="router.push('/shop-admin/payment/history')"
+                  @click="activeTab = 'history'"
                 >
                   <VIcon icon="ri-file-list-line" start />
                   결제 내역
@@ -268,6 +311,8 @@
       {{ error }}
     </VAlert>
 
+    </template><!-- end plan tab -->
+
     <!-- 플랜 변경 다이얼로그 -->
     <PlanChangeDialog
       v-model="isPlanChangeDialogOpen"
@@ -332,6 +377,20 @@
             </VCardText>
           </VCard>
 
+          <!-- 잔여 기간 안내 -->
+          <VAlert
+            v-if="nextBillingDate"
+            type="info"
+            variant="tonal"
+            density="compact"
+            class="mb-4"
+          >
+            <div class="text-body-2">
+              <VIcon icon="ri-calendar-line" size="16" class="me-1" />
+              현재 결제 기간(<strong>~{{ formatDate(nextBillingDate) }}</strong>)까지 유료 기능을 계속 이용할 수 있습니다.
+            </div>
+          </VAlert>
+
           <VAlert
             type="warning"
             variant="tonal"
@@ -372,15 +431,27 @@
 <script setup>
 import { useSubscriptionStore } from '@/stores/subscription'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { defineAsyncComponent, onMounted, ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import PlanChangeDialog from '@/components/subscription/PlanChangeDialog.vue'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { usePaymentStore } from '@/stores/payment'
 import { calculateRefund } from '@/utils/refundCalculator'
 import { formatCurrency } from '@/constants/pricing'
 
+// Lazy-load payment views
+const PaymentView = defineAsyncComponent(() =>
+  import('@/pages/shop-admin/payment/index.vue'),
+)
+const PaymentHistoryView = defineAsyncComponent(() =>
+  import('@/pages/shop-admin/payment/history.vue'),
+)
+
 const router = useRouter()
+const route = useRoute()
+
+// Tab state
+const activeTab = ref(route.query.tab || 'plan')
 const subscriptionStore = useSubscriptionStore()
 const paymentStore = usePaymentStore()
 const { showSnackbar } = useSnackbar()
@@ -392,6 +463,7 @@ const {
   currentPlan,
   planDescription,
   monthlyPrice,
+  billingCycle,
   status,
   isTrialActive,
   daysUntilTrialEnd,
@@ -441,10 +513,23 @@ const plans = [
   },
 ]
 
-// 가격 포맷팅
+// 가격 포맷팅 (월간/연간 분기)
 const formattedPrice = computed(() => {
   if (monthlyPrice.value === 0) return '무료'
+  if (billingCycle.value === 'YEARLY') {
+    const yearlyPrice = monthlyPrice.value * 10 // 연간 = 월간 × 10 (2개월 무료)
+    return `${yearlyPrice.toLocaleString()}원`
+  }
   return `${monthlyPrice.value.toLocaleString()}원`
+})
+
+// 가격 부가 텍스트 (/ 월, / 년)
+const priceSubText = computed(() => {
+  if (monthlyPrice.value === 0) return ''
+  if (billingCycle.value === 'YEARLY') {
+    return `/ 년 (월 ${monthlyPrice.value.toLocaleString()}원)`
+  }
+  return '/ 월'
 })
 
 // 상태 텍스트
@@ -550,8 +635,16 @@ async function openCancelDialog() {
 // 구독 취소 처리
 async function handleCancelSubscription() {
   try {
-    await subscriptionStore.cancelSubscription()
-    showSnackbar('구독이 취소되었습니다.', 'success')
+    const result = await subscriptionStore.cancelSubscription()
+
+    // 취소 후 잔여 기간 안내
+    const expiresAt = result?.nextBillingDate
+    if (expiresAt) {
+      showSnackbar(`구독이 취소되었습니다. ${formatDate(expiresAt)}까지 유료 기능을 이용할 수 있습니다.`, 'success')
+    }
+    else {
+      showSnackbar('구독이 취소되었습니다.', 'success')
+    }
     isCancelDialogOpen.value = false
   }
   catch (error) {

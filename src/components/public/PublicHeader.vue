@@ -1,20 +1,19 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTheme } from 'vuetify'
 import { useWindowScroll } from '@vueuse/core'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { useAuthStore } from '@/stores/auth'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
+import HeaderDesktopNav from './HeaderDesktopNav.vue'
+import HeaderMobileDrawer from './HeaderMobileDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()
-const theme = useTheme()
 const authStore = useAuthStore()
 const customerAuthStore = useCustomerAuthStore()
 const mobileDrawer = ref(false)
-const customerMenu = ref(false)
 
 // Scroll detection
 const { y: scrollY } = useWindowScroll()
@@ -32,21 +31,6 @@ const navbarBgStyle = computed(() => ({
 // booking 경로 여부 판별
 const isBookingPage = computed(() => route.path.startsWith('/booking'))
 
-// 고객 로그인 상태
-const isCustomerLoggedIn = computed(() => customerAuthStore.isAuthenticated)
-
-// 고객 표시 이름 (이름 또는 이메일 앞부분)
-const customerDisplayName = computed(() => {
-  if (customerAuthStore.customerName) return customerAuthStore.customerName
-  if (customerAuthStore.customerEmail) return customerAuthStore.customerEmail.split('@')[0]
-  return '고객'
-})
-
-// 고객 이니셜 (아바타용)
-const customerInitial = computed(() => {
-  return customerDisplayName.value.charAt(0).toUpperCase()
-})
-
 // 기본 네비게이션 메뉴
 const defaultNavItems = [
   { title: '홈', to: '/', icon: 'ri-home-line' },
@@ -56,7 +40,7 @@ const defaultNavItems = [
   { title: '지원', to: '/support', icon: 'ri-customer-service-line' },
 ]
 
-// 예약 페이지 전용 네비게이션 (고객 로그인 시 "내 예약" 표시, 미로그인 시 "예약 확인" 표시)
+// 예약 페이지 전용 네비게이션
 const bookingNavItems = computed(() => {
   const items = [
     { title: '매장 검색', to: '/booking', icon: 'ri-search-line' },
@@ -64,27 +48,16 @@ const bookingNavItems = computed(() => {
   if (customerAuthStore.isAuthenticated) {
     items.push({ title: '내 예약', to: '/booking/my-reservations', icon: 'ri-calendar-line' })
   } else {
-    items.push({ title: '예약 확인', to: '/booking/reservation', icon: 'ri-calendar-check-line' })
+    items.push({ title: '예약 조회', to: '/booking/reservation', icon: 'ri-calendar-check-line' })
   }
   return items
 })
 
 const navItems = computed(() => isBookingPage.value ? bookingNavItems.value : defaultNavItems)
 
-// Check if current route matches a nav item
-const isActiveRoute = (to) => {
-  if (to === '/') return route.path === '/'
-  return route.path.startsWith(to)
-}
-
 function navigateTo(path) {
   router.push(path)
   mobileDrawer.value = false
-}
-
-// 테마 토글
-function toggleTheme() {
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
 // 관리자 로그아웃
@@ -100,7 +73,6 @@ async function handleLogout() {
 
 // 고객 로그아웃
 function handleCustomerLogout() {
-  customerMenu.value = false
   mobileDrawer.value = false
   customerAuthStore.logout()
   router.push('/booking')
@@ -128,205 +100,20 @@ function handleProviderLogin(provider) {
           @click="navigateTo('/')"
         >
           <VNodeRenderer :nodes="themeConfig.app.logo" />
-          <h1 class="app-logo-title ms-2">
+          <span class="app-logo-title ms-2">
             {{ themeConfig.app.title }}
-          </h1>
+          </span>
         </div>
 
-        <!-- Desktop Navigation (center) - hidden on mobile -->
-        <div class="d-none d-md-flex align-center header-nav">
-          <VBtn
-            v-for="item in navItems"
-            :key="item.to"
-            :to="item.to"
-            variant="text"
-            class="nav-link-btn mx-1"
-            :class="{ 'nav-link-active': isActiveRoute(item.to) }"
-          >
-            {{ item.title }}
-          </VBtn>
-        </div>
-
-        <!-- Desktop Right Actions - hidden on mobile -->
-        <div class="d-none d-md-flex align-center header-actions">
-          <!-- Theme Toggle -->
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            class="me-1"
-            :aria-label="theme.global.current.value.dark ? '라이트 모드로 전환' : '다크 모드로 전환'"
-            @click="toggleTheme"
-          >
-            <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
-          </VBtn>
-
-          <!-- === AUTH BRANCH: booking page + customer logged in === -->
-          <template v-if="isBookingPage && isCustomerLoggedIn">
-            <!-- Admin shortcut if also admin-logged-in -->
-            <VBtn
-              v-if="authStore.isAuthenticated"
-              to="/shop-admin/dashboard"
-              variant="text"
-              class="mx-1"
-              prepend-icon="ri-dashboard-line"
-              size="small"
-            >
-              관리자
-            </VBtn>
-
-            <!-- Customer Profile Menu -->
-            <VMenu v-model="customerMenu" :close-on-content-click="false">
-              <template #activator="{ props }">
-                <VBtn
-                  v-bind="props"
-                  variant="text"
-                  class="ms-1"
-                >
-                  <VAvatar
-                    size="32"
-                    :image="customerAuthStore.profileImageUrl"
-                    :color="customerAuthStore.profileImageUrl ? undefined : 'primary'"
-                    class="me-2"
-                  >
-                    <span v-if="!customerAuthStore.profileImageUrl" class="text-caption font-weight-bold">
-                      {{ customerInitial }}
-                    </span>
-                  </VAvatar>
-                  <span class="text-body-2">{{ customerDisplayName }}</span>
-                  <VIcon end size="18">
-                    ri-arrow-down-s-line
-                  </VIcon>
-                </VBtn>
-              </template>
-
-              <VList min-width="200">
-                <VListItem
-                  prepend-icon="ri-user-line"
-                  title="내 프로필"
-                  @click="customerMenu = false; navigateTo('/booking/profile')"
-                />
-                <VListItem
-                  prepend-icon="ri-calendar-line"
-                  title="내 예약"
-                  @click="customerMenu = false; navigateTo('/booking/my-reservations')"
-                />
-                <VListItem
-                  prepend-icon="ri-chat-3-line"
-                  title="내 리뷰"
-                  @click="customerMenu = false; navigateTo('/booking/my-reviews')"
-                />
-                <VDivider class="my-1" />
-                <VListItem
-                  prepend-icon="ri-logout-box-r-line"
-                  title="로그아웃"
-                  class="text-error"
-                  @click="handleCustomerLogout"
-                />
-              </VList>
-            </VMenu>
-          </template>
-
-          <!-- === AUTH BRANCH: booking page + customer NOT logged in === -->
-          <template v-else-if="isBookingPage && !isCustomerLoggedIn">
-            <!-- Admin controls if admin is logged in -->
-            <template v-if="authStore.isAuthenticated">
-              <VBtn
-                to="/shop-admin/dashboard"
-                variant="text"
-                class="mx-1"
-                prepend-icon="ri-dashboard-line"
-              >
-                관리자
-              </VBtn>
-              <VBtn
-                color="error"
-                variant="outlined"
-                class="ms-2"
-                prepend-icon="ri-logout-box-r-line"
-                @click="handleLogout"
-              >
-                로그아웃
-              </VBtn>
-            </template>
-
-            <!-- Customer Login Menu -->
-            <VMenu>
-              <template #activator="{ props }">
-                <VBtn
-                  v-bind="props"
-                  color="primary"
-                  variant="outlined"
-                  class="ms-2"
-                  prepend-icon="ri-login-box-line"
-                >
-                  고객 로그인
-                </VBtn>
-              </template>
-              <VList min-width="200">
-                <VListItem
-                  prepend-icon="ri-kakao-talk-fill"
-                  title="카카오 로그인"
-                  @click="handleProviderLogin('kakao')"
-                />
-                <VListItem
-                  prepend-icon="ri-global-line"
-                  title="네이버 로그인"
-                  @click="handleProviderLogin('naver')"
-                />
-                <VListItem
-                  prepend-icon="ri-google-fill"
-                  title="구글 로그인"
-                  @click="handleProviderLogin('google')"
-                />
-              </VList>
-            </VMenu>
-          </template>
-
-          <!-- === AUTH BRANCH: normal pages (non-booking) === -->
-          <template v-else>
-            <template v-if="authStore.isAuthenticated">
-              <VBtn
-                to="/shop-admin/dashboard"
-                variant="text"
-                class="mx-1"
-                prepend-icon="ri-dashboard-line"
-              >
-                관리자
-              </VBtn>
-
-              <VBtn
-                color="error"
-                variant="outlined"
-                class="ms-2"
-                prepend-icon="ri-logout-box-r-line"
-                @click="handleLogout"
-              >
-                로그아웃
-              </VBtn>
-            </template>
-
-            <template v-else>
-              <VBtn
-                to="/login"
-                variant="text"
-                class="mx-1"
-              >
-                로그인
-              </VBtn>
-
-              <VBtn
-                to="/register"
-                color="primary"
-                variant="elevated"
-                class="ms-2"
-                prepend-icon="ri-rocket-line"
-              >
-                무료로 시작하기
-              </VBtn>
-            </template>
-          </template>
-        </div>
+        <!-- Desktop Navigation + Actions -->
+        <HeaderDesktopNav
+          :nav-items="navItems"
+          :is-booking-page="isBookingPage"
+          @navigate="navigateTo"
+          @logout="handleLogout"
+          @customer-logout="handleCustomerLogout"
+          @provider-login="handleProviderLogin"
+        />
 
         <!-- Mobile Hamburger Button -->
         <VSpacer class="d-md-none" />
@@ -342,233 +129,16 @@ function handleProviderLogin(provider) {
       </VContainer>
     </VAppBar>
 
-    <!-- Mobile Navigation Drawer (teleported to body to avoid sticky stacking context issues on tablets) -->
-    <Teleport to="body">
-    <VNavigationDrawer
+    <!-- Mobile Navigation Drawer -->
+    <HeaderMobileDrawer
       v-model="mobileDrawer"
-      temporary
-      location="end"
-      width="280"
-      class="public-mobile-drawer"
-    >
-      <!-- Close Button -->
-      <div class="d-flex justify-end pa-2">
-        <VBtn icon variant="text" size="small" aria-label="메뉴 닫기" @click="mobileDrawer = false">
-          <VIcon icon="ri-close-line" />
-        </VBtn>
-      </div>
-
-      <div class="px-4 pb-4">
-        <!-- Logo -->
-        <div class="d-flex align-center mb-4">
-          <VNodeRenderer :nodes="themeConfig.app.logo" />
-          <h2 class="app-logo-title ms-2">
-            {{ themeConfig.app.title }}
-          </h2>
-        </div>
-
-        <VDivider class="mb-4" />
-
-        <!-- Nav Items -->
-        <VList>
-          <VListItem
-            v-for="item in navItems"
-            :key="item.to"
-            :to="item.to"
-            :active="isActiveRoute(item.to)"
-            @click="navigateTo(item.to)"
-          >
-            <template #prepend>
-              <VIcon :icon="item.icon" />
-            </template>
-            <VListItemTitle>{{ item.title }}</VListItemTitle>
-          </VListItem>
-        </VList>
-
-        <VDivider class="my-4" />
-
-        <!-- Theme Toggle -->
-        <VListItem @click="toggleTheme">
-          <template #prepend>
-            <VIcon :icon="theme.global.current.value.dark ? 'ri-sun-line' : 'ri-moon-line'" />
-          </template>
-          <VListItemTitle>
-            {{ theme.global.current.value.dark ? '라이트 모드' : '다크 모드' }}
-          </VListItemTitle>
-        </VListItem>
-
-        <VDivider class="my-4" />
-
-        <!-- Auth Action Buttons -->
-        <div class="d-flex flex-column gap-2">
-          <!-- === MOBILE AUTH: booking page + customer logged in === -->
-          <template v-if="isBookingPage && isCustomerLoggedIn">
-            <!-- Customer Info -->
-            <div class="d-flex align-center mb-2 px-2">
-              <VAvatar
-                size="36"
-                :image="customerAuthStore.profileImageUrl"
-                :color="customerAuthStore.profileImageUrl ? undefined : 'primary'"
-                class="me-3"
-              >
-                <span v-if="!customerAuthStore.profileImageUrl" class="text-caption font-weight-bold">
-                  {{ customerInitial }}
-                </span>
-              </VAvatar>
-              <div>
-                <div class="text-body-1 font-weight-medium">
-                  {{ customerDisplayName }}
-                </div>
-                <div v-if="customerAuthStore.customerEmail" class="text-caption text-medium-emphasis">
-                  {{ customerAuthStore.customerEmail }}
-                </div>
-              </div>
-            </div>
-
-            <VDivider class="mb-2" />
-
-            <VBtn
-              block
-              variant="outlined"
-              prepend-icon="ri-user-line"
-              @click="navigateTo('/booking/profile')"
-            >
-              내 프로필
-            </VBtn>
-            <VBtn
-              block
-              variant="outlined"
-              prepend-icon="ri-calendar-line"
-              @click="navigateTo('/booking/my-reservations')"
-            >
-              내 예약
-            </VBtn>
-            <VBtn
-              block
-              variant="outlined"
-              prepend-icon="ri-chat-3-line"
-              @click="navigateTo('/booking/my-reviews')"
-            >
-              내 리뷰
-            </VBtn>
-
-            <!-- Admin shortcut if also admin-logged-in -->
-            <VBtn
-              v-if="authStore.isAuthenticated"
-              block
-              variant="outlined"
-              prepend-icon="ri-dashboard-line"
-              @click="navigateTo('/shop-admin/dashboard')"
-            >
-              관리자 페이지
-            </VBtn>
-
-            <VBtn
-              block
-              color="error"
-              variant="outlined"
-              prepend-icon="ri-logout-box-r-line"
-              @click="handleCustomerLogout"
-            >
-              로그아웃
-            </VBtn>
-          </template>
-
-          <!-- === MOBILE AUTH: booking page + customer NOT logged in === -->
-          <template v-else-if="isBookingPage && !isCustomerLoggedIn">
-            <!-- Admin controls if admin is logged in -->
-            <template v-if="authStore.isAuthenticated">
-              <VBtn
-                block
-                variant="outlined"
-                prepend-icon="ri-dashboard-line"
-                @click="navigateTo('/shop-admin/dashboard')"
-              >
-                관리자 페이지
-              </VBtn>
-              <VBtn
-                block
-                color="error"
-                variant="outlined"
-                prepend-icon="ri-logout-box-r-line"
-                @click="handleLogout"
-              >
-                관리자 로그아웃
-              </VBtn>
-            </template>
-
-            <VBtn
-              block
-              class="kakao-mobile-btn mb-2"
-              prepend-icon="ri-kakao-talk-fill"
-              @click="handleProviderLogin('kakao')"
-            >
-              카카오 로그인
-            </VBtn>
-            <VBtn
-              block
-              color="success"
-              variant="outlined"
-              class="mb-2"
-              prepend-icon="ri-global-line"
-              @click="handleProviderLogin('naver')"
-            >
-              네이버 로그인
-            </VBtn>
-            <VBtn
-              block
-              variant="outlined"
-              prepend-icon="ri-google-fill"
-              @click="handleProviderLogin('google')"
-            >
-              구글 로그인
-            </VBtn>
-          </template>
-
-          <!-- === MOBILE AUTH: normal pages (non-booking) === -->
-          <template v-else>
-            <template v-if="authStore.isAuthenticated">
-              <VBtn
-                block
-                variant="outlined"
-                prepend-icon="ri-dashboard-line"
-                @click="navigateTo('/shop-admin/dashboard')"
-              >
-                관리자 페이지
-              </VBtn>
-              <VBtn
-                block
-                color="error"
-                variant="outlined"
-                prepend-icon="ri-logout-box-r-line"
-                @click="handleLogout"
-              >
-                로그아웃
-              </VBtn>
-            </template>
-
-            <template v-else>
-              <VBtn
-                block
-                variant="outlined"
-                @click="navigateTo('/login')"
-              >
-                로그인
-              </VBtn>
-              <VBtn
-                block
-                color="primary"
-                prepend-icon="ri-rocket-line"
-                @click="navigateTo('/register')"
-              >
-                무료로 시작하기
-              </VBtn>
-            </template>
-          </template>
-        </div>
-      </div>
-    </VNavigationDrawer>
-    </Teleport>
+      :nav-items="navItems"
+      :is-booking-page="isBookingPage"
+      @navigate="navigateTo"
+      @logout="handleLogout"
+      @customer-logout="handleCustomerLogout"
+      @provider-login="handleProviderLogin"
+    />
   </div>
 </template>
 
@@ -593,7 +163,6 @@ function handleProviderLogin(provider) {
   position: relative;
 }
 
-// Desktop: 3-column layout (logo-left, nav-center, actions-right)
 .header-logo {
   flex-shrink: 0;
 }
@@ -626,16 +195,6 @@ function handleProviderLogin(provider) {
 
 .cursor-pointer {
   cursor: pointer;
-}
-
-// Nav link styling with active state and hover effects
-.public-mobile-drawer {
-  z-index: 2000 !important;
-}
-
-.kakao-mobile-btn {
-  background-color: #FEE500 !important;
-  color: #191919 !important;
 }
 
 .nav-link-btn {

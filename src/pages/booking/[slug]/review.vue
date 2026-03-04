@@ -29,6 +29,17 @@ const formRef = ref(null)
 const valid = ref(false)
 const submitLoading = ref(false)
 const submitted = ref(false)
+const createdReviewId = ref(null)
+
+// Image upload (post-creation)
+const uploadedImages = ref([])
+const imageUploading = ref(false)
+const imageFileInput = ref(null)
+
+// Pre-submit image selection (preview before submission)
+const preSelectedFiles = ref([])
+const preSelectedPreviews = ref([])
+const preImageFileInput = ref(null)
 
 // Form data
 const reservationNumber = ref('')
@@ -192,12 +203,33 @@ async function handleSubmit() {
   submitLoading.value = true
 
   try {
-    await customerApi.createReview(slug.value, {
+    const result = await customerApi.createReview(slug.value, {
       reservationNumber: reservationNumber.value.trim(),
       rating: rating.value,
       content: content.value.trim() || null,
       staffId: staffId.value || null,
     })
+    const data = result?.data ?? result
+    createdReviewId.value = data?.id || data?.reviewId || null
+
+    // 사전 선택된 이미지들 순차 업로드
+    if (createdReviewId.value && preSelectedFiles.value.length > 0) {
+      for (const file of preSelectedFiles.value) {
+        try {
+          const imgResult = await customerApi.uploadReviewImage(createdReviewId.value, file)
+          const imgData = imgResult?.data ?? imgResult
+          uploadedImages.value.push(imgData)
+        }
+        catch (imgErr) {
+          console.error('[Review] Image upload failed:', imgErr)
+          // 이미지 업로드 실패해도 리뷰 자체는 성공이므로 계속 진행
+        }
+      }
+      // 미리보기 URL 정리
+      preSelectedPreviews.value.forEach(url => URL.revokeObjectURL(url))
+      preSelectedFiles.value = []
+      preSelectedPreviews.value = []
+    }
 
     submitted.value = true
     showSuccess('리뷰가 등록되었습니다')
@@ -208,6 +240,82 @@ async function handleSubmit() {
   }
   finally {
     submitLoading.value = false
+  }
+}
+
+// Pre-submit image selection functions
+function triggerPreImageSelect() {
+  preImageFileInput.value?.click()
+}
+
+function handlePreImageSelect(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    showError('이미지 크기는 5MB 이하만 가능합니다')
+    event.target.value = ''
+    return
+  }
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowed.includes(file.type)) {
+    showError('JPG, PNG, WebP 형식만 지원합니다')
+    event.target.value = ''
+    return
+  }
+
+  if (preSelectedFiles.value.length >= 3) {
+    showError('이미지는 최대 3장까지 첨부할 수 있습니다')
+    event.target.value = ''
+    return
+  }
+
+  preSelectedFiles.value.push(file)
+  preSelectedPreviews.value.push(URL.createObjectURL(file))
+  event.target.value = ''
+}
+
+function removePreImage(index) {
+  URL.revokeObjectURL(preSelectedPreviews.value[index])
+  preSelectedFiles.value.splice(index, 1)
+  preSelectedPreviews.value.splice(index, 1)
+}
+
+// Image upload functions
+function triggerImageUpload() {
+  imageFileInput.value?.click()
+}
+
+async function handleImageUpload(event) {
+  const file = event.target.files?.[0]
+  if (!file || !createdReviewId.value) return
+
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    showError('이미지 크기는 5MB 이하만 가능합니다')
+    return
+  }
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowed.includes(file.type)) {
+    showError('JPG, PNG, WebP 형식만 지원합니다')
+    return
+  }
+
+  imageUploading.value = true
+  try {
+    const result = await customerApi.uploadReviewImage(createdReviewId.value, file)
+    const data = result?.data ?? result
+    uploadedImages.value.push(data)
+    showSuccess('이미지가 업로드되었습니다')
+  } catch (err) {
+    if (err.code === 'RI002') showError('리뷰당 최대 5개의 이미지만 등록할 수 있습니다')
+    else showError(err.message || '이미지 업로드에 실패했습니다')
+  } finally {
+    imageUploading.value = false
+    event.target.value = ''
   }
 }
 
@@ -241,6 +349,62 @@ function goToBusinessPage() {
                 <p class="text-body-1 text-medium-emphasis mb-6">
                   소중한 리뷰를 남겨주셔서 감사합니다.
                 </p>
+
+                <!-- 이미지 첨부 섹션 -->
+                <template v-if="createdReviewId">
+                  <VDivider class="mb-5" />
+
+                  <div class="text-start" style="max-inline-size: 400px; margin-inline: auto;">
+                    <h3 class="text-subtitle-1 font-weight-bold mb-3 text-center">
+                      <VIcon icon="ri-image-add-line" size="20" class="me-1" />
+                      사진 추가하기
+                    </h3>
+
+                    <!-- 업로드된 이미지 미리보기 -->
+                    <div v-if="uploadedImages.length > 0" class="d-flex flex-wrap ga-2 mb-3 justify-center">
+                      <VImg
+                        v-for="img in uploadedImages"
+                        :key="img.id"
+                        :src="img.thumbnailUrl || img.imageUrl"
+                        width="80"
+                        height="80"
+                        cover
+                        rounded="lg"
+                        class="flex-shrink-0"
+                        style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+                      />
+                    </div>
+
+                    <VBtn
+                      v-if="uploadedImages.length < 5"
+                      color="primary"
+                      variant="outlined"
+                      block
+                      :loading="imageUploading"
+                      class="mb-4"
+                      @click="triggerImageUpload"
+                    >
+                      <VIcon start>
+                        ri-image-add-line
+                      </VIcon>
+                      사진 추가 ({{ uploadedImages.length }}/5)
+                    </VBtn>
+
+                    <p v-else class="text-body-2 text-medium-emphasis text-center mb-4">
+                      최대 5장까지 등록할 수 있습니다
+                    </p>
+
+                    <input
+                      ref="imageFileInput"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      hidden
+                      @change="handleImageUpload"
+                    >
+                  </div>
+
+                  <VDivider class="mb-5" />
+                </template>
 
                 <VBtn
                   color="primary"
@@ -486,6 +650,77 @@ function goToBusinessPage() {
                       hide-details="auto"
                     />
                   </div>
+
+                  <!-- Image Selection (before submit) -->
+                  <div class="mb-6">
+                    <h3 class="text-subtitle-1 font-weight-bold mb-4">
+                      <VIcon
+                        icon="ri-image-line"
+                        size="20"
+                        class="me-1"
+                      />
+                      사진 첨부 (선택, 최대 3장)
+                    </h3>
+
+                    <!-- 선택된 이미지 미리보기 -->
+                    <div v-if="preSelectedPreviews.length > 0" class="d-flex flex-wrap ga-2 mb-3">
+                      <div
+                        v-for="(url, idx) in preSelectedPreviews"
+                        :key="idx"
+                        class="position-relative"
+                        style="inline-size: 100px; block-size: 100px;"
+                      >
+                        <VImg
+                          :src="url"
+                          width="100"
+                          height="100"
+                          cover
+                          rounded="lg"
+                          style="border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+                        />
+                        <VBtn
+                          icon
+                          size="x-small"
+                          color="error"
+                          variant="elevated"
+                          class="position-absolute"
+                          style="inset-block-start: -6px; inset-inline-end: -6px;"
+                          @click="removePreImage(idx)"
+                        >
+                          <VIcon icon="ri-close-line" size="12" />
+                        </VBtn>
+                      </div>
+                    </div>
+
+                    <VBtn
+                      v-if="preSelectedFiles.length < 3"
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      @click="triggerPreImageSelect"
+                    >
+                      <VIcon icon="ri-image-add-line" class="me-1" />
+                      사진 추가 ({{ preSelectedFiles.length }}/3)
+                    </VBtn>
+
+                    <p v-else class="text-body-2 text-medium-emphasis">
+                      최대 3장까지 첨부할 수 있습니다
+                    </p>
+
+                    <input
+                      ref="preImageFileInput"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      hidden
+                      @change="handlePreImageSelect"
+                    >
+
+                    <p class="text-caption text-medium-emphasis mt-1">
+                      JPG, PNG, WebP / 파일당 최대 5MB
+                    </p>
+                  </div>
+
+                  <VDivider class="mb-6" />
 
                   <!-- Staff Selection -->
                   <div

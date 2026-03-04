@@ -1,12 +1,61 @@
 ﻿<template>
   <div>
+    <!-- 뷰 전환 탭 -->
+    <VTabs v-model="viewTab" class="mb-4">
+      <VTab value="list">
+        <VIcon icon="ri-list-check" class="me-2" />
+        목록
+      </VTab>
+      <VTab value="calendar">
+        <VIcon icon="ri-calendar-event-line" class="me-2" />
+        캘린더
+      </VTab>
+    </VTabs>
+
+    <!-- 캘린더 뷰 (lazy load) -->
+    <template v-if="viewTab === 'calendar'">
+      <Suspense>
+        <ReservationCalendarView />
+        <template #fallback>
+          <div class="text-center pa-10">
+            <VProgressCircular indeterminate color="primary" size="48" />
+            <p class="text-body-1 text-medium-emphasis mt-4">캘린더를 불러오는 중...</p>
+          </div>
+        </template>
+      </Suspense>
+    </template>
+
+    <!-- 목록 뷰 -->
+    <template v-if="viewTab === 'list'">
     <!-- 헤더 -->
     <VCard class="mb-4">
       <VCardTitle class="d-flex align-center pe-2" :class="{ 'flex-wrap ga-2': smAndDown }">
         <VIcon icon="ri-list-check" size="24" class="me-3" />
         <span>예약 목록</span>
+        <VTooltip location="bottom" max-width="300">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn v-bind="tooltipProps" icon variant="text" size="x-small" class="ms-1" aria-label="도움말">
+              <VIcon :icon="helpIcon" size="16" color="medium-emphasis" />
+            </VBtn>
+          </template>
+          <span>{{ getHelpText('reservation.statusChange') }}</span>
+        </VTooltip>
 
         <VSpacer />
+
+        <!-- 모바일 새로고침 버튼 -->
+        <VBtn
+          v-if="smAndDown"
+          icon
+          variant="text"
+          size="small"
+          class="me-2"
+          aria-label="예약 목록 새로고침"
+          :loading="reservationStore.loading"
+          @click="reservationStore.fetchReservations()"
+        >
+          <VIcon icon="ri-refresh-line" />
+        </VBtn>
 
         <!-- 새 예약 등록 -->
         <VTooltip
@@ -120,15 +169,14 @@
 
     <!-- 예약 테이블 -->
     <VCard>
-      <!-- 로딩 -->
-      <div v-if="reservationStore.loading" class="text-center pa-10">
-        <VProgressCircular indeterminate color="primary" />
-      </div>
-
       <!-- 모바일 카드 뷰 -->
-      <template v-else-if="smAndDown">
-        <!-- 데이터 없음 -->
-        <template v-if="filteredReservations.length === 0">
+      <MobileListView
+        v-if="smAndDown"
+        v-model:page="mobileReservationPage"
+        :items="paginatedReservations"
+        :total-pages="mobileReservationTotalPages"
+      >
+        <template #empty>
           <EmptyState
             icon="ri-calendar-line"
             title="등록된 예약이 없습니다"
@@ -161,11 +209,8 @@
           </EmptyState>
         </template>
 
-        <!-- 카드 리스트 -->
-        <div v-else class="pa-3 d-flex flex-column gap-3">
+        <template #item="{ item }">
           <VCard
-            v-for="item in paginatedReservations"
-            :key="item.id"
             variant="outlined"
             class="reservation-mobile-card"
             :class="getReservationRowClass(item)"
@@ -268,22 +313,8 @@
               </div>
             </VCardText>
           </VCard>
-
-          <!-- 모바일 페이지네이션 -->
-          <div
-            v-if="mobileReservationTotalPages > 1"
-            class="d-flex justify-center pt-2 pb-1"
-          >
-            <VPagination
-              v-model="mobileReservationPage"
-              :length="mobileReservationTotalPages"
-              :total-visible="5"
-              density="compact"
-              size="small"
-            />
-          </div>
-        </div>
-      </template>
+        </template>
+      </MobileListView>
 
       <!-- 데스크톱 테이블 -->
       <VDataTable
@@ -293,6 +324,7 @@
         :items="filteredReservations"
         :search="searchQuery"
         :items-per-page="15"
+        :loading="reservationStore.loading"
         class="reservation-table"
         show-select
         item-value="id"
@@ -593,12 +625,15 @@
           <VSpacer />
           <VBtn
             variant="outlined"
+            aria-label="취소 다이얼로그 닫기"
             @click="isCancelDialogVisible = false"
           >
             닫기
           </VBtn>
           <VBtn
             color="error"
+            :loading="cancelLoading"
+            aria-label="예약 취소 확인"
             @click="cancelReservation"
           >
             예약 취소
@@ -638,17 +673,19 @@
         </VCardActions>
       </VCard>
     </VDialog>
+    </template><!-- end list view -->
   </div>
 </template>
 
 <script setup>
 import EmptyState from '@/components/EmptyState.vue'
+import { useHelpTooltip } from '@/composables/useHelpTooltip'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { getStatusColor, getStatusLabel } from '@/constants/reservation-status'
 import { useReservationStore } from '@/stores/reservation'
 import { useSubscriptionStore } from '@/stores/subscription'
 import { formatTimeRange } from '@/utils/dateFormat'
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useRoute } from 'vue-router'
 import StatisticsCard from '@/components/StatisticsCard.vue'
@@ -656,8 +693,16 @@ import AssignStaffDialog from './components/AssignStaffDialog.vue'
 import ReservationDetailDialog from './components/ReservationDetailDialog.vue'
 import ReservationFormDialog from './components/ReservationFormDialog.vue'
 
+// Lazy-load calendar view
+const ReservationCalendarView = defineAsyncComponent(() =>
+  import('./calendar.vue'),
+)
 
 const route = useRoute()
+const { getHelpText, helpIcon } = useHelpTooltip()
+
+// View tab (list / calendar)
+const viewTab = ref('list')
 const { smAndDown } = useDisplay()
 
 const { success: showSuccess, error: showError, warning: showWarning } = useSnackbar()
@@ -674,6 +719,7 @@ const isCancelDialogVisible = ref(false)
 const selectedReservation = ref(null)
 const reservationToEdit = ref(null)
 const cancelReason = ref('')
+const cancelLoading = ref(false)
 const isAssignStaffDialogVisible = ref(false)
 const selectedReservations = ref([])
 
@@ -851,6 +897,7 @@ function confirmCancel(reservation) {
 async function cancelReservation() {
   if (!selectedReservation.value) return
 
+  cancelLoading.value = true
   try {
     await reservationStore.updateReservationStatus(
       selectedReservation.value.id,
@@ -862,6 +909,9 @@ async function cancelReservation() {
   }
   catch (error) {
     showError(error.message || '예약 취소에 실패했습니다.')
+  }
+  finally {
+    cancelLoading.value = false
   }
 }
 

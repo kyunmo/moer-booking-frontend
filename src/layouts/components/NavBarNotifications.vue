@@ -6,16 +6,19 @@ import { onMounted, onUnmounted, computed } from 'vue'
 
 const notificationStore = useNotificationStore()
 const router = useRouter()
-const { connected, connect, disconnect } = useSseNotifications()
+const { connected, connect, disconnect, requestNotificationPermission } = useSseNotifications()
 
 // Map notification type to icon and color
 function getNotificationIcon(type) {
   const map = {
     RESERVATION_NEW: { icon: 'ri-calendar-line', color: 'primary' },
+    NEW_RESERVATION: { icon: 'ri-calendar-line', color: 'primary' },
     RESERVATION_CONFIRMED: { icon: 'ri-calendar-check-line', color: 'success' },
     RESERVATION_CANCELLED: { icon: 'ri-calendar-close-line', color: 'error' },
     RESERVATION_COMPLETED: { icon: 'ri-checkbox-circle-line', color: 'info' },
     RESERVATION_NO_SHOW: { icon: 'ri-user-unfollow-line', color: 'warning' },
+    PAYMENT_COMPLETED: { icon: 'ri-money-dollar-circle-line', color: 'success' },
+    NEW_REVIEW: { icon: 'ri-star-line', color: 'amber' },
     SYSTEM: { icon: 'ri-notification-2-line', color: 'secondary' },
   }
   return map[type] || map.SYSTEM
@@ -85,6 +88,8 @@ onMounted(() => {
   const token = localStorage.getItem('accessToken')
   if (token) {
     connect()
+    // 브라우저 알림 권한 요청
+    requestNotificationPermission()
     // Still do initial fetch for existing notifications
     notificationStore.fetchNotifications({ page: 1, size: 10 }).catch(() => {})
     // Use slower polling as fallback (60s instead of 30s since SSE handles real-time)

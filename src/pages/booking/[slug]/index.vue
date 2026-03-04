@@ -483,7 +483,9 @@ onMounted(() => {
                       color="warning"
                       active-color="warning"
                       size="small"
+                      aria-hidden="true"
                     />
+                    <span class="d-sr-only">평점 {{ (business.averageRating || 0).toFixed(1) }}점</span>
                     <span class="text-body-1 font-weight-medium">
                       {{ (business.averageRating || 0).toFixed(1) }}
                     </span>
@@ -503,6 +505,7 @@ onMounted(() => {
                       icon
                       size="x-small"
                       variant="text"
+                      aria-label="주소 복사"
                       @click="copyToClipboard(business.address, '주소가')"
                     >
                       <VIcon icon="ri-file-copy-line" size="16" />
@@ -526,6 +529,7 @@ onMounted(() => {
                       icon
                       size="x-small"
                       variant="text"
+                      aria-label="전화번호 복사"
                       @click="copyToClipboard(business.phone, '전화번호가')"
                     >
                       <VIcon icon="ri-file-copy-line" size="16" />
@@ -642,6 +646,22 @@ onMounted(() => {
                   variant="outlined"
                   class="mb-3"
                 >
+                  <!-- 서비스 이미지 (있을 경우 표시) -->
+                  <div v-if="service.images && service.images.length > 0" class="d-flex ga-1 overflow-x-auto pa-3 pb-0">
+                    <VImg
+                      v-for="(img, imgIdx) in service.images.slice(0, 3)"
+                      :key="imgIdx"
+                      :src="img.thumbnailUrl || img.imageUrl"
+                      :lazy-src="`${img.thumbnailUrl || img.imageUrl}?w=40&q=10`"
+                      width="100"
+                      height="80"
+                      cover
+                      rounded="lg"
+                      class="flex-shrink-0"
+                      :alt="`${service.name} 이미지 ${imgIdx + 1}`"
+                    />
+                  </div>
+
                   <VCardText class="d-flex align-center justify-space-between flex-wrap gap-3">
                     <div class="flex-grow-1" style="min-inline-size: 200px;">
                       <div class="text-subtitle-1 font-weight-bold mb-1">
@@ -792,7 +812,9 @@ onMounted(() => {
                         color="warning"
                         active-color="warning"
                         size="small"
+                        aria-hidden="true"
                       />
+                      <span class="d-sr-only">평점 {{ (reviewStats.averageRating || 0).toFixed(1) }}점</span>
                       <div class="text-body-2 text-medium-emphasis mt-1">
                         {{ reviewStats.totalReviews || 0 }}개의 리뷰
                       </div>
@@ -925,7 +947,9 @@ onMounted(() => {
                       active-color="warning"
                       size="x-small"
                       class="mb-2"
+                      aria-hidden="true"
                     />
+                    <span class="d-sr-only">평점 {{ review.rating }}점</span>
 
                     <!-- Content -->
                     <p class="text-body-2 mb-3">
@@ -1065,6 +1089,7 @@ onMounted(() => {
                     icon
                     size="small"
                     variant="text"
+                    aria-label="주소 복사"
                     @click="copyToClipboard(business.address, '주소가')"
                   >
                     <VIcon icon="ri-file-copy-line" />
@@ -1216,18 +1241,20 @@ onMounted(() => {
         </VCard>
       </VDialog>
 
-      <!-- Mobile FAB -->
-      <VBtn
-        class="d-md-none mobile-fab"
-        color="primary"
-        size="large"
-        prepend-icon="ri-calendar-check-line"
-        rounded="xl"
-        elevation="8"
-        @click="goToReserve"
-      >
-        예약하기
-      </VBtn>
+      <!-- Mobile Sticky CTA -->
+      <div class="d-md-none sticky-cta-bar">
+        <VBtn
+          color="primary"
+          size="large"
+          block
+          prepend-icon="ri-calendar-check-line"
+          rounded="lg"
+          elevation="4"
+          @click="goToReserve"
+        >
+          예약하기
+        </VBtn>
+      </div>
     </template>
   </div>
 </template>
@@ -1260,11 +1287,15 @@ onMounted(() => {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(16, 185, 129, 0.03) 100%);
 }
 
-.mobile-fab {
+.sticky-cta-bar {
   position: fixed;
-  inset-block-end: 80px; // Above VBottomNavigation (56px + 24px gap)
-  inset-inline-end: 24px;
+  inset-block-end: 56px; // Above VBottomNavigation
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   z-index: 100;
+  padding: 12px 16px;
+  background: rgb(var(--v-theme-surface));
+  border-block-start: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 // Today's business hours row highlight

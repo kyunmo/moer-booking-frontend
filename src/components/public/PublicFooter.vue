@@ -1,6 +1,9 @@
 <script setup>
+import { ref } from 'vue'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+
+const showBusinessInfo = ref(false)
 
 // Service links
 const serviceLinks = [
@@ -46,9 +49,9 @@ const socialLinks = [
             <div class="footer-brand">
               <div class="d-flex align-center gap-2 mb-6">
                 <VNodeRenderer :nodes="themeConfig.app.logo" />
-                <h1 class="footer-title">
+                <span class="footer-title">
                   모에르(MOER)
-                </h1>
+                </span>
               </div>
 
               <div class="text-body-1 footer-text mb-6" style="white-space: pre-line;">
@@ -158,11 +161,36 @@ const socialLinks = [
               </ul>
 
               <div class="mt-6">
-                <div class="text-body-2 footer-text mb-1">
-                  사업자등록번호 744-02-03358
+                <!-- 모바일: 접기/펼치기 -->
+                <div class="d-sm-none">
+                  <VBtn
+                    variant="text"
+                    size="small"
+                    class="footer-text px-0"
+                    :append-icon="showBusinessInfo ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'"
+                    aria-label="사업자 정보 보기"
+                    @click="showBusinessInfo = !showBusinessInfo"
+                  >
+                    사업자 정보
+                  </VBtn>
+                  <div v-show="showBusinessInfo" class="mt-2">
+                    <div class="text-body-2 footer-text mb-1">
+                      사업자등록번호 744-02-03358
+                    </div>
+                    <div class="text-body-2 footer-text">
+                      경기도 의왕시 백운중앙로 46
+                    </div>
+                  </div>
                 </div>
-                <div class="text-body-2 footer-text">
-                  경기도 의왕시 백운중앙로 46
+
+                <!-- 데스크톱: 항상 표시 -->
+                <div class="d-none d-sm-block">
+                  <div class="text-body-2 footer-text mb-1">
+                    사업자등록번호 744-02-03358
+                  </div>
+                  <div class="text-body-2 footer-text">
+                    경기도 의왕시 백운중앙로 46
+                  </div>
                 </div>
               </div>
             </div>
@@ -190,6 +218,7 @@ const socialLinks = [
 <style lang="scss" scoped>
 .footer-top {
   background-color: #1e1b2e;
+  background-color: rgb(var(--v-theme-surface-variant), 1);
   padding-block-end: 1.25rem;
   padding-block-start: 3.75rem;
 }
@@ -230,6 +259,10 @@ const socialLinks = [
 
 .footer-bottom {
   background-color: #16132a;
+
+  @supports (background-color: color-mix(in srgb, red, blue)) {
+    background-color: color-mix(in srgb, rgb(var(--v-theme-surface-variant)) 85%, black);
+  }
 }
 
 .yemo-footer {

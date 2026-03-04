@@ -1,19 +1,37 @@
 <script setup>
-import { useMouse } from '@vueuse/core'
+import { useMouse, useMediaQuery } from '@vueuse/core'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const { x, y } = useMouse({ touch: false })
+const isMobile = useMediaQuery('(max-width: 960px)')
 
 const dashboardTranslateStyle = computed(() => {
-  if (typeof window === 'undefined') return {}
+  if (isMobile.value || typeof window === 'undefined') return {}
 
   const posX = (window.innerWidth - x.value * 3) / 100
   const posY = Math.max((window.innerHeight - y.value * 3) / 100, -40)
 
   return { transform: `translate(${posX}px, ${posY}px)` }
 })
+
+const sidebarMenus = [
+  { icon: 'ri-dashboard-line', label: '대시보드', active: true },
+  { icon: 'ri-calendar-line', label: '예약 관리', active: false },
+  { icon: 'ri-user-heart-line', label: '고객 관리', active: false },
+  { icon: 'ri-team-line', label: '직원 관리', active: false },
+  { icon: 'ri-scissors-line', label: '서비스 관리', active: false },
+  { icon: 'ri-bar-chart-line', label: '통계', active: false },
+]
+
+const mockTimeSlots = [
+  { time: '10:00', label: '김지현 - 커트 + 염색', color: 'primary' },
+  { time: '11:30', label: '박소연 - 네일 케어', color: 'success' },
+  { time: '13:00', label: '이준호 - 펌 시술', color: 'warning' },
+  { time: '15:00', label: '최윤아 - 두피 관리', color: 'info' },
+  { time: '17:30', label: '정민수 - 커트', color: 'primary' },
+]
 
 function startFreeTrial() {
   router.push('/register')
@@ -150,7 +168,7 @@ function viewPricing() {
       </VContainer>
     </div>
 
-    <!-- Dashboard Preview Placeholder -->
+    <!-- Dashboard Preview - Realistic App Screenshot -->
     <VContainer>
       <div class="hero-animation-img">
         <div
@@ -162,7 +180,7 @@ function viewPricing() {
             elevation="8"
             max-width="85%"
           >
-            <!-- Mock header bar -->
+            <!-- Browser chrome -->
             <div class="dashboard-mock-header d-flex align-center pa-3 gap-2">
               <div
                 class="mock-dot"
@@ -176,148 +194,102 @@ function viewPricing() {
                 class="mock-dot"
                 style="background-color: rgb(var(--v-theme-success));"
               />
-              <span class="text-caption text-medium-emphasis ms-2">
-                모에르(MOER) - 예약 관리 대시보드
-              </span>
+              <div class="mock-url-bar ms-3 flex-grow-1">
+                <VIcon icon="ri-lock-line" size="12" class="me-1 text-success" />
+                <span class="text-caption text-medium-emphasis">moer.kr/shop-admin/dashboard</span>
+              </div>
             </div>
 
             <VDivider />
 
-            <!-- Stat cards -->
-            <VCardText>
-              <VRow class="mb-4">
-                <VCol cols="6" sm="3">
-                  <VCard
-                    variant="tonal"
-                    color="primary"
-                    class="pa-3 text-center"
-                  >
-                    <VIcon
-                      icon="ri-calendar-check-line"
-                      size="24"
-                      class="mb-1"
-                    />
-                    <div class="text-h5 font-weight-bold">
-                      24
-                    </div>
-                    <div class="text-caption">
-                      오늘 예약
-                    </div>
-                  </VCard>
-                </VCol>
-
-                <VCol cols="6" sm="3">
-                  <VCard
-                    variant="tonal"
-                    color="success"
-                    class="pa-3 text-center"
-                  >
-                    <VIcon
-                      icon="ri-user-line"
-                      size="24"
-                      class="mb-1"
-                    />
-                    <div class="text-h5 font-weight-bold">
-                      156
-                    </div>
-                    <div class="text-caption">
-                      이달 고객
-                    </div>
-                  </VCard>
-                </VCol>
-
-                <VCol cols="6" sm="3">
-                  <VCard
-                    variant="tonal"
-                    color="warning"
-                    class="pa-3 text-center"
-                  >
-                    <VIcon
-                      icon="ri-money-dollar-circle-line"
-                      size="24"
-                      class="mb-1"
-                    />
-                    <div class="text-h5 font-weight-bold">
-                      2.4M
-                    </div>
-                    <div class="text-caption">
-                      이달 매출
-                    </div>
-                  </VCard>
-                </VCol>
-
-                <VCol cols="6" sm="3">
-                  <VCard
-                    variant="tonal"
-                    color="info"
-                    class="pa-3 text-center"
-                  >
-                    <VIcon
-                      icon="ri-star-line"
-                      size="24"
-                      class="mb-1"
-                    />
-                    <div class="text-h5 font-weight-bold">
-                      4.8
-                    </div>
-                    <div class="text-caption">
-                      평균 리뷰
-                    </div>
-                  </VCard>
-                </VCol>
-              </VRow>
-
-              <!-- Mock calendar row -->
-              <VCard variant="outlined" class="pa-3">
-                <div class="d-flex align-center gap-3 flex-wrap">
-                  <VIcon
-                    icon="ri-calendar-line"
-                    color="primary"
-                  />
-                  <span class="text-body-2 font-weight-medium">오늘 예약 현황</span>
-
-                  <VSpacer />
-
-                  <div class="d-flex flex-wrap gap-2">
-                    <VChip
-                      size="small"
-                      color="primary"
-                      variant="tonal"
-                    >
-                      10:00
-                    </VChip>
-                    <VChip
-                      size="small"
-                      color="success"
-                      variant="tonal"
-                    >
-                      11:30
-                    </VChip>
-                    <VChip
-                      size="small"
-                      color="warning"
-                      variant="tonal"
-                    >
-                      13:00
-                    </VChip>
-                    <VChip
-                      size="small"
-                      color="info"
-                      variant="tonal"
-                    >
-                      15:00
-                    </VChip>
-                    <VChip
-                      size="small"
-                      color="error"
-                      variant="tonal"
-                    >
-                      17:30
-                    </VChip>
-                  </div>
+            <!-- App layout simulation -->
+            <div class="d-flex" style="min-block-size: 280px;">
+              <!-- Sidebar mock -->
+              <div class="mock-sidebar d-none d-sm-flex flex-column pa-3" style="inline-size: 200px; border-inline-end: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));">
+                <div class="d-flex align-center gap-2 mb-4">
+                  <VAvatar color="primary" size="28">
+                    <span class="text-caption font-weight-bold text-white">M</span>
+                  </VAvatar>
+                  <span class="text-body-2 font-weight-bold">MOER</span>
                 </div>
-              </VCard>
-            </VCardText>
+
+                <div
+                  v-for="(menu, i) in sidebarMenus"
+                  :key="i"
+                  class="d-flex align-center gap-2 pa-2 rounded mb-1"
+                  :class="menu.active ? 'bg-primary' : ''"
+                >
+                  <VIcon :icon="menu.icon" size="16" :color="menu.active ? 'white' : 'medium-emphasis'" />
+                  <span class="text-caption" :class="menu.active ? 'text-white font-weight-medium' : 'text-medium-emphasis'">{{ menu.label }}</span>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div class="flex-grow-1 pa-4">
+                <!-- Top stats row -->
+                <VRow dense class="mb-3">
+                  <VCol cols="6" sm="3">
+                    <VCard variant="tonal" color="primary" class="pa-2 text-center">
+                      <VIcon icon="ri-calendar-check-line" size="20" class="mb-1" />
+                      <div class="text-h6 font-weight-bold">24</div>
+                      <div class="text-caption">오늘 예약</div>
+                    </VCard>
+                  </VCol>
+                  <VCol cols="6" sm="3">
+                    <VCard variant="tonal" color="success" class="pa-2 text-center">
+                      <VIcon icon="ri-user-line" size="20" class="mb-1" />
+                      <div class="text-h6 font-weight-bold">156</div>
+                      <div class="text-caption">이달 고객</div>
+                    </VCard>
+                  </VCol>
+                  <VCol cols="6" sm="3">
+                    <VCard variant="tonal" color="warning" class="pa-2 text-center">
+                      <VIcon icon="ri-money-dollar-circle-line" size="20" class="mb-1" />
+                      <div class="text-h6 font-weight-bold">2.4M</div>
+                      <div class="text-caption">이달 매출</div>
+                    </VCard>
+                  </VCol>
+                  <VCol cols="6" sm="3">
+                    <VCard variant="tonal" color="info" class="pa-2 text-center">
+                      <VIcon icon="ri-star-line" size="20" class="mb-1" />
+                      <div class="text-h6 font-weight-bold">4.8</div>
+                      <div class="text-caption">평균 리뷰</div>
+                    </VCard>
+                  </VCol>
+                </VRow>
+
+                <!-- Calendar-like view -->
+                <VCard variant="outlined" class="pa-3 mb-3">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <div class="d-flex align-center gap-2">
+                      <VIcon icon="ri-calendar-line" color="primary" size="18" />
+                      <span class="text-body-2 font-weight-bold">오늘 예약 현황</span>
+                    </div>
+                    <VChip size="x-small" color="primary" variant="tonal">5건</VChip>
+                  </div>
+
+                  <!-- Mock timeline -->
+                  <div class="d-flex flex-column gap-2">
+                    <div
+                      v-for="(slot, i) in mockTimeSlots"
+                      :key="i"
+                      class="d-flex align-center gap-2"
+                    >
+                      <span class="text-caption text-medium-emphasis" style="inline-size: 40px;">{{ slot.time }}</span>
+                      <VChip
+                        :color="slot.color"
+                        size="small"
+                        variant="tonal"
+                        class="flex-grow-1"
+                        style="justify-content: start;"
+                      >
+                        {{ slot.label }}
+                      </VChip>
+                    </div>
+                  </div>
+                </VCard>
+              </div>
+            </div>
           </VCard>
         </div>
       </div>
@@ -361,6 +333,20 @@ function viewPricing() {
   inline-size: 12px;
   block-size: 12px;
   border-radius: 50%;
+}
+
+.mock-url-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(var(--v-theme-on-surface), 0.05);
+  border-radius: 6px;
+  padding-block: 4px;
+  padding-inline: 10px;
+  max-inline-size: 300px;
+}
+
+.mock-sidebar {
+  background: rgba(var(--v-theme-on-surface), 0.02);
 }
 
 @media (max-width: 960px) {
