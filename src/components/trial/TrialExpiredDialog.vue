@@ -13,6 +13,8 @@
         </VCardTitle>
       </VCardItem>
 
+      <VDivider />
+
       <VCardText>
         <p class="text-body-1 mb-4">
           30일 무료 체험이 종료되어 다음 기능을 더 이상 사용할 수 없습니다.

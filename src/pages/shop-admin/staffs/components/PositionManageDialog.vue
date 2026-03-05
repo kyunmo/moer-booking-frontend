@@ -6,21 +6,12 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <VCard>
+      <DialogCloseBtn @click="handleClose" />
+
       <!-- 헤더 -->
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-shield-star-line" size="24" class="me-3" />
         <span>직급 관리</span>
-
-        <VSpacer />
-
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="handleClose"
-        >
-          <VIcon icon="ri-close-line" />
-        </VBtn>
       </VCardTitle>
 
       <VDivider />
@@ -200,6 +191,7 @@
     >
       <VCard>
         <VCardTitle>직급 삭제</VCardTitle>
+        <VDivider />
         <VCardText>
           <p class="mb-0">
             <strong>{{ positionToDelete?.name }}</strong> 직급을 삭제하시겠습니까?

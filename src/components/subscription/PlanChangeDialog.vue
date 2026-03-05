@@ -2,6 +2,7 @@
   <VDialog
     :model-value="modelValue"
     max-width="1000"
+    persistent
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <VCard>
@@ -380,14 +381,13 @@ watch(() => props.modelValue, (newValue) => {
 })
 </script>
 
-<style scoped>
-.cursor-pointer {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
+<style lang="scss" scoped>
+@use "@styles/mixins" as *;
 
-.cursor-pointer:hover {
-  transform: translateY(-4px);
+.cursor-pointer {
+  @include card-hover-lift($shadow: none);
+
+  cursor: pointer;
 }
 
 .opacity-50 {

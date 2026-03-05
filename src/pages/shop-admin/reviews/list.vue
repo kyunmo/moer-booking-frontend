@@ -150,8 +150,9 @@
             active-color="amber"
             density="compact"
             class="mb-2"
-            :aria-label="`평점 ${review.rating}점`"
+            aria-hidden="true"
           />
+          <span class="d-sr-only">평점 {{ review.rating }}점</span>
 
           <!-- 리뷰 내용 -->
           <p class="text-body-1 mb-3">

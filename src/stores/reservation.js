@@ -365,6 +365,37 @@ export const useReservationStore = defineStore('reservation', {
     },
 
     /**
+     * 예약 시간 변경 (Reschedule)
+     */
+    async rescheduleReservation(reservationId, rescheduleData) {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        throw new Error('businessId가 없습니다')
+      }
+
+      this.loading = true
+      try {
+        const { data } = await reservationApi.rescheduleReservation(businessId, reservationId, rescheduleData)
+
+        // 목록에서 업데이트
+        const index = this.reservations.findIndex(r => r.id === reservationId)
+        if (index !== -1) {
+          this.reservations[index] = data
+        }
+
+        return data
+      }
+      catch (error) {
+        throw error
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    /**
      * 예약 삭제
      */
     async deleteReservation(reservationId) {

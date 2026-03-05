@@ -236,15 +236,12 @@ function handleSelect() {
 </template>
 
 <style lang="scss" scoped>
+@use "@styles/mixins" as *;
 .pricing-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
+  @include card-hover-lift;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  }
+  cursor: pointer;
+  position: relative;
 
   &--selected {
     border-width: 2px;

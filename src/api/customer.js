@@ -42,6 +42,23 @@ export default {
     return apiClient.post(`/customer/businesses/${slug}/reviews`, data)
   },
 
+  // 리뷰 작성 (이미지 포함, multipart/form-data)
+  createReviewWithImages(slug, data, imageFiles = []) {
+    const formData = new FormData()
+    formData.append('rating', data.rating)
+    formData.append('content', data.content || '')
+    formData.append('reservationNumber', data.reservationNumber)
+    if (data.staffId) formData.append('staffId', data.staffId)
+
+    imageFiles.forEach(file => {
+      formData.append('images', file)
+    })
+
+    return apiClient.post(`/customer/businesses/${slug}/reviews`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
   // 내 리뷰 목록 조회
   getMyReviews(params = {}) {
     return apiClient.get('/customer/reviews', { params })

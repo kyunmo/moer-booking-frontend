@@ -143,8 +143,8 @@
             <!-- 서비스 대표 이미지 썸네일 -->
             <div v-if="service.images && service.images.length > 0" class="service-thumbnail">
               <VImg
-                :src="service.images[0].thumbnailUrl || service.images[0].imageUrl"
-                :lazy-src="`${service.images[0].thumbnailUrl || service.images[0].imageUrl}?w=40&q=10`"
+                :src="resolveImageUrl(service.images[0].thumbnailUrl || service.images[0].imageUrl)"
+                :lazy-src="resolveImageUrl(service.images[0].thumbnailUrl || service.images[0].imageUrl)"
                 height="140"
                 cover
                 :alt="`${service.name} 이미지`"
@@ -311,6 +311,7 @@ import { computed, onMounted, ref } from 'vue'
 import CategoryManageDialog from './components/CategoryManageDialog.vue'
 import ServiceDetailDialog from './components/ServiceDetailDialog.vue'
 import ServiceFormDialog from './components/ServiceFormDialog.vue'
+import { resolveImageUrl } from '@/utils/imageUrl'
 
 const { serviceIcon, serviceIconLine, getCategoryIcon, getCategoryColor } = useBusinessIcon()
 const { getHelpText, helpIcon } = useHelpTooltip()

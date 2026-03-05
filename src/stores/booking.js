@@ -323,6 +323,48 @@ export const useBookingStore = defineStore('booking', {
       }
     },
 
+    // ===== 예약 상태 세션 저장/복원 =====
+
+    saveBookingFlowToSession() {
+      const state = {
+        step: this.step,
+        selectedServices: this.selectedServices,
+        selectedDate: this.selectedDate,
+        selectedTime: this.selectedTime,
+        selectedStaff: this.selectedStaff,
+        customerForm: { ...this.customerForm },
+        availableDates: this.availableDates,
+        availableSlots: this.availableSlots,
+        businessSlug: this.business?.slug || null,
+      }
+      sessionStorage.setItem('moer_booking_flow', JSON.stringify(state))
+    },
+
+    restoreBookingFlowFromSession() {
+      try {
+        const raw = sessionStorage.getItem('moer_booking_flow')
+        if (!raw) return false
+        const state = JSON.parse(raw)
+        this.step = state.step || 1
+        this.selectedServices = state.selectedServices || []
+        this.selectedDate = state.selectedDate || null
+        this.selectedTime = state.selectedTime || null
+        this.selectedStaff = state.selectedStaff || null
+        this.customerForm = state.customerForm || { name: '', phone: '', email: '', request: '' }
+        this.availableDates = state.availableDates || []
+        this.availableSlots = state.availableSlots || []
+        sessionStorage.removeItem('moer_booking_flow')
+        return true
+      } catch {
+        sessionStorage.removeItem('moer_booking_flow')
+        return false
+      }
+    },
+
+    clearBookingFlowSession() {
+      sessionStorage.removeItem('moer_booking_flow')
+    },
+
     // ===== 상태 초기화 =====
 
     resetBookingFlow() {

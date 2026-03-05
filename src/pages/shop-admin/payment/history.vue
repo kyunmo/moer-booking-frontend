@@ -105,16 +105,8 @@
         />
       </VCardTitle>
 
-      <!-- 로딩 상태 -->
-      <div v-if="loading && payments.length === 0" class="text-center pa-10">
-        <VProgressCircular indeterminate color="primary" />
-        <p class="text-body-1 text-medium-emphasis mt-4">
-          결제 내역을 불러오는 중...
-        </p>
-      </div>
-
       <!-- 모바일 카드 뷰 -->
-      <template v-else-if="smAndDown">
+      <template v-if="smAndDown">
         <!-- 데이터 없음 -->
         <template v-if="filteredPayments.length === 0">
           <div class="text-center pa-10">

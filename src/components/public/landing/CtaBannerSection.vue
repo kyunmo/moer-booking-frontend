@@ -94,10 +94,10 @@ function startFreeTrial() {
 
 .banner-text {
   color: #fff;
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.25px;
-  line-height: 42px;
+  line-height: 1.3;
 }
 
 .banner-subtitle {

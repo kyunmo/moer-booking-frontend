@@ -4,8 +4,10 @@ import { useNotificationStore } from '@/stores/notification'
 export function useSseNotifications() {
   const connected = ref(false)
   const connecting = ref(false)
+  const lastHeartbeat = ref(null)
   let eventSource = null
   let reconnectTimer = null
+  let heartbeatCheckTimer = null
   let reconnectAttempts = 0
   const MAX_RECONNECT_ATTEMPTS = 10
   const BASE_RECONNECT_DELAY = 3000
@@ -29,6 +31,8 @@ export function useSseNotifications() {
       connecting.value = false
       connected.value = true
       reconnectAttempts = 0
+      lastHeartbeat.value = Date.now()
+      startHeartbeatMonitor()
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
@@ -93,18 +97,30 @@ export function useSseNotifications() {
       return
     }
 
+    // HEARTBEAT 이벤트 처리
+    if (eventType === 'HEARTBEAT') {
+      lastHeartbeat.value = Date.now()
+      return
+    }
+
     try {
       const data = JSON.parse(dataStr)
 
-      // Add to notifications list
       const notification = {
-        id: data.id,
+        id: data.referenceId || data.id,
         type: eventType,
         title: getEventTitle(eventType),
         message: data.message,
         read: false,
-        createdAt: new Date().toISOString(),
+        createdAt: data.createdAt || new Date().toISOString(),
         link: getEventLink(eventType, data),
+        metadata: {
+          reservationNumber: data.reservationNumber,
+          customerName: data.customerName,
+          serviceName: data.serviceName,
+          staffName: data.staffName,
+          rating: data.rating,
+        },
       }
 
       store.addRealtimeNotification(notification)
@@ -171,25 +187,46 @@ export function useSseNotifications() {
 
   function getEventTitle(eventType) {
     const titles = {
+      RESERVATION_CREATED: '새 예약',
       NEW_RESERVATION: '새 예약',
       RESERVATION_CANCELLED: '예약 취소',
-      PAYMENT_COMPLETED: '결제 완료',
+      REVIEW_CREATED: '새 리뷰',
       NEW_REVIEW: '새 리뷰',
+      PAYMENT_COMPLETED: '결제 완료',
     }
     return titles[eventType] || '알림'
   }
 
   function getEventLink(eventType, _data) {
-    if (eventType === 'NEW_RESERVATION' || eventType === 'RESERVATION_CANCELLED') {
+    if (eventType === 'RESERVATION_CREATED' || eventType === 'NEW_RESERVATION' || eventType === 'RESERVATION_CANCELLED') {
       return '/shop-admin/reservations'
     }
     if (eventType === 'PAYMENT_COMPLETED') {
       return '/shop-admin/payment/history'
     }
-    if (eventType === 'NEW_REVIEW') {
+    if (eventType === 'REVIEW_CREATED' || eventType === 'NEW_REVIEW') {
       return '/shop-admin/reviews'
     }
     return null
+  }
+
+  function startHeartbeatMonitor() {
+    stopHeartbeatMonitor()
+    heartbeatCheckTimer = setInterval(() => {
+      if (lastHeartbeat.value && Date.now() - lastHeartbeat.value > 45000) {
+        // 45초 이상 heartbeat 미수신 → 재연결
+        console.log('[SSE] Heartbeat timeout, reconnecting...')
+        disconnect()
+        connect()
+      }
+    }, 15000) // 15초마다 체크
+  }
+
+  function stopHeartbeatMonitor() {
+    if (heartbeatCheckTimer) {
+      clearInterval(heartbeatCheckTimer)
+      heartbeatCheckTimer = null
+    }
   }
 
   function scheduleReconnect() {
@@ -212,6 +249,7 @@ export function useSseNotifications() {
       clearTimeout(reconnectTimer)
       reconnectTimer = null
     }
+    stopHeartbeatMonitor()
     connected.value = false
     connecting.value = false
     reconnectAttempts = 0
@@ -224,6 +262,7 @@ export function useSseNotifications() {
   return {
     connected,
     connecting,
+    lastHeartbeat,
     connect,
     disconnect,
     requestNotificationPermission,

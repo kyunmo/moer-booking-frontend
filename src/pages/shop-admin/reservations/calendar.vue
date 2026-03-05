@@ -813,20 +813,20 @@ async function confirmReschedule() {
 
   rescheduleLoading.value = true
   try {
-    // TODO: 백엔드에 PATCH /api/businesses/{businessId}/reservations/{id}/reschedule 엔드포인트가 구현되면 전용 API 호출로 변경
-    await reservationStore.updateReservation(reservation.id, {
-      ...reservation,
-      reservationDate: newDate,
-      startTime: newStartTime,
-      endTime: newEndTime,
+    await reservationStore.rescheduleReservation(reservation.id, {
+      newDate,
+      newStartTime,
+      newEndTime,
+      staffId: reservation.staffId || null,
+      notifyCustomer: true,
     })
 
     isRescheduleDialogVisible.value = false
     pendingRescheduleEvent.value = null
+    showSuccess('예약 시간이 변경되었습니다')
     await loadReservations()
   }
   catch (error) {
-    // 실패 시 원래 위치로 복원
     info.revert()
     showError(error.message || '예약 시간 변경에 실패했습니다.')
     isRescheduleDialogVisible.value = false

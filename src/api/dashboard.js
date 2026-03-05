@@ -10,4 +10,9 @@ export default {
   getGoals(businessId, params = {}) {
     return apiClient.get(`/businesses/${businessId}/dashboard/goals`, { params })
   },
+
+  // FREE 플랜 기본 통계
+  getBasicStats(businessId) {
+    return apiClient.get(`/businesses/${businessId}/dashboard/basic-stats`)
+  },
 }

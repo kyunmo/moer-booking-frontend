@@ -322,8 +322,7 @@ watch(
 }
 
 .kakao-custom-overlay .overlay-inner {
-  background: rgb(var(--v-theme-primary, 104, 101, 241));
-  background: #6C63FF;
+  background: rgb(var(--v-theme-primary, 102, 108, 255));
   color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
@@ -348,7 +347,7 @@ watch(
   height: 0;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-top: 8px solid #6C63FF;
+  border-top: 8px solid rgb(var(--v-theme-primary, 102, 108, 255));
   margin: 0 auto;
 }
 </style>

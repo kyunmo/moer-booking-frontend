@@ -14,6 +14,7 @@ import { useCustomerAuthStore } from '@/stores/customer-auth'
 import customerApi from '@/api/customer'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { formatTimeRange } from '@/utils/dateFormat'
+import { resolveImageUrl } from '@/utils/imageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,33 +204,34 @@ async function handleSubmit() {
   submitLoading.value = true
 
   try {
-    const result = await customerApi.createReview(slug.value, {
+    const reviewData = {
       reservationNumber: reservationNumber.value.trim(),
       rating: rating.value,
       content: content.value.trim() || null,
       staffId: staffId.value || null,
-    })
+    }
+
+    let result
+    if (preSelectedFiles.value.length > 0) {
+      // 이미지가 있으면 multipart로 전송
+      result = await customerApi.createReviewWithImages(slug.value, reviewData, preSelectedFiles.value)
+    } else {
+      // 이미지 없으면 기존 JSON 방식
+      result = await customerApi.createReview(slug.value, reviewData)
+    }
+
     const data = result?.data ?? result
     createdReviewId.value = data?.id || data?.reviewId || null
 
-    // 사전 선택된 이미지들 순차 업로드
-    if (createdReviewId.value && preSelectedFiles.value.length > 0) {
-      for (const file of preSelectedFiles.value) {
-        try {
-          const imgResult = await customerApi.uploadReviewImage(createdReviewId.value, file)
-          const imgData = imgResult?.data ?? imgResult
-          uploadedImages.value.push(imgData)
-        }
-        catch (imgErr) {
-          console.error('[Review] Image upload failed:', imgErr)
-          // 이미지 업로드 실패해도 리뷰 자체는 성공이므로 계속 진행
-        }
-      }
-      // 미리보기 URL 정리
-      preSelectedPreviews.value.forEach(url => URL.revokeObjectURL(url))
-      preSelectedFiles.value = []
-      preSelectedPreviews.value = []
+    // multipart 응답에서 이미지 정보 처리
+    if (data?.images && data.images.length > 0) {
+      uploadedImages.value = data.images
     }
+
+    // 미리보기 URL 정리
+    preSelectedPreviews.value.forEach(url => URL.revokeObjectURL(url))
+    preSelectedFiles.value = []
+    preSelectedPreviews.value = []
 
     submitted.value = true
     showSuccess('리뷰가 등록되었습니다')
@@ -365,7 +367,7 @@ function goToBusinessPage() {
                       <VImg
                         v-for="img in uploadedImages"
                         :key="img.id"
-                        :src="img.thumbnailUrl || img.imageUrl"
+                        :src="resolveImageUrl(img.thumbnailUrl || img.imageUrl)"
                         width="80"
                         height="80"
                         cover

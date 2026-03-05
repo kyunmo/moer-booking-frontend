@@ -7,7 +7,7 @@ meta:
 </route>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import customerApi from '@/api/customer'
 import { useCustomerAuthStore } from '@/stores/customer-auth'
@@ -19,6 +19,10 @@ const { success: showSuccess, error: showError } = useSnackbar()
 
 const reviews = ref([])
 const loading = ref(false)
+const totalCount = ref(0)
+const page = ref(1)
+const pageSize = 10
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize) || 1)
 
 // Edit dialog
 const isEditOpen = ref(false)
@@ -37,20 +41,27 @@ const imageReview = ref(null)
 const imageUploading = ref(false)
 const imageFileInput = ref(null)
 
+// Image delete confirm
+const isImageDeleteOpen = ref(false)
+const deletingImage = ref(null)
+
 async function fetchReviews() {
   loading.value = true
   try {
-    const result = await customerApi.getMyReviews()
+    const result = await customerApi.getMyReviews({ page: page.value, size: pageSize })
     const data = result?.data ?? result
 
     if (Array.isArray(data)) {
       reviews.value = data
+      totalCount.value = data.length
     }
     else if (data) {
       reviews.value = data.content || data.items || []
+      totalCount.value = data.pageInfo?.totalElements || data.totalElements || data.totalCount || 0
     }
     else {
       reviews.value = []
+      totalCount.value = 0
     }
   }
   catch (error) {
@@ -62,11 +73,16 @@ async function fetchReviews() {
     }
     showError(error.message || '리뷰 목록을 불러오지 못했습니다')
     reviews.value = []
+    totalCount.value = 0
   }
   finally {
     loading.value = false
   }
 }
+
+watch(page, () => {
+  fetchReviews()
+})
 
 // Edit
 function openEdit(review) {
@@ -183,11 +199,18 @@ async function handleImageUpload(event) {
   }
 }
 
-async function removeImage(image) {
-  if (!imageReview.value) return
+function confirmRemoveImage(image) {
+  deletingImage.value = image
+  isImageDeleteOpen.value = true
+}
+
+async function removeImage() {
+  if (!imageReview.value || !deletingImage.value) return
   try {
-    await customerApi.deleteReviewImage(imageReview.value.id, image.id)
-    imageReview.value.images = imageReview.value.images.filter(i => i.id !== image.id)
+    await customerApi.deleteReviewImage(imageReview.value.id, deletingImage.value.id)
+    imageReview.value.images = imageReview.value.images.filter(i => i.id !== deletingImage.value.id)
+    isImageDeleteOpen.value = false
+    deletingImage.value = null
     showSuccess('이미지가 삭제되었습니다')
   }
   catch (err) {
@@ -289,9 +312,25 @@ onMounted(() => {
           variant="outlined"
         >
           <VCardText class="pa-4 pa-sm-5">
-            <!-- Header: Service + Menu -->
+            <!-- Header: Business + Service + Menu -->
             <div class="d-flex align-start justify-space-between mb-3">
               <div style="min-inline-size: 0;">
+                <RouterLink
+                  v-if="review.businessSlug && review.businessName"
+                  :to="`/booking/${review.businessSlug}`"
+                  class="text-caption text-primary font-weight-medium mb-1 d-inline-flex align-center text-decoration-none"
+                  @click.stop
+                >
+                  <VIcon icon="ri-store-2-line" size="14" class="me-1" />
+                  {{ review.businessName }}
+                </RouterLink>
+                <div
+                  v-else-if="review.businessName"
+                  class="text-caption text-primary font-weight-medium mb-1"
+                >
+                  <VIcon icon="ri-store-2-line" size="14" class="me-1" />
+                  {{ review.businessName }}
+                </div>
                 <div class="text-subtitle-1 font-weight-bold text-truncate">
                   {{ review.serviceName || '서비스' }}
                 </div>
@@ -344,7 +383,9 @@ onMounted(() => {
               color="warning"
               active-color="warning"
               class="mb-2"
+              aria-hidden="true"
             />
+            <span class="d-sr-only">평점 {{ review.rating }}점</span>
 
             <!-- Content -->
             <p class="text-body-1 mb-3">
@@ -368,6 +409,26 @@ onMounted(() => {
               />
             </div>
 
+            <!-- Owner Reply -->
+            <div
+              v-if="review.reply"
+              class="reply-box pa-3 rounded-lg mb-3"
+            >
+              <div class="d-flex align-center mb-1">
+                <VIcon icon="ri-reply-line" size="14" class="me-1 text-medium-emphasis" />
+                <span class="text-caption font-weight-medium">사장님 답변</span>
+                <span
+                  v-if="review.reply.createdAt"
+                  class="text-caption text-medium-emphasis ms-2"
+                >
+                  {{ formatDate(review.reply.createdAt) }}
+                </span>
+              </div>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                {{ review.reply.content }}
+              </p>
+            </div>
+
             <!-- Footer -->
             <div class="d-flex align-center justify-space-between text-body-2 text-medium-emphasis">
               <span>{{ formatDate(review.createdAt) }}</span>
@@ -380,6 +441,20 @@ onMounted(() => {
             </div>
           </VCardText>
         </VCard>
+
+        <!-- Pagination -->
+        <div
+          v-if="totalPages > 1"
+          class="d-flex justify-center mt-6"
+        >
+          <VPagination
+            v-model="page"
+            :length="totalPages"
+            :total-visible="5"
+            rounded
+            active-color="primary"
+          />
+        </div>
       </template>
     </VContainer>
 
@@ -419,8 +494,8 @@ onMounted(() => {
             label="리뷰 내용"
             variant="outlined"
             rows="4"
-            counter="2000"
-            :rules="[v => !v || v.length <= 2000 || '최대 2000자']"
+            counter="500"
+            :rules="[v => !v || v.length <= 500 || '최대 500자']"
           />
         </VCardText>
 
@@ -530,7 +605,7 @@ onMounted(() => {
                 color="error"
                 class="position-absolute"
                 style="inset-block-start: -8px; inset-inline-end: -8px;"
-                @click="removeImage(img)"
+                @click="confirmRemoveImage(img)"
               >
                 <VIcon size="14">
                   ri-close-line
@@ -590,6 +665,41 @@ onMounted(() => {
         </VCardActions>
       </VCard>
     </VDialog>
+    <!-- Image Delete Confirm Dialog -->
+    <VDialog
+      v-model="isImageDeleteOpen"
+      max-width="380"
+    >
+      <VCard rounded="lg">
+        <VCardTitle class="text-h6 pa-6 pb-2">
+          사진을 삭제하시겠습니까?
+        </VCardTitle>
+
+        <VCardText class="pa-6 pt-3">
+          <p class="text-body-2 text-medium-emphasis">
+            삭제된 사진은 복구할 수 없습니다.
+          </p>
+        </VCardText>
+
+        <VDivider />
+
+        <VCardActions class="pa-4">
+          <VSpacer />
+          <VBtn
+            variant="text"
+            @click="isImageDeleteOpen = false"
+          >
+            취소
+          </VBtn>
+          <VBtn
+            color="error"
+            @click="removeImage"
+          >
+            삭제
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
 
@@ -613,5 +723,10 @@ onMounted(() => {
 
 .review-image {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.reply-box {
+  background: rgba(var(--v-theme-primary), 0.04);
+  border-inline-start: 3px solid rgb(var(--v-theme-primary));
 }
 </style>

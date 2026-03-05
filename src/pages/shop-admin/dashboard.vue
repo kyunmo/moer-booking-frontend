@@ -665,7 +665,21 @@ const getStatusText = getStatusLabel
 async function loadDashboard() {
   chartReady.value = false
   chartKey.value++
-  await dashboardStore.fetchDashboard()
+
+  const currentPlan = subscriptionStore.currentPlan
+
+  if (currentPlan === 'FREE' || !currentPlan) {
+    // FREE 플랜이면 기본 통계 API 호출
+    try {
+      await dashboardStore.fetchBasicStats()
+    } catch {
+      // 실패 시 기존 대시보드 API 호출 시도
+      await dashboardStore.fetchDashboard()
+    }
+  } else {
+    await dashboardStore.fetchDashboard()
+  }
+
   await nextTick()
   chartReady.value = true
 }

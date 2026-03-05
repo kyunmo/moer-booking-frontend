@@ -60,4 +60,18 @@ export default {
   getCustomerReservations(businessId, customerId, params = {}) {
     return apiClient.get(`/businesses/${businessId}/customers/${customerId}/reservations`, { params })
   },
+
+  // 고객 CSV 내보내기 URL 생성
+  getExportUrl(businessId, params = {}) {
+    const baseUrl = apiClient.defaults.baseURL
+    const queryParams = new URLSearchParams()
+    if (params.segment) queryParams.append('segment', params.segment)
+    queryParams.append('encoding', 'UTF-8')
+    return `${baseUrl}/businesses/${businessId}/customers/export?${queryParams.toString()}`
+  },
+
+  // 고객 태그 목록 조회
+  getCustomerTags(businessId) {
+    return apiClient.get(`/businesses/${businessId}/customers/tags`)
+  },
 }

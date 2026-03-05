@@ -273,9 +273,22 @@ export const useSubscriptionStore = defineStore('subscription', {
       this.loading = true
       this.error = null
       try {
-        await subscriptionApi.cancelSubscription()
-        // 구독 정보 다시 가져오기
-        await this.fetchSubscriptionInfo()
+        const { data } = await subscriptionApi.cancelSubscription()
+
+        // 취소 API가 SubscriptionInfoResponse를 반환하면 직접 반영
+        if (data && data.plan) {
+          this.subscriptionInfo = {
+            ...this.subscriptionInfo,
+            ...data,
+            plan: toFrontendPlan(data.plan),
+          }
+        }
+        else {
+          // 응답이 없으면 기존 방식으로 재조회
+          await this.fetchSubscriptionInfo()
+        }
+
+        return this.subscriptionInfo
       }
       catch (error) {
 

@@ -6,6 +6,7 @@ import { useAuthStore } from './auth'
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     dashboardData: null,
+    basicStats: null,
     periodStats: null,
     goals: null,
     loading: false,
@@ -37,6 +38,31 @@ export const useDashboardStore = defineStore('dashboard', {
 
         this.error = error.message || '대시보드 데이터를 불러오는데 실패했습니다'
         this.dashboardData = null
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    async fetchBasicStats() {
+      const authStore = useAuthStore()
+      const businessId = authStore.businessId
+
+      if (!businessId) {
+        this.error = 'businessId가 없습니다'
+        return
+      }
+
+      this.loading = true
+      this.error = null
+      try {
+        const response = await dashboardApi.getBasicStats(businessId)
+
+        this.basicStats = response.data
+      }
+      catch (error) {
+        this.error = error.message || '기본 통계를 불러오는데 실패했습니다'
+        this.basicStats = null
       }
       finally {
         this.loading = false

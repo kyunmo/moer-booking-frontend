@@ -47,16 +47,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-
-// TODO: 백엔드 API에서 실제 통계 데이터를 가져올 수 있도록 변경
-// import statsApi from '@/api/stats'
-// const fetchStats = async () => {
-//   const { data } = await statsApi.getPublicStats()
-//   statData[0].value = data.totalReservations
-//   statData[1].value = data.totalStores
-//   statData[2].value = data.satisfactionRate
-//   statData[3].value = data.noShowReductionRate
-// }
+import publicBookingApi from '@/api/public-booking'
 
 const statData = reactive([
   {
@@ -138,7 +129,22 @@ function startAnimations() {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 플랫폼 통계 API 호출
+  try {
+    const result = await publicBookingApi.getPlatformStats()
+    const data = result?.data ?? result
+    if (data) {
+      if (data.totalReservations) statData[0].value = data.totalReservations
+      if (data.totalBusinesses) statData[1].value = data.totalBusinesses
+      if (data.avgRating) {
+        statData[2].value = Math.round((data.avgRating / 5) * 100)
+      }
+    }
+  } catch {
+    // API 실패 시 기존 하드코딩 값 유지
+  }
+
   // IntersectionObserver로 뷰포트 진입 시 카운트업 시작
   observer = new IntersectionObserver(
     (entries) => {

@@ -129,7 +129,7 @@
                   style="inline-size: 120px; block-size: 120px;"
                 >
                   <VImg
-                    :src="img.thumbnailUrl || img.imageUrl"
+                    :src="resolveImageUrl(img.thumbnailUrl || img.imageUrl)"
                     width="120"
                     height="120"
                     cover
@@ -249,6 +249,7 @@
 
 <script setup>
 import serviceApi from '@/api/services'
+import { resolveImageUrl } from '@/utils/imageUrl'
 import { useBusinessIcon } from '@/composables/useBusinessIcon'
 import { useAuthStore } from '@/stores/auth'
 import { useServiceCategoryStore } from '@/stores/service-category'
@@ -491,18 +492,30 @@ async function handleSubmit() {
       savedService = await serviceStore.createService(serviceData)
     }
 
-    // TODO: 백엔드 이미지 업로드 API 구현 후 활성화
-    // const serviceId = savedService?.id || props.service?.id
-    // if (serviceId) {
-    //   // 삭제된 기존 이미지 처리
-    //   for (const imageId of removedImageIds.value) {
-    //     await serviceApi.deleteServiceImage(authStore.businessId, serviceId, imageId)
-    //   }
-    //   // 새 이미지 업로드
-    //   for (const file of newImageFiles.value) {
-    //     await serviceApi.uploadServiceImage(authStore.businessId, serviceId, file)
-    //   }
-    // }
+    const serviceId = savedService?.data?.id || savedService?.id || props.service?.id
+    if (serviceId) {
+      // 삭제된 기존 이미지 처리
+      for (const imageId of removedImageIds.value) {
+        try {
+          await serviceApi.deleteServiceImage(authStore.businessId, serviceId, imageId)
+        } catch {
+          // 이미지 삭제 실패 시 무시
+        }
+      }
+      // 새 이미지 업로드
+      for (let i = 0; i < newImageFiles.value.length; i++) {
+        try {
+          await serviceApi.uploadServiceImage(
+            authStore.businessId,
+            serviceId,
+            newImageFiles.value[i],
+            existingImages.value.length + i,
+          )
+        } catch {
+          // 이미지 업로드 실패 시 무시
+        }
+      }
+    }
 
     emit('saved')
     handleClose()

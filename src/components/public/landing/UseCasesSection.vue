@@ -114,18 +114,19 @@ const useCases = reactive([
 </template>
 
 <style lang="scss" scoped>
+@use "@styles/mixins" as *;
 .use-cases-section {
   padding-block: 5rem;
   background-color: rgb(var(--v-theme-surface));
 }
 
 .use-case-item {
+  @include card-hover-lift($shadow: none);
+
   border-radius: 12px;
-  transition: all 0.3s ease;
   cursor: default;
 
   &:hover {
-    transform: translateY(-4px);
     background-color: rgba(var(--v-theme-primary), 0.04);
   }
 }

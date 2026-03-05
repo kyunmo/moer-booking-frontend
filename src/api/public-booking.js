@@ -73,4 +73,9 @@ export default {
   searchNearbyBusinesses(params = {}) {
     return apiClient.get('/public/businesses/nearby', { params })
   },
+
+  // 플랫폼 통계 조회 (인증 불필요)
+  getPlatformStats() {
+    return apiClient.get('/public/businesses/platform-stats')
+  },
 }

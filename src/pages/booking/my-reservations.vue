@@ -257,6 +257,18 @@ function formatPrice(price) {
 
   return price.toLocaleString() + '원'
 }
+
+function formatCancelableUntil(dateTimeStr) {
+  if (!dateTimeStr) return ''
+  const date = new Date(dateTimeStr)
+
+  return date.toLocaleString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 </script>
 
 <template>
@@ -437,21 +449,38 @@ function formatPrice(price) {
 
             <!-- Action Buttons -->
             <div class="d-flex flex-wrap gap-2">
-              <VBtn
-                v-if="reservation.canCancel"
-                color="error"
-                variant="outlined"
-                size="small"
-                @click.stop="openCancelDialog(reservation)"
+              <VTooltip
+                v-if="['PENDING', 'CONFIRMED'].includes(reservation.status)"
+                :disabled="reservation.canCancel"
+                location="top"
               >
-                <VIcon
-                  start
-                  size="16"
-                >
-                  ri-close-circle-line
-                </VIcon>
-                예약 취소
-              </VBtn>
+                <template #activator="{ props: tooltipProps }">
+                  <VBtn
+                    v-bind="tooltipProps"
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                    :disabled="!reservation.canCancel"
+                    @click.stop="openCancelDialog(reservation)"
+                  >
+                    <VIcon
+                      start
+                      size="16"
+                    >
+                      ri-close-circle-line
+                    </VIcon>
+                    예약 취소
+                  </VBtn>
+                </template>
+                <span>{{ reservation.cancelRestrictionReason || '취소할 수 없는 예약입니다' }}</span>
+              </VTooltip>
+
+              <div
+                v-if="reservation.cancelableUntil && reservation.canCancel"
+                class="text-caption text-medium-emphasis"
+              >
+                {{ formatCancelableUntil(reservation.cancelableUntil) }}까지 취소 가능
+              </div>
 
               <VBtn
                 v-if="reservation.status === 'COMPLETED' && !reservation.hasReview"
@@ -660,17 +689,34 @@ function formatPrice(price) {
             <VDivider class="mb-4" />
 
             <div class="d-flex flex-wrap gap-2">
-              <VBtn
-                v-if="detailItem.canCancel"
-                color="error"
-                variant="outlined"
-                @click="detailDialog = false; openCancelDialog(detailItem)"
+              <VTooltip
+                v-if="['PENDING', 'CONFIRMED'].includes(detailItem.status)"
+                :disabled="detailItem.canCancel"
+                location="top"
               >
-                <VIcon start>
-                  ri-close-circle-line
-                </VIcon>
-                예약 취소
-              </VBtn>
+                <template #activator="{ props: tooltipProps }">
+                  <VBtn
+                    v-bind="tooltipProps"
+                    color="error"
+                    variant="outlined"
+                    :disabled="!detailItem.canCancel"
+                    @click="detailDialog = false; openCancelDialog(detailItem)"
+                  >
+                    <VIcon start>
+                      ri-close-circle-line
+                    </VIcon>
+                    예약 취소
+                  </VBtn>
+                </template>
+                <span>{{ detailItem.cancelRestrictionReason || '취소할 수 없는 예약입니다' }}</span>
+              </VTooltip>
+
+              <div
+                v-if="detailItem.cancelableUntil && detailItem.canCancel"
+                class="text-caption text-medium-emphasis"
+              >
+                {{ formatCancelableUntil(detailItem.cancelableUntil) }}까지 취소 가능
+              </div>
 
               <VBtn
                 v-if="detailItem.status === 'COMPLETED' && !detailItem.hasReview"

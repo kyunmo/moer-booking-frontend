@@ -15,6 +15,7 @@ import { useSnackbar } from '@/composables/useSnackbar'
 import publicBookingApi from '@/api/public-booking'
 import { getBusinessTypeIcon } from '@/constants/businessTypes'
 import KakaoMap from '@/components/public/KakaoMap.vue'
+import { resolveImageUrl } from '@/utils/imageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -651,8 +652,8 @@ onMounted(() => {
                     <VImg
                       v-for="(img, imgIdx) in service.images.slice(0, 3)"
                       :key="imgIdx"
-                      :src="img.thumbnailUrl || img.imageUrl"
-                      :lazy-src="`${img.thumbnailUrl || img.imageUrl}?w=40&q=10`"
+                      :src="resolveImageUrl(img.thumbnailUrl || img.imageUrl)"
+                      :lazy-src="resolveImageUrl(img.thumbnailUrl || img.imageUrl)"
                       width="100"
                       height="80"
                       cover
@@ -1195,9 +1196,9 @@ onMounted(() => {
                   @click="openPortfolioImage(index)"
                 >
                   <VImg
-                    :src="item.imageUrl || item.url"
+                    :src="resolveImageUrl(item.imageUrl || item.url)"
                     :alt="item.title || `${portfolioStaff?.name} 포트폴리오 ${index + 1}`"
-                    :lazy-src="`${item.imageUrl || item.url}?w=40&q=10`"
+                    :lazy-src="resolveImageUrl(item.imageUrl || item.url)"
                     aspect-ratio="1"
                     cover
                   />
@@ -1234,7 +1235,7 @@ onMounted(() => {
             <VCarouselItem
               v-for="(item, index) in portfolioImages"
               :key="item.id || index"
-              :src="item.imageUrl || item.url"
+              :src="resolveImageUrl(item.imageUrl || item.url)"
               cover
             />
           </VCarousel>

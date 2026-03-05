@@ -43,4 +43,38 @@ export default {
 
     return apiClient.get(`/businesses/${businessId}/services/check-name`, { params })
   },
+
+  // ===== 서비스 이미지 =====
+
+  // 서비스 이미지 업로드 (multipart/form-data)
+  uploadServiceImage(businessId, serviceId, file, sortOrder = null, caption = null) {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (sortOrder !== null) formData.append('sortOrder', sortOrder)
+    if (caption) formData.append('caption', caption)
+
+    return apiClient.post(`/businesses/${businessId}/services/${serviceId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  // 서비스 이미지 목록 조회
+  getServiceImages(businessId, serviceId) {
+    return apiClient.get(`/businesses/${businessId}/services/${serviceId}/images`)
+  },
+
+  // 서비스 이미지 삭제
+  deleteServiceImage(businessId, serviceId, imageId) {
+    return apiClient.delete(`/businesses/${businessId}/services/${serviceId}/images/${imageId}`)
+  },
+
+  // 서비스 이미지 순서 변경
+  updateImageSort(businessId, serviceId, imageOrders) {
+    return apiClient.patch(`/businesses/${businessId}/services/${serviceId}/images/sort`, { imageOrders })
+  },
+
+  // Public 서비스 이미지 조회
+  getPublicServiceImages(slug, serviceId) {
+    return apiClient.get(`/public/businesses/${slug}/services/${serviceId}/images`)
+  },
 }

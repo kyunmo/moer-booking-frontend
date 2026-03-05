@@ -12,6 +12,8 @@
         </VCardTitle>
       </VCardItem>
 
+      <VDivider />
+
       <VCardText>
         <p class="text-body-1 mb-4">
           이 기능은 유료 플랜에서만 사용할 수 있습니다.

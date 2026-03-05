@@ -70,6 +70,11 @@ export default {
     })
   },
 
+  // 예약 시간 변경 (Reschedule)
+  rescheduleReservation(businessId, reservationId, data) {
+    return apiClient.patch(`/businesses/${businessId}/reservations/${reservationId}/reschedule`, data)
+  },
+
   // 직원 가용 시간 확인
   checkAvailability(businessId, params) {
     return apiClient.get(`/businesses/${businessId}/reservations/availability`, { params })

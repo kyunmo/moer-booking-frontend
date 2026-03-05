@@ -72,13 +72,8 @@
 
     <!-- 휴무일 목록 -->
     <VCard>
-      <!-- 로딩 -->
-      <div v-if="settingsStore.loading" class="text-center pa-10">
-        <VProgressCircular indeterminate color="primary" />
-      </div>
-
       <!-- 모바일 카드 뷰 -->
-      <template v-else-if="smAndDown">
+      <template v-if="smAndDown">
         <!-- 데이터 없음 -->
         <template v-if="sortedHolidays.length === 0">
           <EmptyState
@@ -167,6 +162,7 @@
         :headers="headers"
         :items="sortedHolidays"
         :items-per-page="15"
+        :loading="settingsStore.loading"
         class="holiday-table"
       >
         <!-- 날짜 -->

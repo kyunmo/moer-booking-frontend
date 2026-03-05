@@ -50,7 +50,12 @@ watch([
             @fallback="isFallbackStateActive = true"
             @resolve="isFallbackStateActive = false"
           >
-            <Component :is="Component" />
+            <Transition
+              name="fade"
+              mode="out-in"
+            >
+              <Component :is="Component" />
+            </Transition>
           </Suspense>
         </RouterView>
       </VMain>
@@ -73,5 +78,15 @@ watch([
   .main-content {
     flex: 1;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

@@ -439,6 +439,7 @@ onMounted(() => {
               <!-- Profile Image -->
               <VImg
                 :src="business.profileImageUrl || placeholderImage"
+                :alt="business.name + ' 매장 이미지'"
                 height="180"
                 cover
                 class="bg-grey-lighten-3"
@@ -515,6 +516,7 @@ onMounted(() => {
                     size="18"
                     color="warning"
                     active-color="warning"
+                    aria-hidden="true"
                   />
                   <span class="text-body-2 font-weight-medium ms-1">
                     {{ business.averageRating?.toFixed(1) || '0.0' }}
@@ -522,6 +524,7 @@ onMounted(() => {
                   <span class="text-body-2 text-medium-emphasis ms-1">
                     ({{ business.reviewCount || 0 }})
                   </span>
+                  <span class="d-sr-only">평점 {{ business.averageRating?.toFixed(1) || '0.0' }}점, 리뷰 {{ business.reviewCount || 0 }}개</span>
                 </div>
 
                 <!-- Today Hours -->
@@ -588,6 +591,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+@use "@styles/mixins" as *;
 .booking-search-page {
   min-block-size: 100vh;
   padding-block-end: 56px; // VBottomNavigation height
@@ -602,11 +606,7 @@ onMounted(() => {
 }
 
 .business-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
+  @include card-hover-lift($shadow: none);
 }
 
 .cursor-pointer {

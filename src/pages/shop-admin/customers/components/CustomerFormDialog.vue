@@ -6,21 +6,12 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <VCard>
+      <DialogCloseBtn @click="handleClose" />
+
       <!-- 헤더 -->
-      <VCardTitle class="d-flex align-center pe-2">
+      <VCardTitle class="d-flex align-center">
         <VIcon icon="ri-user-add-line" size="24" class="me-3" />
         <span>{{ isEditMode ? '고객 수정' : '고객 등록' }}</span>
-        
-        <VSpacer />
-        
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="handleClose"
-        >
-          <VIcon icon="ri-close-line" />
-        </VBtn>
       </VCardTitle>
 
       <VDivider />

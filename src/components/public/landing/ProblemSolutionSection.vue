@@ -164,18 +164,14 @@ const pairs = [
 </template>
 
 <style lang="scss" scoped>
+@use "@styles/mixins" as *;
 .problem-solution-section {
   padding-block: 12rem 5rem;
   background-color: rgb(var(--v-theme-background));
 }
 
 .problem-solution-card {
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
-  }
+  @include card-hover-lift;
 }
 
 @media (max-width: 960px) {

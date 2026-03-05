@@ -491,34 +491,42 @@ const availableTags = computed(() => {
   return [...tagSet].sort()
 })
 
-// CSV 내보내기
+// CSV 내보내기 (백엔드 API)
 function exportCsv() {
-  const customers = filteredCustomers.value
-  if (customers.length === 0) return
+  const businessId = authStore.businessId
+  if (!businessId) return
 
-  const headers = ['이름', '전화번호', '이메일', '성별', '생년월일', '방문횟수', '총결제액', '최근방문일', '태그', '메모']
-  const rows = customers.map(c => [
-    c.name || '',
-    c.phone || '',
-    c.email || '',
-    c.gender === 'MALE' ? '남성' : c.gender === 'FEMALE' ? '여성' : '',
-    c.birthDate || '',
-    c.visitCount || 0,
-    c.totalSpent || 0,
-    c.lastVisitDate || '',
-    (c.tags || []).join(', '),
-    (c.memo || '').replace(/\n/g, ' '),
-  ])
+  const segmentMap = {
+    all: '',
+    vip: 'VIP',
+    regular: 'REGULAR',
+    new: 'NEW',
+    inactive: 'INACTIVE',
+    birthday: 'BIRTHDAY',
+  }
 
-  const bom = '\uFEFF'
-  const csvContent = bom + [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `customers_${new Date().toISOString().split('T')[0]}.csv`
-  link.click()
-  URL.revokeObjectURL(url)
+  const segment = segmentMap[filterType.value] || ''
+  const exportUrl = customerApi.getExportUrl(businessId, { segment })
+
+  const token = localStorage.getItem('accessToken')
+  fetch(exportUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('다운로드 실패')
+      return response.blob()
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `customers_${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    })
+    .catch(() => {
+      showError('CSV 다운로드에 실패했습니다')
+    })
 }
 
 // 모바일 페이지네이션
