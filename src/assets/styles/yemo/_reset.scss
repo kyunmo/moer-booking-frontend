@@ -1,0 +1,86 @@
+// YEMO scoped reset — only applies inside `.yemo` root.
+// Does NOT touch global selectors so Vuetify/admin area is untouched.
+
+.yemo {
+  // Box sizing
+  &, *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  // Base
+  background: var(--y-bg);
+  color: var(--y-text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont,
+               'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  // Heading reset (Vuetify .text-h1 등은 admin에서 그대로 동작)
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--y-text-strong);
+  }
+
+  // Paragraph
+  p {
+    margin: 0;
+  }
+
+  // Links — default style, components override
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--y-dur-fast) var(--y-ease);
+  }
+
+  // Lists
+  ul, ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Images
+  img {
+    max-width: 100%;
+    display: block;
+  }
+
+  // Buttons — strip browser defaults, components add their own style
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  // Inputs — strip defaults
+  input, textarea, select {
+    font: inherit;
+    color: inherit;
+  }
+
+  // Focus visible only (no outline on click)
+  *:focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: none;
+    box-shadow: var(--y-shadow-focus);
+  }
+
+  // Selection
+  ::selection {
+    background: var(--y-accent-soft);
+    color: var(--y-text-strong);
+  }
+}
