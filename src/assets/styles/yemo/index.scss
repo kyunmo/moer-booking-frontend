@@ -1,0 +1,7 @@
+// YEMO Design System entry point
+// Scoped to `.yemo` root only — does NOT affect Vuetify/admin areas.
+@use 'tokens';
+@use 'reset';
+@use 'typography';
+@use 'motion';
+@use 'utilities';
