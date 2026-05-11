@@ -5,7 +5,7 @@ import { createApp } from 'vue'
 // Styles
 import '@core/scss/template/index.scss'
 import '@styles/styles.scss'
-import '@/assets/styles/yemo/index.scss'
+import '@styles/yemo/index.scss'
 
 // Create vue app
 const app = createApp(App)
