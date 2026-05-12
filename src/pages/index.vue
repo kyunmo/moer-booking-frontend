@@ -1,5 +1,7 @@
 <script setup>
 import HeroSection from '@/components/yemo/marketing/landing/HeroSection.vue'
+import PainPointSection from '@/components/yemo/marketing/landing/PainPointSection.vue'
+import SolutionSection from '@/components/yemo/marketing/landing/SolutionSection.vue'
 
 definePage({
   meta: {
@@ -14,4 +16,6 @@ definePage({
 
 <template>
   <HeroSection />
+  <PainPointSection />
+  <SolutionSection />
 </template>
