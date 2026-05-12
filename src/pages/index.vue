@@ -5,6 +5,9 @@ import SolutionSection from '@/components/yemo/marketing/landing/SolutionSection
 import FeaturesSection from '@/components/yemo/marketing/landing/FeaturesSection.vue'
 import IndustrySection from '@/components/yemo/marketing/landing/IndustrySection.vue'
 import TestimonialsSection from '@/components/yemo/marketing/landing/TestimonialsSection.vue'
+import PricingPreviewSection from '@/components/yemo/marketing/landing/PricingPreviewSection.vue'
+import FaqPreviewSection from '@/components/yemo/marketing/landing/FaqPreviewSection.vue'
+import FinalCtaSection from '@/components/yemo/marketing/landing/FinalCtaSection.vue'
 
 definePage({
   meta: {
@@ -24,4 +27,7 @@ definePage({
   <FeaturesSection />
   <IndustrySection />
   <TestimonialsSection />
+  <PricingPreviewSection />
+  <FaqPreviewSection />
+  <FinalCtaSection />
 </template>
