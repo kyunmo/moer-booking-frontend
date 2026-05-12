@@ -56,7 +56,7 @@ const userProfileList = [
     type: 'navItem',
     icon: 'ri-question-line',
     title: '고객지원',
-    to: '/support',
+    to: '/faq',
   },
 ]
 

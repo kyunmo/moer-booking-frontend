@@ -37,7 +37,7 @@
         환불정책
       </RouterLink>
       <RouterLink
-        to="/support"
+        to="/faq"
         class="text-primary text-decoration-none"
       >
         고객지원

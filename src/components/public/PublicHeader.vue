@@ -37,7 +37,7 @@ const defaultNavItems = [
   { title: '기능', to: '/features', icon: 'ri-function-line' },
   { title: '요금제', to: '/pricing', icon: 'ri-price-tag-3-line' },
   { title: 'FAQ', to: '/faq', icon: 'ri-question-line' },
-  { title: '지원', to: '/support', icon: 'ri-customer-service-line' },
+  { title: '지원', to: '/faq', icon: 'ri-customer-service-line' },
 ]
 
 // 예약 페이지 전용 네비게이션

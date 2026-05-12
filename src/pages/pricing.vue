@@ -1,464 +1,254 @@
-<route lang="yaml">
-meta:
-  layout: public
-  public: true
-  title: 요금제 - 모에르(MOER)
-  description: 무료로 시작하고 필요할 때 업그레이드. 월 19,800원(VAT 포함)으로 모든 기능을 사용하세요.
-  keywords: 예약 시스템 가격, 요금제, 무료 체험, 월 결제, 연간 결제
-</route>
-
 <script setup>
 import { ref, computed } from 'vue'
+import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
-import PricingCard from '@/components/pricing/PricingCard.vue'
-import InquiryFormDialog from '@/components/common/InquiryFormDialog.vue'
-import { PLANS, BILLING_CYCLES, formatCurrency, getMonthlyEquivalent, getYearlySavings } from '@/constants/pricing'
+import YBtn from '@/components/yemo/YBtn.vue'
+import YTag from '@/components/yemo/YTag.vue'
+import YSection from '@/components/yemo/YSection.vue'
+import FinalCtaSection from '@/components/yemo/marketing/landing/FinalCtaSection.vue'
+
+definePage({
+  meta: {
+    layout: 'marketing',
+    public: true,
+    title: '요금제 — YEMO',
+    description: '무료로 시작하고 필요할 때 업그레이드. 월 20,000원(VAT 별도)으로 모든 기능 사용. 30일 무료 체험.',
+    keywords: '예약 시스템 가격, 요금제, 무료 체험, 월 결제, 연간 결제',
+  },
+})
 
 const router = useRouter()
-const selectedPlan = ref('PAID')
-const isInquiryOpen = ref(false)
-const billingCycle = ref('yearly')
+const cycle = ref('monthly')
 
-const isYearly = computed({
-  get: () => billingCycle.value === 'yearly',
-  set: (val) => { billingCycle.value = val ? 'yearly' : 'monthly' },
-})
+const paid = computed(() => cycle.value === 'yearly'
+  ? { price: '16,000', sub: '연 192,000원 청구 (20% 할인)' }
+  : { price: '20,000', sub: 'VAT 별도 · 언제든 해지' })
 
-// 플랜별 상세 정보 (2티어: 무료 + 유료)
-const plansDetail = computed(() => {
-  const paidMonthlyEquivalent = getMonthlyEquivalent('PAID', billingCycle.value)
-
-  return {
-    FREE: {
-      name: '무료',
-      price: 0,
-      priceText: '0원',
-      features: [
-        { text: '월 예약 30건', included: true },
-        { text: '직원 1명', included: true },
-        { text: '시술 메뉴 관리', included: true },
-        { text: '예약 캘린더', included: true },
-        { text: '수동 예약 등록', included: true },
-        { text: '휴무일 설정', included: true },
-        { text: '고객 기본 정보', included: true },
-        { text: '방문 이력 (최근 10건)', included: true },
-        { text: '카카오톡 자동 알림', included: false },
-        { text: '고객 태그 관리', included: false },
-        { text: '통계 및 리포트', included: false },
-      ],
-      limits: [
-        '월 30건 초과 시 업그레이드 필요',
-      ],
-    },
-    PAID: {
-      name: '유료',
-      price: paidMonthlyEquivalent,
-      priceText: formatCurrency(paidMonthlyEquivalent),
-      priceSubText: billingCycle.value === 'yearly'
-        ? `연 ${formatCurrency(PLANS.PAID.yearlyPriceVatIncluded)} (VAT 포함)`
-        : '(VAT 포함)',
-      badge: '추천',
-      features: [
-        { text: '월 예약 무제한', included: true },
-        { text: '직원 5명', included: true },
-        { text: '시술 메뉴 무제한', included: true },
-        { text: '예약 캘린더 (일/주/월 뷰)', included: true },
-        { text: '예약 승인/거절', included: true },
-        { text: '고객 자동 등록', included: true },
-        { text: '방문 이력 무제한', included: true },
-        { text: '고객 태그 관리 (VIP, 단골)', included: true },
-        { text: '카카오톡 자동 알림', included: true },
-        { text: '통계 및 리포트', included: true },
-        { text: '디자이너별 성과 분석', included: true },
-      ],
-    },
-  }
-})
-
-// FAQ 데이터
-const faqs = [
-  {
-    question: '가격에 VAT가 포함되어 있나요?',
-    answer: '네, 표시된 가격은 모두 VAT 포함 금액입니다.\n\n유료 플랜 월 19,800원(VAT 포함)이며, 사업자 고객은 세금계산서 발행이 가능합니다.\n(공급가액 18,000원 + VAT 1,800원)',
-  },
-  {
-    question: '30일 무료 체험은 어떻게 이용하나요?',
-    answer: '유료 플랜을 30일간 무료로 체험할 수 있습니다.\n\n• 30일 동안 유료 플랜의 모든 기능 사용\n• 신용카드 등록 불필요\n• 체험 종료 후 자동 과금 없음\n• 체험 종료 후 무료 플랜으로 자동 전환\n\n무료 플랜은 체험 없이 바로 사용 가능합니다.',
-  },
-  {
-    question: '무료 플랜에서 예약 30건을 초과하면 어떻게 되나요?',
-    answer: '월 30건 초과 시 새로운 예약 등록이 제한됩니다.\n\n기존 예약은 그대로 유지되며, 유료 플랜으로 업그레이드하면 즉시 무제한으로 사용 가능합니다.\n\n다음 달 1일에 예약 카운트가 초기화됩니다.',
-  },
-  {
-    question: '직원 수를 초과하면?',
-    answer: '업그레이드가 필요합니다.\n\n무료: 1명 → 유료: 5명\n\n무료 플랜에서 2명째 직원 추가 시 "유료 플랜으로 업그레이드하세요" 안내가 표시됩니다.',
-  },
-  {
-    question: '환불 정책은 어떻게 되나요?',
-    answer: '공정하게 처리합니다.\n\n30일 무료 체험 기간: 과금 없음\n\n유료 전환 후: 사용 일수 차감 후 일할 계산 환불\n예: 월 19,800원(VAT 포함), 10일 사용 → 약 13,200원 환불\n\n환불 신청 후 5영업일 이내 처리됩니다.',
-  },
-  {
-    question: '플랜을 변경하면 데이터는 어떻게 되나요?',
-    answer: '모든 데이터는 그대로 유지됩니다.\n\n업그레이드 (무료 → 유료):\n모든 데이터 유지 + 추가 기능 즉시 활성화\n\n다운그레이드 (유료 → 무료):\n모든 데이터 유지, 단 직원 수/예약 건수 제한 적용\n예: 유료→무료 시 고객 이력은 유지되지만 최근 10건만 표시',
-  },
-  {
-    question: '연간 결제 시 할인이 있나요?',
-    answer: '네! 연간 결제 시 2개월 무료 혜택이 적용됩니다.\n\n월 결제: 19,800원 × 12개월 = 237,600원/년 (VAT 포함)\n연간 결제: 198,000원/년 (VAT 포함)\n\n절약 금액: 39,600원 (VAT 포함)\n\n연간 결제를 선택하면 월 환산 약 16,500원(VAT 포함)에 모든 기능을 사용하실 수 있습니다.',
-  },
-  {
-    question: '월 결제에서 연간 결제로 변경 가능한가요?',
-    answer: '네, 구독 관리에서 언제든 변경 가능합니다.\n\n변경 방법:\n1. 대시보드 > 구독 관리\n2. "결제 주기 변경" 선택\n3. 연간 결제 선택\n4. 차액 결제 후 즉시 적용\n\n이미 결제한 월 구독료는 일할 계산하여 차감됩니다.',
-  },
+const compareRows = [
+  { feature: '월 요금', free: '0원', paid: () => cycle.value === 'yearly' ? '16,000원 (연 결제)' : '20,000원' },
+  { feature: '월 예약 건수', free: '50건', paid: () => '무제한' },
+  { feature: '디자이너', free: '1명', paid: () => '5명' },
+  { feature: '시술 메뉴', free: '10개', paid: () => '무제한' },
+  { feature: '카카오톡 알림', free: false, paid: () => true },
+  { feature: '재방문 자동 알림', free: false, paid: () => true },
+  { feature: '포트폴리오', free: '5장', paid: () => '무제한' },
+  { feature: '고급 통계', free: false, paid: () => true },
+  { feature: '이메일 지원', free: true, paid: () => true },
 ]
 
-function selectPlan(plan) {
-  selectedPlan.value = plan
-}
+const faqs = [
+  { q: '연간 결제 시 위약금이 있나요?', a: '없습니다. 해지 시 남은 기간 일할 환불 처리합니다.' },
+  { q: '무료에서 유료로 변경하면 데이터가 유지되나요?', a: '네, 모든 기존 데이터가 유지됩니다. 디자이너·시술 메뉴·고객 정보 그대로 이어집니다.' },
+  { q: '환불은 어떻게 받나요?', a: '대시보드의 결제 메뉴에서 해지하면 자동으로 환불 처리됩니다. 일할 계산되어 영업일 기준 3-5일 내 입금됩니다.' },
+]
 
-function startWithPlan(plan) {
-  router.push({
-    path: '/register',
-    query: { plan },
-  })
-}
+const openFaq = ref(-1)
 </script>
 
 <template>
-  <div class="pricing-page">
-    <!-- 히어로 섹션 -->
-    <section class="hero-section">
-      <VContainer>
-        <div class="text-center">
-          <h1 class="text-h2 text-md-h1 font-weight-bold mb-4">
-            심플한 요금제
-          </h1>
-          <p class="text-h6 text-medium-emphasis mb-2">
-            숨겨진 비용 없음 | 언제든 해지 가능 | 플랜 변경 자유
-          </p>
-          <VChip color="success" variant="tonal" size="large" prepend-icon="ri-gift-line" class="mt-2">
-            30일 무료 체험
-          </VChip>
-        </div>
-      </VContainer>
-    </section>
-
-    <!-- 요금제 카드 -->
-    <section class="pricing-cards-section py-12">
-      <VContainer>
-        <!-- 월/연간 결제 토글 -->
-        <div class="d-flex align-center justify-center gap-4 mb-8">
-          <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'monthly' }">월 결제</span>
-          <VSwitch v-model="isYearly" hide-details inset color="primary" />
-          <span class="text-body-1" :class="{ 'font-weight-bold text-primary': billingCycle === 'yearly' }">
-            연간 결제
-            <VChip color="success" size="x-small" class="ms-1">2개월 무료</VChip>
-          </span>
-        </div>
-
-        <VRow justify="center">
-          <VCol
-            v-for="plan in ['FREE', 'PAID']"
-            :key="plan"
-            cols="12"
-            sm="6"
-            md="5"
-            lg="4"
+  <div class="pricing">
+    <YSection eyebrow="Pricing" title="간단하고 투명한 요금제" align="center" sub="숨겨진 비용 없음. 언제든 해지 가능. 플랜 변경 자유.">
+      <div class="pricing__toggle-wrap">
+        <div class="pricing__toggle" role="tablist">
+          <button
+            role="tab"
+            :aria-selected="cycle === 'monthly'"
+            class="pricing__toggle-btn"
+            :class="{ 'is-active': cycle === 'monthly' }"
+            @click="cycle = 'monthly'"
+          >월간 결제</button>
+          <button
+            role="tab"
+            :aria-selected="cycle === 'yearly'"
+            class="pricing__toggle-btn"
+            :class="{ 'is-active': cycle === 'yearly' }"
+            @click="cycle = 'yearly'"
           >
-            <PricingCard
-              :plan="plan"
-              :billing-cycle="billingCycle"
-              :selected="selectedPlan === plan"
-              @select="selectPlan"
-            />
-          </VCol>
-        </VRow>
-      </VContainer>
-    </section>
-
-    <!-- 상세 비교표 -->
-    <section class="comparison-section py-16 bg-surface">
-      <VContainer>
-        <div class="text-center mb-12">
-          <h2 class="text-h3 font-weight-bold mb-2">
-            상세 기능 비교
-          </h2>
-          <p class="text-body-1 text-medium-emphasis">
-            무료 플랜과 유료 플랜의 기능을 비교해보세요
-          </p>
+            연간 결제 <span class="pricing__save">−20%</span>
+          </button>
         </div>
+      </div>
 
-        <!-- 모바일: 탭으로 전환 -->
-        <div class="d-md-none mb-6">
-          <VTabs v-model="selectedPlan" grow>
-            <VTab value="FREE">무료</VTab>
-            <VTab value="PAID">유료</VTab>
-          </VTabs>
-
-          <VCard class="mt-4">
-            <VCardTitle class="text-center">
-              {{ plansDetail[selectedPlan].name }}
-              <VChip
-                v-if="plansDetail[selectedPlan].badge"
-                color="primary"
-                size="small"
-                class="ms-2"
-              >
-                {{ plansDetail[selectedPlan].badge }}
-              </VChip>
-            </VCardTitle>
-            <VCardText>
-              <div class="text-center mb-4">
-                <div class="text-h4 font-weight-bold text-primary">
-                  {{ plansDetail[selectedPlan].priceText }}
-                </div>
-                <div class="text-caption text-medium-emphasis">
-                  /월 {{ plansDetail[selectedPlan].priceSubText || '' }}
-                </div>
-              </div>
-
-              <VList>
-                <VListItem
-                  v-for="(feature, index) in plansDetail[selectedPlan].features"
-                  :key="index"
-                  density="compact"
-                >
-                  <template #prepend>
-                    <VIcon
-                      :icon="feature.included ? 'ri-check-line' : 'ri-close-line'"
-                      :color="feature.included ? 'success' : 'error'"
-                      size="20"
-                    />
-                  </template>
-                  <VListItemTitle :class="{ 'text-medium-emphasis': !feature.included }">
-                    {{ feature.text }}
-                  </VListItemTitle>
-                </VListItem>
-              </VList>
-
-              <VDivider v-if="plansDetail[selectedPlan].limits" class="my-4" />
-
-              <div v-if="plansDetail[selectedPlan].limits">
-                <div class="text-subtitle-2 font-weight-bold mb-2">제한 사항</div>
-                <VList density="compact">
-                  <VListItem
-                    v-for="(limit, index) in plansDetail[selectedPlan].limits"
-                    :key="index"
-                  >
-                    <template #prepend>
-                      <VIcon icon="ri-error-warning-line" color="warning" size="20" />
-                    </template>
-                    <VListItemTitle class="text-body-2">
-                      {{ limit }}
-                    </VListItemTitle>
-                  </VListItem>
-                </VList>
-              </div>
-
-              <VBtn
-                block
-                color="primary"
-                size="large"
-                class="mt-4"
-                @click="startWithPlan(selectedPlan)"
-              >
-                {{ selectedPlan === 'FREE' ? '무료로 시작하기' : '30일 무료 체험' }}
-              </VBtn>
-            </VCardText>
-          </VCard>
+      <div class="pricing__plans">
+        <div class="plan">
+          <div class="plan__name">무료</div>
+          <div class="plan__price">
+            <span class="plan__amount">0</span>
+            <span class="plan__currency">원 / 월</span>
+          </div>
+          <p class="plan__sub">체험용으로 딱</p>
+          <YBtn variant="secondary" size="lg" block @click="router.push('/register')">무료로 시작</YBtn>
         </div>
+        <div class="plan plan--featured">
+          <YTag variant="accent">대부분이 선택</YTag>
+          <div class="plan__name">유료</div>
+          <div class="plan__price">
+            <span class="plan__amount">{{ paid.price }}</span>
+            <span class="plan__currency">원 / 월</span>
+          </div>
+          <p class="plan__sub">{{ paid.sub }}</p>
+          <YBtn variant="accent" size="lg" block @click="router.push('/register')">유료 플랜 시작</YBtn>
+        </div>
+      </div>
+    </YSection>
 
-        <!-- 데스크톱: 테이블 -->
-        <VTable class="d-none d-md-block comparison-table">
+    <YSection eyebrow="Compare" title="플랜 비교" align="center">
+      <div class="compare">
+        <table>
           <thead>
             <tr>
-              <th class="text-left" style="width: 50%">기능</th>
-              <th class="text-center" style="width: 25%">
-                <div class="py-4">
-                  <div class="text-h6 font-weight-bold">무료</div>
-                  <div class="text-h5 font-weight-bold text-info mt-2">0원</div>
-                  <div class="text-caption">/월</div>
-                </div>
-              </th>
-              <th class="text-center" style="width: 25%">
-                <div class="py-4">
-                  <VChip color="primary" size="small" class="mb-2">추천</VChip>
-                  <div class="text-h6 font-weight-bold">유료</div>
-                  <div class="text-h5 font-weight-bold text-primary mt-2">
-                    {{ plansDetail.PAID.priceText }}
-                  </div>
-                  <div class="text-caption">/월 {{ plansDetail.PAID.priceSubText || '' }}</div>
-                </div>
-              </th>
+              <th></th>
+              <th>무료</th>
+              <th>유료</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(feature, index) in plansDetail.PAID.features" :key="index">
-              <td class="text-body-2 font-weight-medium">{{ feature.text }}</td>
-              <td class="text-center">
-                <VIcon
-                  v-if="plansDetail.FREE.features[index]?.included"
-                  icon="ri-check-line"
-                  color="success"
-                  size="24"
-                />
-                <VIcon v-else icon="ri-close-line" color="error" size="24" />
+            <tr v-for="row in compareRows" :key="row.feature">
+              <td>{{ row.feature }}</td>
+              <td>
+                <template v-if="typeof row.free === 'boolean'">
+                  <Icon :icon="row.free ? 'ph:check' : 'ph:x'" :class="row.free ? 'ok' : 'no'" />
+                </template>
+                <template v-else>{{ row.free }}</template>
               </td>
-              <td class="text-center">
-                <VIcon
-                  v-if="plansDetail.PAID.features[index]?.included"
-                  icon="ri-check-line"
-                  color="success"
-                  size="24"
-                />
-                <VIcon v-else icon="ri-close-line" color="error" size="24" />
+              <td class="paid">
+                <template v-if="typeof row.paid() === 'boolean'">
+                  <Icon :icon="row.paid() ? 'ph:check' : 'ph:x'" :class="row.paid() ? 'ok' : 'no'" />
+                </template>
+                <template v-else>{{ row.paid() }}</template>
               </td>
             </tr>
           </tbody>
-          <tfoot>
-            <tr>
-              <td></td>
-              <td class="text-center py-4">
-                <VBtn color="info" variant="outlined" @click="startWithPlan('FREE')">
-                  무료로 시작하기
-                </VBtn>
-              </td>
-              <td class="text-center py-4">
-                <VBtn color="primary" @click="startWithPlan('PAID')">
-                  30일 무료 체험
-                </VBtn>
-              </td>
-            </tr>
-          </tfoot>
-        </VTable>
+        </table>
+      </div>
+    </YSection>
 
-        <p class="text-body-2 text-medium-emphasis text-center mt-4">
-          * 일부 기능은 베타 기간 중 순차 오픈됩니다
-        </p>
-      </VContainer>
-    </section>
+    <YSection eyebrow="FAQ" title="요금제 관련 자주 묻는 질문" align="center">
+      <div class="faq">
+        <button
+          v-for="(item, i) in faqs"
+          :key="item.q"
+          class="faq__item"
+          :class="{ 'is-open': openFaq === i }"
+          :aria-expanded="openFaq === i"
+          @click="openFaq = openFaq === i ? -1 : i"
+        >
+          <div class="faq__q">
+            <span>{{ item.q }}</span>
+            <Icon :icon="openFaq === i ? 'ph:minus' : 'ph:plus'" aria-hidden="true" />
+          </div>
+          <div v-show="openFaq === i" class="faq__a">{{ item.a }}</div>
+        </button>
+      </div>
+    </YSection>
 
-    <!-- FAQ 섹션 -->
-    <section class="faq-section py-16">
-      <VContainer>
-        <div class="text-center mb-12">
-          <h2 class="text-h3 font-weight-bold mb-2">
-            자주 묻는 질문
-          </h2>
-          <p class="text-body-1 text-medium-emphasis">
-            요금제에 대해 궁금한 점을 확인하세요
-          </p>
-        </div>
-
-        <VRow justify="center">
-          <VCol cols="12" md="10" lg="8">
-            <VExpansionPanels>
-              <VExpansionPanel
-                v-for="(faq, index) in faqs"
-                :key="index"
-                :value="index"
-              >
-                <VExpansionPanelTitle class="text-h6">
-                  {{ faq.question }}
-                </VExpansionPanelTitle>
-                <VExpansionPanelText>
-                  <div class="text-body-2" style="white-space: pre-line;">
-                    {{ faq.answer }}
-                  </div>
-                </VExpansionPanelText>
-              </VExpansionPanel>
-            </VExpansionPanels>
-          </VCol>
-        </VRow>
-
-        <div class="text-center mt-8">
-          <p class="text-body-1 mb-4">
-            더 궁금한 점이 있으신가요?
-          </p>
-          <VBtn variant="outlined" @click="isInquiryOpen = true">
-            1:1 문의하기
-            <VIcon icon="ri-arrow-right-line" end />
-          </VBtn>
-        </div>
-      </VContainer>
-    </section>
-
-    <!-- 최종 CTA -->
-    <section class="final-cta-section py-16 bg-primary">
-      <VContainer>
-        <VRow align="center" justify="center">
-          <VCol cols="12" md="8" class="text-center">
-            <h2 class="text-h3 font-weight-bold mb-4 text-white">
-              지금 시작하세요
-            </h2>
-            <p class="text-h6 mb-8 text-white opacity-90">
-              월 2만원도 안 되는 비용으로 예약 관리 자동화
-            </p>
-            <VBtn
-              size="x-large"
-              color="white"
-              prepend-icon="ri-rocket-line"
-              @click="startWithPlan('PAID')"
-            >
-              30일 무료 체험 시작하기
-            </VBtn>
-            <div class="d-flex flex-wrap justify-center gap-3 mt-6">
-              <div class="d-flex align-center text-white text-body-2">
-                <VIcon icon="ri-check-line" size="20" class="me-1" />
-                신용카드 등록 불필요
-              </div>
-              <VDivider vertical class="mx-2 opacity-50" />
-              <div class="d-flex align-center text-white text-body-2">
-                <VIcon icon="ri-check-line" size="20" class="me-1" />
-                30일 동안 모든 기능 무료
-              </div>
-              <VDivider vertical class="mx-2 opacity-50" />
-              <div class="d-flex align-center text-white text-body-2">
-                <VIcon icon="ri-check-line" size="20" class="me-1" />
-                언제든 해지 가능
-              </div>
-            </div>
-          </VCol>
-        </VRow>
-      </VContainer>
-    </section>
-    <InquiryFormDialog v-model="isInquiryOpen" />
+    <FinalCtaSection />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.pricing-page {
-  width: 100%;
+.pricing { background: var(--y-bg); }
+
+.pricing__toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 56px;
+}
+.pricing__toggle {
+  display: inline-flex;
+  background: var(--y-surface);
+  border: 1px solid var(--y-border);
+  border-radius: var(--y-radius-pill);
+  padding: 4px;
+}
+.pricing__toggle-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--y-text-muted);
+  border-radius: var(--y-radius-pill);
+  display: inline-flex; align-items: center; gap: 6px;
+  &.is-active { background: var(--y-text-strong); color: var(--y-bg); }
+}
+.pricing__save {
+  background: var(--y-accent);
+  color: var(--y-text-strong);
+  padding: 2px 6px;
+  border-radius: var(--y-radius-sm);
+  font-size: 10px;
+  font-weight: 800;
 }
 
-.hero-section {
-  padding-block: 80px 60px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+.pricing__plans {
+  max-width: 720px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
 }
+.plan {
+  background: var(--y-surface);
+  border: 1px solid var(--y-border);
+  border-radius: var(--y-radius-2xl);
+  padding: 36px 28px;
+  display: flex; flex-direction: column; gap: 16px;
 
-.pricing-cards-section {
-  background-color: rgb(var(--v-theme-background));
-}
-
-.comparison-section {
-  background-color: rgb(var(--v-theme-surface));
-}
-
-.comparison-table {
-  th {
-    background-color: rgb(var(--v-theme-surface));
-    border-bottom: 2px solid rgb(var(--v-theme-primary));
+  &--featured {
+    background: var(--y-text-strong);
+    color: var(--y-bg);
+    border-color: var(--y-text-strong);
+    .plan__name, .plan__amount { color: var(--y-bg); }
+    .plan__currency, .plan__sub { color: rgba(255, 255, 255, 0.7); }
   }
+  &__name { font-size: 16px; font-weight: 700; color: var(--y-text-strong); }
+  &__price { display: flex; align-items: baseline; gap: 4px; }
+  &__amount { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: var(--y-text-strong); }
+  &__currency { font-size: 14px; color: var(--y-text-muted); }
+  &__sub { font-size: 12px; color: var(--y-text-muted); }
+}
 
-  tbody tr:hover {
-    background-color: rgba(var(--v-theme-primary), 0.05);
+.compare {
+  max-width: 720px;
+  margin-inline: auto;
+  background: var(--y-surface);
+  border: 1px solid var(--y-border);
+  border-radius: var(--y-radius-xl);
+  overflow: hidden;
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--y-border);
+    text-align: left;
   }
+  th { background: var(--y-bg); font-weight: 700; color: var(--y-text-strong); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  td.paid { font-weight: 600; color: var(--y-text-strong); }
+  tr:last-child td { border-bottom: none; }
+  svg { width: 18px; height: 18px; }
+  .ok { color: var(--y-success); }
+  .no { color: var(--y-text-disabled); }
 }
 
-.faq-section {
-  background-color: rgb(var(--v-theme-background));
-}
-
-.final-cta-section {
-  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.8) 100%);
+.faq {
+  max-width: 720px;
+  margin-inline: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  &__item {
+    background: var(--y-surface);
+    border: 1px solid var(--y-border);
+    border-radius: var(--y-radius-lg);
+    text-align: left; width: 100%;
+    &.is-open { border-color: var(--y-accent); }
+  }
+  &__q {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px;
+    font-size: 15px; font-weight: 600;
+    color: var(--y-text-strong);
+    svg { width: 20px; height: 20px; color: var(--y-text-muted); }
+  }
+  &__a { padding: 0 24px 24px; font-size: 14px; line-height: 1.7; color: var(--y-text-muted); }
 }
 </style>

@@ -180,7 +180,7 @@ export default [
   },
   {
     title: '도움말 / FAQ',
-    to: { path: '/support' },
+    to: { path: '/faq' },
     icon: { icon: 'ri-question-line' },
   },
 ]

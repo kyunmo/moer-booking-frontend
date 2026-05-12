@@ -14,8 +14,8 @@ const serviceLinks = [
 
 // Support links
 const supportLinks = [
-  { title: '고객지원', to: '/support' },
-  { title: '이용 가이드', to: '/support' },
+  { title: '고객지원', to: '/faq' },
+  { title: '이용 가이드', to: '/faq' },
 ]
 
 // Company links
