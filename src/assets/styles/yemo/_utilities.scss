@@ -1,0 +1,58 @@
+// YEMO Utility classes — minimal set, prefer composition over many utilities
+// Naming: y-{property}-{value} (avoid Tailwind-like sprawl)
+
+.yemo {
+  // Display
+  .y-flex       { display: flex; }
+  .y-flex-col   { display: flex; flex-direction: column; }
+  .y-inline-flex { display: inline-flex; }
+  .y-grid       { display: grid; }
+  .y-block      { display: block; }
+  .y-hidden     { display: none; }
+
+  // Flex
+  .y-items-center  { align-items: center; }
+  .y-items-start   { align-items: flex-start; }
+  .y-items-end     { align-items: flex-end; }
+  .y-justify-between { justify-content: space-between; }
+  .y-justify-center  { justify-content: center; }
+  .y-gap-4   { gap: 4px; }
+  .y-gap-8   { gap: 8px; }
+  .y-gap-12  { gap: 12px; }
+  .y-gap-16  { gap: 16px; }
+  .y-gap-24  { gap: 24px; }
+  .y-gap-32  { gap: 32px; }
+
+  // Space (margin top — most common)
+  @each $size in (4, 8, 12, 16, 20, 24, 32, 40, 48, 64) {
+    .y-mt-#{$size} { margin-top: #{$size}px; }
+    .y-mb-#{$size} { margin-bottom: #{$size}px; }
+    .y-p-#{$size}  { padding: #{$size}px; }
+  }
+
+  // Text alignment
+  .y-text-center { text-align: center; }
+  .y-text-left   { text-align: left; }
+  .y-text-right  { text-align: right; }
+
+  // Width helpers
+  .y-w-full { width: 100%; }
+  .y-max-w-reading { max-width: 720px; }
+
+  // Visibility
+  .y-sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
+  // Mobile-only / desktop-only
+  @media (max-width: 768px) {
+    .y-md-up { display: none !important; }
+  }
+  @media (min-width: 769px) {
+    .y-md-down { display: none !important; }
+  }
+}
