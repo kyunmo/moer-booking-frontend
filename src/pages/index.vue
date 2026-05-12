@@ -2,6 +2,9 @@
 import HeroSection from '@/components/yemo/marketing/landing/HeroSection.vue'
 import PainPointSection from '@/components/yemo/marketing/landing/PainPointSection.vue'
 import SolutionSection from '@/components/yemo/marketing/landing/SolutionSection.vue'
+import FeaturesSection from '@/components/yemo/marketing/landing/FeaturesSection.vue'
+import IndustrySection from '@/components/yemo/marketing/landing/IndustrySection.vue'
+import TestimonialsSection from '@/components/yemo/marketing/landing/TestimonialsSection.vue'
 
 definePage({
   meta: {
@@ -18,4 +21,7 @@ definePage({
   <HeroSection />
   <PainPointSection />
   <SolutionSection />
+  <FeaturesSection />
+  <IndustrySection />
+  <TestimonialsSection />
 </template>
